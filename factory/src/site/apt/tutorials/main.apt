@@ -1,0 +1,19 @@
+ ------
+Next Generation Forge Documentation
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster
+ ------
+June 2009
+ ------
+
+Factory Tutorials
+
+  This pages will show how to develop services for factory using internal components to provide a rich user interface taking advantage of all factorized services
+  
+    * {{{../main.html}Back to home menu}}
+   
+    * {{{./helloworld.html}The HelloWorld Service}}
+    
+    * {{{./hello.html}The Hello Service}}
+    
+    * {{{./s3.html}The Amazon S3 Service}}

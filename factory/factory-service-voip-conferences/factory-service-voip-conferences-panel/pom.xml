@@ -1,0 +1,165 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.qualipso</groupId>
+	<artifactId>factory-service-voip-conferences-panel</artifactId>
+	<packaging>war</packaging>
+	<name>VoIP Conference Panel</name>
+	<version>0.0.3-SNAPSHOT</version>
+
+	<developers>
+		<developer>
+			<id>dariusz.janny</id>
+			<name>Dariusz Janny</name>
+			<email>janny@man.poznan.pl</email>
+			<roles>
+				<role>developer</role>
+			</roles>
+			<timezone>1</timezone>
+		</developer>
+	</developers>
+
+	<repositories>
+		<repository>
+			<id>laburnum-small</id>
+			<name>qualipso PSNC maven2 repository</name>
+			<url>http://laburnum-small.man.poznan.pl/maven2</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
+	<build>
+		<defaultGoal>war:war</defaultGoal>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<webResources>
+						<webResource>
+							<directory>src/main/webapp</directory>
+							<filtering>true</filtering>
+							<includes>
+								<include>**/*.xml</include>
+								<include>**/*.jsp</include>
+								<include>**/*.tld</include>
+							</includes>
+						</webResource>
+					</webResources>
+				</configuration>
+			</plugin>
+		</plugins>
+
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+	</build>
+	<dependencies>
+
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-service-voip-conferences-wsclient</artifactId>
+			<version>0.0.3-SNAPSHOT</version>
+		</dependency>
+
+		<!-- json -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20090211</version>
+			<!-- <classifier>jdk15</classifier> -->
+		</dependency>
+
+		<!-- logging -->
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.15</version>
+		</dependency>
+
+		<!-- javax Servlet API -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.4</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>xerces</groupId>
+			<artifactId>xmlParserAPIs</artifactId>
+			<version>2.6.0</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- taglibs -->
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>fmt</artifactId>
+			<version>1.1.2</version>
+			<type>tld</type>
+		</dependency>
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>fmt-rt</artifactId>
+			<version>1.0.6</version>
+			<type>tld</type>
+		</dependency>
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>c</artifactId>
+			<version>1.1.2</version>
+			<type>tld</type>
+		</dependency>
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>c-rt</artifactId>
+			<version>1.0.6</version>
+			<type>tld</type>
+		</dependency>
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>sql</artifactId>
+			<version>1.1.2</version>
+			<type>tld</type>
+		</dependency>
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>sql-rt</artifactId>
+			<version>1.0.6</version>
+			<type>tld</type>
+		</dependency>
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>x</artifactId>
+			<version>1.1.2</version>
+			<type>tld</type>
+		</dependency>
+		<dependency>
+			<groupId>taglibs</groupId>
+			<artifactId>x-rt</artifactId>
+			<version>1.0.6</version>
+			<type>tld</type>
+		</dependency>
+	</dependencies>
+	<properties>
+		<service.endpoint>http://localhost:3000/factory-service-voip-conferences/services/VoIPConferenceService</service.endpoint>
+		<taglibs.base.version>1.1.2</taglibs.base.version>
+		<taglibs.rt.version>1.0.6</taglibs.rt.version>
+		<schema.target.namespace>http://org.qualipso.factory.ws/service/voip</schema.target.namespace>
+	</properties>
+</project>

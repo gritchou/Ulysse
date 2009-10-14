@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<parent>
+		<artifactId>factory</artifactId>
+		<groupId>org.qualipso</groupId>
+		<version>0.4-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.qualipso</groupId>
+	<artifactId>factory-service-voip-conferences-wsclient</artifactId>
+	<name>Qualipso Factory VoIP Tools - WebService Client</name>
+	<version>0.0.3-SNAPSHOT</version>
+	<packaging>ejb</packaging>
+	 <organization>
+    <name>Poznan Supercomputing and Networking Center</name>
+    <url>http://www.man.poznan.pl</url>
+  </organization>
+  <developers>
+    <developer>
+      <id>dariusz.janny</id>
+      <name>Dariusz Janny</name>
+      <email>janny@man.poznan.pl</email>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+  
+  <properties>
+    <ws.core.uri>http://localhost:3000/factory-core</ws.core.uri>
+    <ws.root.uri>http://localhost:3000/factory-service</ws.root.uri>
+  </properties>
+  
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-ejb-plugin</artifactId>
+				<configuration>
+					<ejbVersion>3.0</ejbVersion>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>			
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxws-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>wsimport</goal>
+            </goals>
+            <configuration>
+              <wsdlUrls>
+                <wsdlUrl>${ws.core.uri}/bootstrap?wsdl</wsdlUrl>
+                <wsdlUrl>${ws.root.uri}-voip/voipconference?wsdl</wsdlUrl>
+              </wsdlUrls>
+              <sourceDestDir>${basedir}/src/main/java</sourceDestDir>
+              <packageName>org.qualipso.factory.voipservice.client.ws</packageName>
+              <keep>true</keep>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>      
+		</plugins>
+	</build>
+	
+	<dependencies>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1.1</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+	</dependencies>
+
+</project>

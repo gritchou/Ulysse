@@ -1,0 +1,55 @@
+@CHARSET "UTF-8";
+
+body {
+	color: #000066;
+	font-family: Georgia, Verdana;
+	font-size: 11px;
+}
+
+table {
+	padding: 0px;
+	margin: 0px;
+	background: #dddddd;
+	border: 1px;
+}
+thead {
+	background: #B3CCE6;
+}
+th {
+	background: #B3CCE6;
+}
+td {
+	background: #eeeeee;
+}
+
+a:link { color: #000066;}
+a:visited { color: #111188; }
+a:hover { color: #0088bb; }
+
+tr {
+	vertical-align: top;
+}
+
+#confName {
+	width: 342px;
+}
+
+#container > div {
+	border: 1px;
+	background: #eeeeee;
+	padding: 10px;
+}
+
+#container > div > table {
+	width: 400px;
+}
+
+input[type='text'] {
+	width: 141px;
+}
+
+select {
+	width: 145px;
+}
+
+

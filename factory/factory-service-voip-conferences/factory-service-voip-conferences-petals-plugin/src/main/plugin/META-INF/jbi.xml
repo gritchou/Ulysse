@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<jbi xmlns="http://java.sun.com/xml/ns/jbi" version="1.0">
+	<service-assembly>
+  	<identification>
+    	<name>${voip.ws.pc.name}</name>
+      <description>${voip.ws.pc.name} descriptor</description>
+    </identification>
+    <service-unit>
+    	<identification>
+        <name>${voip.ws.provider.name}</name>
+        <description>${voip.ws.provider.name} SU</description>
+     	</identification>
+     	<target>
+	      <artifacts-zip>${voip.ws.provider.name}.zip</artifacts-zip>
+	      <component-name>petals-bc-soap</component-name>
+      </target>
+    </service-unit>
+    <service-unit>
+      <identification>
+	      <name>${voip.ws.consumer.name}</name>
+	      <description>${voip.ws.consumer.name} SU</description>
+      </identification>
+      <target>
+	      <artifacts-zip>${voip.ws.consumer.name}.zip</artifacts-zip>
+	      <component-name>petals-bc-soap</component-name>
+      </target>
+    </service-unit>
+	</service-assembly>
+</jbi>

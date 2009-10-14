@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+  version="2.0">
+
+  <description>Asterisk Panel JSTL 1.1 functions library</description>
+  <display-name>Asterisk Panel JSTL functions</display-name>
+  <tlib-version>1.1</tlib-version>
+  <short-name>ast</short-name>
+  <uri>${schema.target.namespace}</uri>
+
+  <function>
+    <name>formatDate</name>
+    <function-class>org.qualipso.factory.voipservice.panel.util.PanelTld</function-class>
+    <function-signature>java.lang.String formatDate(java.lang.Long)</function-signature>
+  </function>
+</taglib>

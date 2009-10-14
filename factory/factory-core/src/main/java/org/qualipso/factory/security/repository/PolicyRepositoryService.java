@@ -1,0 +1,14 @@
+package org.qualipso.factory.security.repository;
+
+import javax.ejb.Local;
+
+/**
+ * @author Jerome Blanchard (jayblanc@gmail.com)
+ * @date 1 September 2009
+ */
+@Local 
+public interface PolicyRepositoryService {
+	
+	public PolicyRepository getPolicyRepository();
+
+}

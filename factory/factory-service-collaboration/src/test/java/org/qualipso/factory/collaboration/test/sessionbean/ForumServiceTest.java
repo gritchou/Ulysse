@@ -1,0 +1,259 @@
+package org.qualipso.factory.collaboration.test.sessionbean;
+
+import static org.hamcrest.text.StringContains.containsString;
+import static org.qualipso.factory.collaboration.test.jmock.action.SaveParamsAction.saveParams;
+import static org.qualipso.factory.collaboration.test.jmock.matcher.EventWithTypeEqualsToMatcher.anEventWithTypeEqualsTo;
+
+import java.util.HashMap;
+import java.util.UUID;
+import java.util.Vector;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.jmock.Expectations;
+import org.jmock.Mockery;
+import org.jmock.Sequence;
+import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.FactoryResourceProperty;
+import org.qualipso.factory.binding.BindingService;
+import org.qualipso.factory.browser.BrowserService;
+import org.qualipso.factory.collaboration.forum.ForumService;
+import org.qualipso.factory.collaboration.forum.ForumServiceBean;
+import org.qualipso.factory.collaboration.forum.entity.Forum;
+import org.qualipso.factory.collaboration.forum.entity.ThreadMessage;
+import org.qualipso.factory.collaboration.utils.CollaborationUtils;
+import org.qualipso.factory.collaboration.ws.ForumWService;
+import org.qualipso.factory.core.CoreService;
+import org.qualipso.factory.membership.MembershipService;
+import org.qualipso.factory.notification.NotificationService;
+import org.qualipso.factory.security.pap.PAPService;
+import org.qualipso.factory.security.pep.PEPService;
+import org.qualipso.factory.collaboration.ws.beans.ForumDTO;
+import org.qualipso.factory.collaboration.ws.beans.MessageDTO;
+
+import com.bm.testsuite.BaseSessionBeanFixture;
+
+public class ForumServiceTest extends BaseSessionBeanFixture<ForumServiceBean>
+{
+    private static Log logger = LogFactory.getLog(ForumServiceTest.class);
+    @SuppressWarnings("unchecked")
+    private static final Class[] usedBeans = { Forum.class,ThreadMessage.class };
+
+    private Mockery mockery;
+    private BindingService binding;
+    private MembershipService membership;
+    private PEPService pep;
+    private PAPService pap;
+    private NotificationService notification;
+    private BrowserService browser;
+    private CoreService core;
+    private ForumWService forumWS;
+
+    public ForumServiceTest()
+    {
+	super(ForumServiceBean.class, usedBeans);
+    }
+
+    public void setUp() throws Exception
+    {
+	super.setUp();
+	logger.debug("injecting mock partners session beans");
+	mockery = new Mockery();
+	binding = mockery.mock(BindingService.class);
+	membership = mockery.mock(MembershipService.class);
+	pep = mockery.mock(PEPService.class);
+	pap = mockery.mock(PAPService.class);
+	notification = mockery.mock(NotificationService.class);
+	browser = mockery.mock(BrowserService.class);
+	core = mockery.mock(CoreService.class);
+	forumWS = mockery.mock(ForumWService.class);
+	getBeanToTest().setMembershipService(membership);
+	getBeanToTest().setNotificationService(notification);
+	getBeanToTest().setBindingService(binding);
+	getBeanToTest().setPEPService(pep);
+	getBeanToTest().setPAPService(pap);
+	getBeanToTest().setBrowser(browser);
+	getBeanToTest().setCore(core);
+	getBeanToTest().setForumWS(forumWS);
+    }
+    
+
+    public void testCRD()
+    {
+	logger.debug("****************************************************************");
+	logger.debug("testing CRD Forum(...)");
+	logger.debug("****************************************************************");
+	final Sequence sequence1 = mockery.sequence("sequence1");
+	final Vector<Object> params1 = new Vector<Object>();
+	final Vector<Object> params2 = new Vector<Object>();
+	final Vector<Object> params3 = new Vector<Object>();
+	try
+	{
+	    final String rootForums = "/forums"; 
+	    final String forumName = "F"+ System.currentTimeMillis();
+	    final String forumNameNorm = CollaborationUtils.normalizeForPath(forumName);
+	    final String forumId = CollaborationUtils.normalizeForPath(UUID.randomUUID().toString());
+	    ForumService service = getBeanToTest();
+	    // TEST Create Forum
+	    mockery.checking(new Expectations()
+	    {
+		{
+		    oneOf(membership).getProfilePathForConnectedIdentifier();will(returnValue("/profiles/jayblanc"));inSequence(sequence1);
+		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),with(equal(rootForums)), with(equal("create")));inSequence(sequence1);
+		    // mock WS
+		    HashMap<String, Object> resultMap = new HashMap<String, Object>();
+		    resultMap.put("statusCode", "SUCCESS");
+		    resultMap.put("statusMessage", "done");
+		    resultMap.put("forumId", forumId);
+		    oneOf(forumWS).createForum(with(any(String.class)));will(returnValue(resultMap));inSequence(sequence1);
+		    //
+		    oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)),with(equal(rootForums+"/"+forumNameNorm)));will(saveParams(params3));inSequence(sequence1);
+		    oneOf(binding).setProperty(with(equal(rootForums+"/"+forumNameNorm)),with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)),with(any(String.class)));inSequence(sequence1);
+		    oneOf(binding).setProperty(with(equal(rootForums+"/"+forumNameNorm)),with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)),with(any(String.class)));inSequence(sequence1);
+		    oneOf(binding).setProperty(with(equal(rootForums+"/"+forumNameNorm)),with(equal(FactoryResourceProperty.AUTHOR)),with(equal("/profiles/jayblanc")));inSequence(sequence1);
+		    oneOf(pap).createPolicy(with(any(String.class)),with(containsString(rootForums+"/"+forumNameNorm)));inSequence(sequence1);
+		    oneOf(binding).setProperty(with(equal(rootForums+"/"+forumNameNorm)),with(equal(FactoryResourceProperty.OWNER)),with(equal("/profiles/jayblanc")));inSequence(sequence1);
+		    oneOf(binding).setProperty(with(equal(rootForums+"/"+forumNameNorm)),with(equal(FactoryResourceProperty.POLICY_ID)),with(any(String.class)));inSequence(sequence1);
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.forum.create")));inSequence(sequence1);
+		}
+	    });
+	    service.createForum(rootForums, forumName);
+	    
+	    // TEST Read Forum
+	    mockery.checking(new Expectations()
+	    {
+		{
+		    oneOf(membership).getProfilePathForConnectedIdentifier();will(returnValue("/profiles/jayblanc"));inSequence(sequence1);
+		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),with(equal(rootForums+"/"+forumNameNorm)), with(equal("read")));inSequence(sequence1);
+		    oneOf(binding).lookup(with(equal(rootForums+"/"+forumNameNorm)));will(returnValue(params3.get(0)));inSequence(sequence1);
+		    // Mock WS
+		    HashMap<String, Object> resultMap = new HashMap<String, Object>();
+		    resultMap.put("statusCode", "SUCCESS");
+		    resultMap.put("statusMessage", "done");
+		    ForumDTO forum = new ForumDTO();
+		    forum.setId(forumId);
+		    forum.setName(forumName);
+		    forum.setDate("2009-09-29");
+		    resultMap.put("forum", forum);
+		    oneOf(forumWS).readForum(with(any(String.class)));will(returnValue(resultMap));inSequence(sequence1);
+		    //
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.forum.read")));inSequence(sequence1);
+		}
+	    });
+	    Forum myForum = service.readForum("/forums/" + forumNameNorm);
+	    assertNotNull(myForum);
+	    assertTrue(myForum.getName().equals(forumName));
+	    logger.debug("****************************************************************");
+	    logger.debug("                     THREAD MESSAGES TEST");
+	    logger.debug("****************************************************************");
+	    
+	    final String threadId = CollaborationUtils.normalizeForPath(UUID.randomUUID().toString());
+	    String threadName = "T" + System.currentTimeMillis();
+	    final String randomText = "Lorem Ipsum "+System.currentTimeMillis();
+	    final String threadNameNorm = CollaborationUtils.normalizeForPath(threadName);
+	    // TEST Create Thread
+	    mockery.checking(new Expectations()
+	    {
+		{
+		    //
+		    oneOf(membership).getProfilePathForConnectedIdentifier();will(returnValue("/profiles/jayblanc"));inSequence(sequence1);
+		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),with(equal("/forums/" + forumNameNorm)), with(equal("create")));inSequence(sequence1);
+		    // Mock WS
+		    HashMap<String, Object> resultMap = new HashMap<String, Object>();
+		    resultMap.put("statusCode", "SUCCESS");
+		    resultMap.put("statusMessage", "done");
+		    resultMap.put("messageId", threadId);
+		    oneOf(forumWS).createThreadMsg(with(any(String.class)), with(any(String.class)), with(any(String.class)), with(any(String.class)), with(any(boolean.class)));will(returnValue(resultMap));inSequence(sequence1);
+		    //
+		    oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)),with(equal(rootForums+"/"+ forumNameNorm+"/"+threadNameNorm)));will(saveParams(params2));inSequence(sequence1);
+		    oneOf(binding).setProperty(with(equal("/forums/" + forumNameNorm+"/"+threadNameNorm)),with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)),with(any(String.class)));inSequence(sequence1);
+		    oneOf(binding).setProperty(with(equal(rootForums+"/"+ forumNameNorm+"/"+threadNameNorm)),with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)),with(any(String.class)));inSequence(sequence1);
+		    oneOf(binding).setProperty(with(equal(rootForums+"/"+ forumNameNorm+"/"+threadNameNorm)),with(equal(FactoryResourceProperty.AUTHOR)),with(equal("/profiles/jayblanc")));inSequence(sequence1);
+		    oneOf(pap).createPolicy(with(any(String.class)),with(containsString(rootForums+"/"+ forumNameNorm+"/"+threadNameNorm)));inSequence(sequence1);
+		    oneOf(binding).setProperty(with(equal(rootForums+"/"+ forumNameNorm+"/"+threadNameNorm)),with(equal(FactoryResourceProperty.OWNER)),with(equal("/profiles/jayblanc")));inSequence(sequence1);
+		    oneOf(binding).setProperty(with(equal(rootForums+"/"+ forumNameNorm+"/"+threadNameNorm)),with(equal(FactoryResourceProperty.POLICY_ID)),with(any(String.class)));inSequence(sequence1);
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.threadmessage.create")));inSequence(sequence1);
+		}
+	    });
+	    service.createThreadMessage("/forums/" + forumNameNorm+"/"+threadNameNorm, threadName, myForum.getId(), randomText, "2009-08-28", "false");
+    
+	    // TEST Read Thread
+	    mockery.checking(new Expectations()
+	    {
+		{
+		    oneOf(membership).getProfilePathForConnectedIdentifier();will(returnValue("/profiles/jayblanc"));inSequence(sequence1);
+		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),with(equal(rootForums+"/"+ forumNameNorm+"/"+threadNameNorm)), with(equal("read")));inSequence(sequence1);
+		    oneOf(binding).lookup(with(equal(rootForums+"/"+ forumNameNorm+"/"+threadNameNorm)));will(returnValue(params2.get(0)));inSequence(sequence1);
+		    // mock WS
+		    HashMap<String, Object> resultMap = new HashMap<String, Object>();
+		    resultMap.put("statusCode", "SUCCESS");
+		    resultMap.put("statusMessage", "done");
+		    MessageDTO msg = new MessageDTO();
+		    msg.setId(threadId);
+		    msg.setForumId(forumId);
+		    msg.setName(threadNameNorm);
+		    msg.setDatePosted("2009-09-29");
+		    msg.setMessageBody(randomText);
+		    resultMap.put("ThreadMessage", msg);
+		    oneOf(forumWS).readThread(forumId,threadId);will(returnValue(resultMap));inSequence(sequence1);
+		    //
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.threadmessage.read")));inSequence(sequence1);
+		}
+	    });
+	    ThreadMessage myMsg = service.readThreadMessage(rootForums+"/"+ forumNameNorm+"/" + threadNameNorm);
+	    assertNotNull(myMsg);
+	    assertTrue(myMsg.getName().equals(threadName));
+	    // TEST Delete thread
+	    mockery.checking(new Expectations()
+	    {
+		{
+		    oneOf(membership).getProfilePathForConnectedIdentifier();will(returnValue("/profiles/jayblanc"));inSequence(sequence1);
+		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),with(equal(rootForums+"/"+forumNameNorm+"/" + threadNameNorm)), with(equal("delete")));inSequence(sequence1);
+		    oneOf(binding).lookup(with(equal(rootForums+"/"+forumNameNorm+"/" + threadNameNorm)));will(returnValue(params2.get(0)));inSequence(sequence1);
+		    // mock WS
+		    HashMap<String, Object> resultMap = new HashMap<String, Object>();
+		    resultMap.put("statusCode", "SUCCESS");
+		    resultMap.put("statusMessage", "done");
+		    oneOf(forumWS).deleteThreadMessage(threadId);will(returnValue(resultMap));inSequence(sequence1);
+		    //
+		    oneOf(binding).getProperty(with(equal(rootForums+"/"+forumNameNorm+"/" + threadNameNorm)), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); inSequence(sequence1);
+		    oneOf(pap).deletePolicy(with(any(String.class))); inSequence(sequence1);
+		    oneOf(binding).unbind(with(equal(rootForums +"/"+forumNameNorm+"/" + threadNameNorm)));inSequence(sequence1);
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.threadmessage.delete")));inSequence(sequence1);
+		}
+	    });
+	    service.deleteThreadMessage(rootForums+"/"+forumNameNorm+"/" + threadNameNorm);
+	    logger.debug("****************************************************************");
+	    
+	    //
+	    // TEST Delete Forum
+	    mockery.checking(new Expectations()
+	    {
+		{
+		    // Delete the forum
+		    oneOf(membership).getProfilePathForConnectedIdentifier();will(returnValue("/profiles/jayblanc"));inSequence(sequence1);
+		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),with(equal(rootForums+"/"+forumNameNorm)), with(equal("delete")));inSequence(sequence1);
+		    oneOf(binding).lookup(with(equal(rootForums+"/"+forumNameNorm)));will(returnValue(params3.get(0)));inSequence(sequence1);
+		    // mock WS
+		    HashMap<String, Object> resultMap = new HashMap<String, Object>();
+		    resultMap.put("statusCode", "SUCCESS");
+		    resultMap.put("statusMessage", "done");
+		    oneOf(forumWS).deleteForum(forumId);will(returnValue(resultMap));inSequence(sequence1);
+		    //
+		    oneOf(binding).getProperty(with(equal(rootForums+"/"+forumNameNorm)), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); inSequence(sequence1);
+		    oneOf(pap).deletePolicy(with(any(String.class))); inSequence(sequence1);
+		    oneOf(binding).unbind(with(equal(rootForums+"/"+forumNameNorm)));inSequence(sequence1);
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.forum.delete")));inSequence(sequence1);
+		}
+	    });
+	    service.deleteForum(rootForums +"/"+ forumNameNorm);
+	    mockery.assertIsSatisfied();
+
+	} catch (Exception e)
+	{
+	    logger.error(e.getMessage(), e);
+	    fail(e.getMessage());
+	}
+    }    
+   
+}

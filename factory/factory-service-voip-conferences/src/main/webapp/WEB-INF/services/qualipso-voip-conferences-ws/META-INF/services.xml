@@ -1,0 +1,9 @@
+<service name="QualipsoVoIPConferenceService" targetNamespace="${schema.target.namespace}">
+	<schema schemaNamespace="${schema.target.namespace}" />
+	<description>${pom.name}</description>
+	<messageReceivers>
+		<messageReceiver mep="http://www.w3.org/2004/08/wsdl/in-only" class="org.apache.axis2.rpc.receivers.RPCInOnlyMessageReceiver" />
+		<messageReceiver mep="http://www.w3.org/2004/08/wsdl/in-out"  class="org.apache.axis2.rpc.receivers.RPCMessageReceiver"/>
+	</messageReceivers>
+	<parameter name="ServiceClass">org.qualipso.factory.voipservice.QualipsoVoIPConferenceService</parameter>
+</service>

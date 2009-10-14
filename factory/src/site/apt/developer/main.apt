@@ -1,0 +1,31 @@
+ ------
+Next Generation Forge Documentation - Introduction
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster
+ ------
+June 2009
+ ------
+
+Developers Documentation
+
+  These pages introduce internal factory components in order to use them for services development or internal improvements.
+  
+   * {{{./install-dev-env.html}Development's environment installation}} 
+
+   * {{{./external-docs.html}External documentation resources}} 
+   
+   * {{{./components-overview.html}Internal Factory Components Overview}}
+   
+   * {{{./binding-component.html}Binding}}
+   
+   * {{{./authentication-component.html}Authentication}}
+   
+   * {{{./indexing-component.html}Indexing}}
+   
+   * {{{./notification-component.html}Notification}}
+   
+   * {{{./pep-component.html}Policy Enforcement Point (PEP)}}
+   
+   * {{{./pap-component.html}Policy Administration Point (PAP)}}
+   
+   * {{{./pdp-component.html}Policy Decision Point (PDP)}}

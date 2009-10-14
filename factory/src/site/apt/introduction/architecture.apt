@@ -1,0 +1,27 @@
+ ------
+Next Generation Forge Documentation - Introduction
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster
+ ------
+June 2009
+ ------
+ 
+Factory Overview - Architecture
+
+  The factory architecture is based on a SCA approach. Each component is well defined and promotes an interface to ensure other components can access it. 
+  Implementation of each component is language independent and linking between components can be done very easily using the SCA container. For instance, components can be implemented 
+  as EJB3 Session Bean. This allows to have a great authentication framework provided by the Application Server but also other interesting stuff such as transaction management, clustering, etc...   
+  
+  Some components are internal to the factory and perform primitive operations such as creating security policies, checking access permission, throwing events, etc. Some higher level 
+  components such as membership service or browser service promotes external interfaces. Some of those "externally visible components" are dedicated to factory business logic.
+  Other components promote external service provider interface while also making use of the factory business logic. 
+  
+  For instance, the S3 service promotes the Amazon S3 service interface but taktes advantage of the factory logic. When service need to access storage, the S3 "Abstract" service 
+  performs external calls to the real Amazon S3 service. But, before calling external service, some internal services are called in order to add the factory business logic 
+  to Amazon S3 service (such as factory security model and checking, factory global naming, factory indexation, factory event propagation, etc.).
+  
+  The factory acts as a kind of framework between external provider services and promoted abstract services.
+  
+[../images/Factory-SCA-Diagram.png] 
+
+  Note: Some of the abstract services are not linked to internal components for prettier viewing.

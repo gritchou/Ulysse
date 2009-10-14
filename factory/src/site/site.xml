@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="QualiPSo SCA Factory">
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-stylus-skin</artifactId>
+    <version>1.1</version>
+  </skin>	
+  <bannerLeft>
+    <name>${project.name}</name>
+    <src>http://qualipso.gforge.inria.fr/images/qualipso-factory.png</src>
+    <href>http://qualipso.gforge.inria.fr/</href>
+  </bannerLeft>
+  <bannerRight>
+	<name>Maven</name>
+    <src>images/maven-logo-2.gif</src>
+    <href>http://maven.apache.org/</href>
+  </bannerRight>
+  <body>
+	<menu name="Main">
+	  <item name="Welcome" href="index.html"/>	
+	</menu>
+	
+	<menu name="Get Factory">
+	  <item name="Download" href="download.html"/>
+	  <item name="License" href="license.html"/>	
+	</menu>
+	
+	<menu name="Documentation">
+	  <item name="Getting Started" href="main.html"/>
+	  <item name="Introduction" href="introduction/main.html"/>
+	  <item name="Installation" href="installation/main.html"/>
+	  <item name="User doc" href="user/main.html"/>
+	  <item name="Developer doc" href="developer/main.html"/>
+	  <item name="Tutorials" href="tutorials/main.html"/>
+	</menu>
+
+	<menu ref="modules"/>
+
+    <menu ref="reports"/>
+	
+    <links>
+      <item name="QualiPSo.org" href="http://www.qualipso.org/" />
+      <item name="INRIA" href="http://www.inria.fr/" />
+      <item name="ECOO Project-Team" href="http://ecoo.loria.fr/" />
+      <item name="Maven 2" href="http://maven.apache.org/"/>
+    </links>
+  </body>
+</project>

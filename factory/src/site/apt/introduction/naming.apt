@@ -1,0 +1,30 @@
+ ------
+Next Generation Forge Documentation - Introduction
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster
+ ------
+June 2009
+ ------
+ 
+Factory Overview - Composition of resources using naming
+
+* Factory business objects
+
+  The factory defines two kind of objects : FactoryService and FactoryResource.
+  
+  The FactoryResource is an abstract view for external piece of data. Each external piece of data can be seen by the factory as a resource. 
+  For example, a Forum can be a piece of data modeled as a FactoryResource. Depending on the granularity you have chosen to model your data, 
+  a FactoryResource can be a huge piece of data like a complete forum or a very small one like an Issue. 
+  
+  Using very small piece of data gives you the capacity to perform great composition of resources using the internal naming schema of the Factory.
+  
+* The internal naming scheme
+
+  The factory uses an internal naming scheme to bind external piece of data into internal named FactoryResources. This allows to give a unique path
+  (/projects/project1/repository1) to an external resource. To be able to recover the external resource looking up is internal name, a FactoryResourceIdentifier
+  contains the name of the FactoryService managing this resource, the type of this resource and his unique external id. 
+  
+[../images/FactoryNamingScheme.png]   
+
+  The Browser service allow you to crawl the naming tree in order to discover binded resources. Using the factory service, you should be able to load resource whatever 
+  type of resource it is. This allows you to perform generic operations on those resources, using internal factory components.

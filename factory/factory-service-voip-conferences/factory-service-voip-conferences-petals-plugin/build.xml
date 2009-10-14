@@ -1,0 +1,22 @@
+<project name="petals-plugin" basedir="." default="plugin">
+	<target name="plugin">
+		<echo message="Prepare plugin [part 1]"/>
+		<copy file="${project.basedir}/src/main/webapp/wsdl/VoIPConferenceService.wsdl" tofile="target/classes/plugin/ws_provider/VoIPConferenceService.wsdl" overwrite="true" />
+		<zip destfile="target/classes/plugin/qualipso_voip_conference_ws_provider.zip" basedir="target/classes/plugin/ws_provider" />
+		<delete dir="target/classes/plugin/ws_provider"/>
+		
+		<echo message="Prepare plugin [part 2]"/>
+		<zip destfile="${project.basedir}/target/classes/plugin/qualipso_voip_conference_ws_consumer.zip" basedir="target/classes/plugin/ws_consumer" />
+		<delete dir="target/classes/plugin/ws_consumer"/>
+		
+		<zip destfile="target/qualipso_voip_conference_ws-${pom.version}.zip" basedir="target/classes/plugin/" />
+	</target>
+	
+	<target name="stub">
+		<echo message="Generate stub"/>
+		<copy todir="${project.basedir}/src/main/java" failonerror="false" overwrite="true">
+			<fileset dir="target/generated-sources/axis2/wsdl2code/src"/>
+		</copy>
+		<delete dir="target/generated-sources/axis2" failonerror="false" />
+	</target>
+</project>

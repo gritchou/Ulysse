@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.qualipso</groupId>
+	<artifactId>factory-service-voip-conferences-stub</artifactId>
+	<packaging>jar</packaging>
+	<name>Qualipso VoIP Petals plugin and stub JAR generation</name>
+	<version>0.0.3-SNAPSHOT</version>
+
+ <organization>
+    <name>Poznan Supercomputing and Networking Center</name>
+    <url>http://www.man.poznan.pl</url>
+  </organization> 
+  <developers>
+    <developer>
+      <id>dariusz.janny</id>
+      <name>Dariusz Janny</name>
+      <email>janny@man.poznan.pl</email>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+
+	<repositories>
+		<repository>
+			<id>laburnum-small</id>
+			<name>qualipso PSNC maven2 repository</name>
+			<url>http://laburnum-small.man.poznan.pl/maven2</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.axis2</groupId>
+				<artifactId>axis2-java2wsdl-maven-plugin</artifactId>
+				<version>1.4.1</version>
+				<configuration>
+					<className>org.qualipso.factory.voipservice.VoIPConferenceService</className>
+					<schemaTargetNamespace>http://org.qualipso.factory.ws/service/voip</schemaTargetNamespace>
+					<targetNamespace>http://org.qualipso.factory.ws/service/voip</targetNamespace>
+					<serviceName>VoIPConferenceService</serviceName>
+					<outputFileName>${project.basedir}/src/main/webapp/wsdl/VoIPConferenceService.wsdl</outputFileName>
+				</configuration>
+				<executions>
+					<execution>
+					 <id>1</id>
+					 <phase>compile</phase>
+						<goals>
+							<goal>java2wsdl</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.axis2</groupId>
+				<artifactId>axis2-wsdl2code-maven-plugin</artifactId>
+				<version>1.4.1</version>
+				<configuration>
+					<packageName>org.qualipso.factory.voipservice.stub</packageName>
+					<wsdlFile>${project.basedir}/src/main/webapp/wsdl/VoIPConferenceService.wsdal</wsdlFile>
+					<databindingName>adb</databindingName>
+				</configuration>
+				<executions>
+					<execution>
+            <id>2</id>
+            <phase>compile</phase>
+						<goals>
+							<goal>wsdl2code</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+ 
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>ant</groupId>
+            <artifactId>ant-antlr</artifactId>
+            <version>1.6.5</version>
+          </dependency>
+        </dependencies>
+
+        <executions>
+          <execution>
+            <id>3</id>
+            <phase>compile</phase>
+            <configuration>
+              <tasks>
+                <property name="pom.version" value="${pom.version}" />
+                <property name="project.basedir" value="${project.basedir}" />
+                <ant antfile="build.xml">
+                  <target name="plugin" />
+                </ant>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+
+          <execution>
+            <id>4</id>
+            <phase>process-resources</phase>
+            <configuration>
+              <tasks>
+                <property name="pom.version" value="${pom.version}" />
+                <property name="project.basedir" value="${project.basedir}" />
+                <ant antfile="build.xml">
+                  <target name="stub" />
+                </ant>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+		</plugins>
+ 
+		<resources>
+			<resource>
+				<directory>src/main</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+	</build>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-service-voip-conferences</artifactId>
+			<version>0.0.3-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+		  <groupId>javax.persistence</groupId>
+		  <artifactId>persistence-api</artifactId>
+		  <version>1.0</version>
+		</dependency>
+    <dependency>
+      <groupId>javax.ejb</groupId>
+      <artifactId>ejb-api</artifactId>
+      <version>3.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.axis2</groupId>
+      <artifactId>axis2</artifactId>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.axis2</groupId>
+      <artifactId>axis2-adb</artifactId>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.axis2</groupId>
+      <artifactId>axis2-codegen</artifactId>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.axis2</groupId>
+      <artifactId>axis2-transport-http</artifactId>
+      <version>1.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.axis</groupId>
+      <artifactId>axis-jaxrpc</artifactId>
+      <version>1.4</version>
+    </dependency>
+
+	</dependencies>
+
+	<!-- used in petals plugin - now not used -->
+	<properties>
+		<voip.ws.pc.name>qualipso_voip_conference_ws_provider</voip.ws.pc.name>
+		<voip.ws.provider.name>qualipso_voip_conference_ws_provider</voip.ws.provider.name>
+		<voip.ws.consumer.name>qualipso_voip_conference_ws_consumer</voip.ws.consumer.name>
+		<voip.ws.name>VoIPConferenceService</voip.ws.name>
+		<voip.wsdl.name>VoIPConferenceService.wsdl</voip.wsdl.name>
+		<soap.address>http://localhost:8080/qualipso-voip-conferences-ws-1.0.0/services/VoIPConferenceService</soap.address>
+	</properties>
+
+</project>

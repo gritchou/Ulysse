@@ -1,0 +1,17 @@
+<Request>
+	<Subject SubjectCategory="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject">
+		<Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-id" DataType="http://www.w3.org/2001/XMLSchema#string">
+			<AttributeValue>titi</AttributeValue>
+		</Attribute>
+	</Subject>
+	<Resource>
+		<Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id" DataType="http://www.w3.org/2001/XMLSchema#anyURI">
+			<AttributeValue>/tutu</AttributeValue>
+		</Attribute>
+	</Resource>
+	<Action>
+		<Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string">
+			<AttributeValue>bidouille</AttributeValue>
+		</Attribute>
+	</Action>
+</Request>

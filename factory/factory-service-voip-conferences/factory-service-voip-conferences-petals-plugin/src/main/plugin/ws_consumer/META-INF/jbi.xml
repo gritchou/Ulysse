@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jbi:jbi version="1.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:jbi="http://java.sun.com/xml/ns/jbi" 
+	xmlns:petalsCDK="http://petals.ow2.org/components/extensions/version-4.0" 
+	xmlns:soap="http://petals.ow2.org/components/soap/version-3.1" 
+	xmlns:qualipso="http://petals.ow2.org/soap/qualipso"
+	xmlns:ns="http://org.qualipso.factory.ws/factory"
+>
+	<!-- Import a Service into PEtALS or Expose a PEtALS Service => use a BC. -->
+	<jbi:services binding-component="true">
+		<!-- Expose a PEtALS Service => consumes a Service. -->
+		<jbi:consumes 
+			interface-name="qualipso:${voip.ws.name}Interface" 
+			service-name="qualipso:${voip.ws.name}" 
+			endpoint-name="qualipso:${voip.ws.name}Endpoint">
+			<!-- CDK specific fields -->
+			<petalsCDK:operation>operation</petalsCDK:operation>
+			<petalsCDK:mep>InOut</petalsCDK:mep>
+			<!-- SOAP specific fields -->
+			<soap:address>${voip.ws.name}</soap:address>
+			<soap:remove-root>false</soap:remove-root>
+			<soap:mode>SOAP</soap:mode>
+		</jbi:consumes>
+	</jbi:services>
+</jbi:jbi>

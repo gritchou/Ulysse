@@ -1,0 +1,11 @@
+conference number: <confno>
+PIN: <pin>
+name: <name>
+agenda: <agenda>
+start: <startDate>
+end: <endDate>
+user: <user>
+user address: <userAddress>
+
+-- 
+This email was generated automatically

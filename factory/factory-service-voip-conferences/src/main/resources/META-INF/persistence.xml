@@ -1,0 +1,52 @@
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://java.sun.com/xml/ns/persistence
+http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd"
+version="1.0">
+	<persistence-unit name="${persistence.unit}" transaction-type="RESOURCE_LOCAL">
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<non-jta-data-source>java:voipconferenceDS</non-jta-data-source>
+		
+		<class>org.qualipso.factory.voipservice.entity.Cdr</class>
+		<class>org.qualipso.factory.voipservice.entity.ConferenceUser</class>
+		<class>org.qualipso.factory.voipservice.entity.ExtensionsConf</class>
+		<class>org.qualipso.factory.voipservice.entity.IaxBuddies</class>
+		<class>org.qualipso.factory.voipservice.entity.MeetMe</class>
+		<class>org.qualipso.factory.voipservice.entity.PastConference</class>
+		<class>org.qualipso.factory.voipservice.entity.QueueMemberTable</class>
+		<class>org.qualipso.factory.voipservice.entity.QueueTable</class>
+		<class>org.qualipso.factory.voipservice.entity.SipConf</class>
+		<class>org.qualipso.factory.voipservice.entity.VoicemailUsers</class>
+  
+		<properties>
+ 
+		    <property name="hibernate.ejb.cfgfile" value="openmeetings/conf/hibernate.cfg.xml"/>
+        <property name="hibernate.archive.autodetection" value="class, hbm.xml"/>
+		    
+				<property name="hibernate.connection.url" value="${hibernate.connection.url}" />
+				<property name="hibernate.connection.username" value="${hibernate.connection.username}" />
+				<property name="hibernate.connection.password" value="${hibernate.connection.password}" />
+ 				<property name="hibernate.connection.driver_class" value="com.mysql.jdbc.Driver" />
+				<property name="hibernate.dialect" value="org.hibernate.dialect.MySQLDialect" />
+ 				 				
+				<!-- Use the C3P0 connection pool provider -->
+				<property name="hibernate.c3p0.min_size" value="5" />
+				<property name="hibernate.c3p0.max_size" value="20" />
+				<property name="hibernate.c3p0.timeout" value="300" />
+				<property name="hibernate.c3p0.max_statements" value="50" />
+				<property name="hibernate.c3p0.idle_test_period" value="3000" />
+
+				<property name="hibernate.connection.CharSet" value="utf8" />
+				<property name="hibernate.connection.characterEncoding" value="utf8" />
+				<property name="hibernate.connection.useUnicode" value="true" />
+		    <property name="hibernate.show_sql" value="false" />
+				
+				<!-- Disable the second-level cache  -->
+				<property name="hibernate.cache.provider_class" value="org.hibernate.cache.NoCacheProvider" />
+				
+				<!-- Enable Hibernate's automatic session context management -->
+				<property name="hibernate.current_session_context_class" value="thread" />
+ 
+		</properties>
+	</persistence-unit>
+</persistence>

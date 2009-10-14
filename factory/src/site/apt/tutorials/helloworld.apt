@@ -1,0 +1,340 @@
+ ------
+Next Generation Forge Documentation
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster
+ ------
+June 2009
+ ------
+
+Factory Tutorials - Hello World Service
+
+   * {{{./main.html}Back to tutorials menu}}
+   
+   * {{{#Introduction}Introduction}}
+   
+   * {{{#Prerequisites}Prerequisites}}
+   
+   * {{{#CreateServiceInterface}Create the service interface}}
+   
+   * {{{#SpecifyServiceMethods}Specify service methods}}
+   
+   * {{{#ImplementServiceInterface}Implement your service interface}}
+   
+   * {{{#DeclarePartners}Declare some partners services to use factory functionalities}}
+   
+   * {{{#UnitTest}Write unit tests}}
+   
+   * {{{#FunctionalTest}Write functional tests}}
+   
+* Introduction {Introduction}
+
+  We are going to create a very simple service wich does NOT manage resource. This service only expose some
+  business methods to the factory user. This methods could also use internal components to recover some informations
+  like connected user profile, etc...
+  
+  This Hello World service will just provide one single method "sayHelloWorld" which will says hello world to every body 
+  but prefixing this hello with the connected profile path, something like : 
+  
+------------------------------------
+/profiles/jayblanc says: Hello World !!
+------------------------------------
+
+* Prerequisites {Prerequisites}
+
+   * A working development environment
+
+   * A global overview of the factory internal components is better 
+
+* Create the service interface {CreateServiceInterface}
+
+  First of all, we are going to define the interface of our future service. 
+  
+  In the package org.qualipso.factory.helloworld create the java interface HelloWorldService
+  
+  As a FactoryService, this interface has to extends the super interface FactoryService and because 
+  this interface as to be promoted and because of actual implementation choice, you'll have to specify 
+  some annotations to made your service visible remotely as a Web Service (@Remote, @WebService, 
+  @SOAPBinding) : 
+
+------------------------------------
+@Remote
+@WebService(name = "HelloWorldService", targetNamespace = "http://org.qualipso.factory.ws/service")
+@SOAPBinding(style = SOAPBinding.Style.RPC)
+public interface HelloWorldService extends FactoryService {
+}
+------------------------------------
+
+* Specify service methods {SpecifyServiceMethods}
+
+  Now we should define some operations on this service to be able to say hello world...
+
+------------------------------------
+@WebMethod
+@WebResult(name = "message")
+public String sayHelloWorld() throws HelloWorldServiceException;
+------------------------------------
+
+* Implement your service interface {ImplementServiceInterface}
+
+  Now we have defined the interface, we need an implementation. You must create an EJB3 SessionBean 
+  class which will implement your interface. Using @Stateless, @WebService, @WebContext, @SOAPBinding annotations, 
+  you should be able to create the session bean. The specific JBoss @SecurityDomain and @EndpointConfig are
+  used to ensure authentication of callers and won't be discussed here.
+  
+  The interface implementation implies you implements methods, some inherited methods from FactoryService interface, 
+  and your service interface methods.   
+  
+------------------------------------
+@Stateless(name = "HelloWorld", mappedName = "HelloWorldService")
+@WebService(endpointInterface = "org.qualipso.factory.helloworld.HelloWorldService", targetNamespace = "http://org.qualipso.factory.ws/factory", serviceName = "HelloWorldService", portName = "HelloWorldService")
+@WebContext(contextRoot = "/qualipso-factory", urlPattern = "/helloworld")
+@SOAPBinding(style = Style.RPC)
+@SecurityDomain(value = "JBossWSDigest")
+@EndpointConfig(configName = "Standard WSSecurity Endpoint")
+public class HelloWorldServiceBean implements HelloWorldService {
+
+	public HelloWorldServiceBean() {
+	}
+	
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public String sayHelloWorld() throws HelloWorldServiceException {
+		try {
+			return "Hello World !!";
+		} catch (MembershipServiceException e) {
+			throw new HelloWorldServiceException(e);
+		}
+	}
+
+	@Override
+	public String[] getResourceTypeList() {
+		return new String[0];
+	}
+
+	@Override
+	public String getServiceName() {
+		return "HelloWorldService";
+	}
+}
+------------------------------------
+
+* Declare some partners services to use factory functionalities {DeclarePartners}
+
+  As written in the description, we want to prefix the hello world message with the connected user profile path ; 
+  we need to call another service in order to recover this information, MembershipService. Declare the reference 
+  to this service using the @EJB annotation will let the EJB container to inject this service at runtime.
+  
+  You can also use the factory logging system to log some useful informations for debugging.
+  
+  Those modifications should give this : 
+  
+------------------------------------
+(...)
+	private static Log logger = LogFactory.getLog(HelloWorldServiceBean.class);
+	private MembershipService membership;
+	
+	public HelloWorldServiceBean() {
+	}
+	
+	@EJB(name = "MembershipService")
+	public void setMembershipService(MembershipService membership) {
+		this.membership = membership;
+	}
+
+	public MembershipService getMembershipService() {
+		return this.membership;
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public String sayHelloWorld() throws HelloWorldServiceException {
+		logger.info("readName(...) called");
+		
+		try {
+			return membership.getConnectedProfilePath() + " says : Hello World !!";
+		} catch (MembershipServiceException e) {
+			throw new HelloWorldServiceException(e);
+		}
+	}
+(...)
+------------------------------------
+
+* Write a Unit Test {UnitTest}
+
+  Now that our service is complete, we would appreciate to write a small unit test to ensure
+  that our business logic is good. To ensure unit test isolation of this component, we're
+  going to use a mock framework which will mock all partners services and define some expectation 
+  of calling. 
+  
+  On the other hand, we don't want to deploy all the factory in order to perform a small unit test
+  and using EJB3Unit will allow you to run a test outside an EJB3 container. Writing this test using
+  EJB3Unit, and JMock will be very easy.
+  
+  In the test maven folder under package org.qualipso.factory.test.sessionbean create a class
+  HelloWorldServiceTest.java
+  
+  Because of EJB3Unit, your class must extends BaseSessionBeanFixture<HelloWorldServiceBean> ; you'll 
+  have to declare a reference to the Mockery object. And as we're going to mock the MembershipService, 
+  declare also a reference to this service : 
+  
+------------------------------------
+public class HelloWorldServiceTest extends BaseSessionBeanFixture<HelloWorldServiceBean> {
+    
+    private static Log logger = LogFactory.getLog(HelloWorldServiceTest.class);
+    
+    @SuppressWarnings("unchecked")
+    private static final Class[] usedBeans = { };
+    
+    private Mockery mockery;
+    private MembershipService membership;
+	
+    public HelloWorldServiceTest() {
+        super(HelloWorldServiceBean.class, usedBeans);
+    }
+    (...)
+------------------------------------  
+
+  Now we're going to setup some informations before running a test, defining mocked services and injecting
+  theme into our SessionBean : 
+  
+------------------------------------
+    (...)
+    public void setUp() throws Exception {
+		super.setUp();
+		logger.debug("injecting mock partners session beans");
+		mockery = new Mockery();
+		membership = mockery.mock(MembershipService.class);
+		getBeanToTest().setMembershipService(membership);
+	}
+    (...)
+------------------------------------
+
+  Now we're going to test our business method sayHelloWorld(). As our Membership Service is mocked, 
+  we need to define our expectations on this service calls. Because we have a total control on the 
+  mocked object, we're going to assume it will be called 3 times, and we're going to return 3 differents
+  connected user profile path to simulate this component : 
+  
+------------------------------------
+    (...)
+    public void testHelloWorld() {
+        logger.debug("testing sayHelloWorld()");
+        
+        try {
+			mockery.checking(new Expectations() {
+				{
+					oneOf(membership).getConnectedProfilePath(); will(returnValue("/profiles/guest"));
+					oneOf(membership).getConnectedProfilePath(); will(returnValue("/profiles/jayblanc"));
+					oneOf(membership).getConnectedProfilePath(); will(returnValue("/profiles/anotheruser"));
+				}
+			});
+            (...)
+------------------------------------
+
+  Now that expectations are defined, we're going to call really our service and perform some assertions
+  on call's results, first call will be display in the log and the next two calls will be checked :
+  
+------------------------------------
+            (...)
+            HelloWorldService service = getBeanToTest();
+            logger.info("message : " + service.sayHelloWorld());
+            assertTrue(service.sayHelloWorld().equals("/profiles/jayblanc says : Hello World !!"));
+            assertTrue(service.sayHelloWorld().equals("/profiles/anotheruser says : Hello World !!"));
+            
+            mockery.assertIsSatisfied();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            fail(e.getMessage());
+        }
+    }
+}
+------------------------------------
+
+  To run your test, just make a right click on the class name in the eclipse package explorer and choose
+  to run with JUnit.
+  
+  If you want your test included in the maven test phase using the existing factory test suite, just add 
+  your test class name in the test suite class org.qualipso.factory.test.AllTests :
+  
+------------------------------------
+@RunWith(Suite.class)
+@SuiteClasses(value = {
+        (...) 
+		HelloWorldServiceTest.class})
+public class AllTests {
+}
+------------------------------------  
+
+  Now, if you invoke the maven command mvn test, the test will be run in the test suite and added to maven 
+  site reports, with test coverage generation etc... 
+
+* Write a Functional Test {FunctionalTest}
+
+  Writing a real functional test is a little bit longer because it needs the factory to be packaged and deployed.
+  By the way, use of maven really ease this process.
+  
+  First of all you need to checkout the factory-client module. This module contains all maven configuration to 
+  generate web service client source classes and run tests.
+  
+  To deploy the factory-ejb, simply call the maven package task in the factory-ejb project and copy the target/factory-ejb-0.1.1.jar 
+  in your local jboss/server/default/deploy folder. You should see the deployment process in the console log. If something goes wrong, 
+  it could be necessary to manually stop jboss, remove the .jar from deploy folder and start jboss again.
+  
+  Once your .jar is deployed into jboss, the factory-client maven task 'generate-source' should succeed. If you choose to create your
+  own service, don't forget to add your wsdl in the pom.xml file in order to generate client source code for your web service.  
+  
+  Once client source classes are generated, you should be able to see them in the org.qualipso.factory.client.ws package.
+  
+  In the test folder of this module, have a look at the package org.qualipso.factory.client.test.ws and open the HelloWorldServiceWSTest.java
+  
+  Notice the @Test annotation on the test method which is a JUnit 4 annotation.
+  
+  This time, JBoss will try to authenticate us really and the MembershipService is not mocked, so real logged user will be returned.
+  We are going to test the sayHello() method two times, one without giving credentials in the SAOP call, and another giving credentials of existing 
+  user kermit. Regarding the authentication mechanism, our web service on the server side stands for a specific authentication method
+  using WS-Security with an encrypted password. In the client side, we need to use some specific configuration to allow our Web Service stack 
+  to include correct informations in the SOAP call Header. Have a look et the file jboss-wsse-client.xml and notice that in the test, we will 
+  reference a configuration defined in this file : "Standard WSSecurity Client"; This configuration correspond to the configuration given in the
+  service annotation @EndpointConfig which reference a server configuration file in the same manner. (NB: this configuration tips are specific to 
+  jboss and may change if you decide to deploy the factory on another EJB3 compliant Application Server)
+  
+  The call of web service for test should give this : 
+  
+------------------------------------
+(...)  
+    @Test
+    public void testSayHelloWorld() {
+        try {
+            HelloWorldService_Service service = new HelloWorldService_Service();
+            HelloWorldService port = service.getHelloWorldService();
+
+            ((StubExt) port).setConfigName("Standard WSSecurity Client");
+
+            String message = port.sayHelloWorld();
+            logger.info("Message : " + message);
+            assertTrue(message.equals("/profiles/guest says : Hello World !!"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+
+        try {
+        	HelloWorldService_Service service = new HelloWorldService_Service();
+            HelloWorldService port = service.getHelloWorldService();
+            
+            ((StubExt) port).setConfigName("Standard WSSecurity Client");
+
+            Map<String, Object> reqContext = ((BindingProvider) port).getRequestContext();
+            reqContext.put(BindingProvider.USERNAME_PROPERTY, "kermit");
+            reqContext.put(BindingProvider.PASSWORD_PROPERTY, "thefrog");
+
+            String message = port.sayHelloWorld();
+            logger.info("Message : " + message);
+            assertTrue(message.equals("/profiles/kermit says : Hello World !!"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
+(...)
+------------------------------------
+ 

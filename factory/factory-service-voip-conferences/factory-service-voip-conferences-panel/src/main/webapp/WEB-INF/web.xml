@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="WebApp_ID" version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+	<display-name>${pom.name}</display-name>
+	<context-param>
+		<param-name>PARAMETER_ENCODING</param-name>
+		<param-value>UTF-8</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>SERVICE_ENDPOINT</param-name>
+		<param-value>${service.endpoint}</param-value>
+	</context-param>
+
+	<error-page>
+		<error-code>404</error-code>
+		<location>/axis2-web/Error/error404.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>500</error-code>
+		<location>/axis2-web/Error/error500.jsp</location>
+	</error-page>
+
+	<jsp-config>
+		<taglib>
+			<taglib-uri>http://java.sun.com/jstl/fmt</taglib-uri>
+			<taglib-location>/WEB-INF/tld/fmt-${taglibs.base.version}.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://java.sun.com/jstl/fmt-rt</taglib-uri>
+			<taglib-location>/WEB-INF/tld/fmt-rt-${taglibs.rt.version}.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://java.sun.com/jstl/core</taglib-uri>
+			<taglib-location>/WEB-INF/tld/c-${taglibs.base.version}.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://java.sun.com/jstl/core-rt</taglib-uri>
+			<taglib-location>/WEB-INF/tld/c-rt-${taglibs.rt.base.version}.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://java.sun.com/jstl/sql</taglib-uri>
+			<taglib-location>/WEB-INF/tld/sql-${taglibs.base.version}.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://java.sun.com/jstl/sql-rt</taglib-uri>
+			<taglib-location>/WEB-INF/tld/sql-rt-${taglibs.rt.version}.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://java.sun.com/jstl/x</taglib-uri>
+			<taglib-location>/WEB-INF/tld/x.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://java.sun.com/jstl/x-rt</taglib-uri>
+			<taglib-location>/WEB-INF/tld/x-1_0-rt.tld</taglib-location>
+		</taglib>
+
+		<taglib>
+			<taglib-uri>${schema.target.namespace}</taglib-uri>
+			<taglib-location>/WEB-INF/tld/voip-conference-panel.tld</taglib-location>
+		</taglib>
+	</jsp-config>
+
+	<servlet>
+		<servlet-name>MainServlet</servlet-name>
+		<servlet-class>org.qualipso.factory.voipservice.panel.servlet.MainServlet</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/index.jsp</url-pattern>
+	</servlet-mapping>
+    
+	<servlet>
+		<servlet-name>AddConferenceServlet</servlet-name>
+		<servlet-class>org.qualipso.factory.voipservice.panel.servlet.AddConferenceServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>EditConferenceServlet</servlet-name>
+		<servlet-class>org.qualipso.factory.voipservice.panel.servlet.EditConferenceServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AddConferenceServlet</servlet-name>
+		<url-pattern>/AddConference</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>EditConferenceServlet</servlet-name>
+		<url-pattern>/EditConference</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>AjaxServlet</servlet-name>
+		<servlet-class>org.qualipso.factory.voipservice.panel.servlet.AjaxServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>AjaxServlet</servlet-name>
+		<url-pattern>/Ajax/*</url-pattern>
+	</servlet-mapping>
+
+    <servlet>
+        <servlet-name>recordings</servlet-name>
+        <servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
+        <init-param>
+            <param-name>listings</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </servlet>
+	<servlet-mapping>
+        <servlet-name>recordings</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+
+
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+		<welcome-file>index.htm</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+</web-app>

@@ -1,0 +1,9 @@
+<datasources>
+  <no-tx-datasource>
+    <jndi-name>voipconferenceDS</jndi-name>
+    <connection-url>${hibernate.connection.url}</connection-url>
+    <driver-class>com.mysql.jdbc.Driver</driver-class>
+    <user-name>${hibernate.connection.username}</user-name>
+    <password>${hibernate.connection.password}</password>
+  </no-tx-datasource>
+</datasources>

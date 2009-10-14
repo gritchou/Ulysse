@@ -1,0 +1,400 @@
+package org.qualipso.factory.project;
+
+/**
+ * 
+ * Copyright (C) 2006-2010 THALES
+ * http://www.thalesgroup.fr - thierry.deroff@thalesgroup.com
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the license LGPL.
+ *
+ * Initial author :
+ * Thierry Deroff from Thales Service, THERESIS Competence Center Open Source Software
+ *
+ */
+
+import java.util.UUID;
+
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.SessionContext;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.jws.WebService;
+import javax.jws.soap.SOAPBinding;
+import javax.jws.soap.SOAPBinding.Style;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.jboss.ejb3.annotation.SecurityDomain;
+import org.jboss.ws.annotation.EndpointConfig;
+import org.jboss.wsf.spi.annotation.WebContext;
+import org.qualipso.factory.FactoryException;
+import org.qualipso.factory.FactoryNamingConvention;
+import org.qualipso.factory.FactoryResource;
+import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.FactoryResourceProperty;
+import org.qualipso.factory.binding.BindingService;
+import org.qualipso.factory.binding.PathHelper;
+import org.qualipso.factory.core.CoreServiceException;
+import org.qualipso.factory.membership.MembershipService;
+import org.qualipso.factory.notification.Event;
+import org.qualipso.factory.notification.NotificationService;
+import org.qualipso.factory.project.entity.Project;
+import org.qualipso.factory.security.pap.PAPService;
+import org.qualipso.factory.security.pap.PAPServiceHelper;
+import org.qualipso.factory.security.pep.PEPService;
+
+@Stateless(name = "Project", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX + "ProjectService")
+@WebService(endpointInterface = "org.qualipso.factory.project.ProjectService", targetNamespace = "http://org.qualipso.factory.ws/service/project", serviceName = "ProjectService", portName = "ProjectService")
+@WebContext(contextRoot = "/factory-service-project", urlPattern = "/project")
+@SOAPBinding(style = Style.RPC)
+@SecurityDomain(value = "JBossWSDigest")
+@EndpointConfig(configName = "Standard WSSecurity Endpoint")
+public class ProjectServiceBean implements ProjectService {
+
+	private static final String SERVICE_NAME = "ProjectService";
+	private static final String[] RESOURCE_TYPE_LIST = new String[] { "Project" };
+	private static Log logger = LogFactory.getLog(ProjectServiceBean.class);
+
+	private BindingService binding;
+	private MembershipService membership;
+	private PEPService pep;
+	private PAPService pap;
+	private NotificationService notification;
+	private SessionContext ctx;
+	private EntityManager em;
+
+	public ProjectServiceBean() {
+	}
+
+	@PersistenceContext
+	public void setEntityManager(EntityManager em) {
+		this.em = em;
+	}
+
+	public EntityManager getEntityManager() {
+		return this.em;
+	}
+
+	@Resource
+	public void setSessionContext(SessionContext ctx) {
+		this.ctx = ctx;
+	}
+
+	public SessionContext getSessionContext() {
+		return this.ctx;
+	}
+
+	@EJB
+	public void setBindingService(BindingService binding) {
+		this.binding = binding;
+	}
+
+	public BindingService getBindingService() {
+		return this.binding;
+	}
+
+	@EJB
+	public void setPEPService(PEPService pep) {
+		this.pep = pep;
+	}
+
+	public PEPService getPEPService() {
+		return this.pep;
+	}
+
+	@EJB
+	public void setNotificationService(NotificationService notification) {
+		this.notification = notification;
+	}
+
+	public NotificationService getNotificationService() {
+		return this.notification;
+	}
+
+	@EJB
+	public void setMembershipService(MembershipService membership) {
+		this.membership = membership;
+	}
+
+	public MembershipService getMembershipService() {
+		return this.membership;
+	}
+
+	@EJB
+	public void setPAPService(PAPService pap) {
+		this.pap = pap;
+	}
+
+	public PAPService getPAPService() {
+		return this.pap;
+	}
+
+	/**
+	 * @param name
+	 *            the name of the project
+	 * @param summary
+	 *            the description of the project
+	 * @param path
+	 *            the target location of the new resource
+	 * @param licence
+	 * 
+	 */
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
+	public void createProject(String path, String name, String summary, String licence) throws ProjectException {
+		logger.debug("starting project creation");
+		try {
+
+			if (name == null || name == "")
+				throw new ProjectException("your must specify a name for your project");
+			if (summary.length() < 10)
+				throw new ProjectException("describe in a more comprehensive manner your project");
+			if (summary.length() > 255)
+				throw new ProjectException("Your project description is too long. Please make it smaller than 256 bytes.");
+
+			String caller = membership.getProfilePathForConnectedIdentifier();
+			// create entity object
+			Project project = new Project();
+			project.setName(name);
+			project.setSummary(summary);
+			project.setLicence(licence);
+			project.setId(UUID.randomUUID().toString());
+			em.persist(project);
+			// service orchestration
+			pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
+
+			binding.bind(project.getFactoryResourceIdentifier(), path);
+			binding.setProperty(path, FactoryResourceProperty.CREATION_TIMESTAMP, System.currentTimeMillis() + "");
+			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
+			binding.setProperty(path, FactoryResourceProperty.AUTHOR, caller);
+
+			// create default policy
+			String policyId = UUID.randomUUID().toString();
+			pap.createPolicy(policyId, PAPServiceHelper.buildOwnerPolicy(policyId, caller, path));
+			binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
+			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
+
+			notification.throwEvent(new Event(path, caller, "Project", "project.project.create", ""));
+
+		} catch (Exception e) {
+
+			ctx.setRollbackOnly();
+			throw new ProjectException(e);
+		}
+	}
+
+	/**
+	 * @param path
+	 *            location of the project in the resource tree
+	 * 
+	 */
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
+	public void deleteProject(String path) throws ProjectException {
+		try {
+
+			String caller = membership.getProfilePathForConnectedIdentifier();
+			
+			pep.checkSecurity(caller, path, "delete");
+
+			FactoryResourceIdentifier identifier = binding.lookup(path);
+			checkResourceType(identifier, "Project");
+			Project project = em.find(Project.class, identifier.getId());
+
+			if (project == null) {
+				throw new ProjectException("unable to find a project for id " + identifier.getId());
+			}
+			em.remove(project);
+			
+			String policyId = binding.getProperty(path, FactoryResourceProperty.POLICY_ID, false);
+			pap.deletePolicy(policyId);
+			
+			binding.unbind(path);
+			notification.throwEvent(new Event(path, membership.getProfilePathForConnectedIdentifier(), "Project", "project.project.delete", ""));
+
+		} catch (Exception e) {
+			ctx.setRollbackOnly();
+			throw new ProjectException("unable to delete the project at path " + path);
+		}
+	}
+
+	/**
+	 * @param path
+	 *            the location of the project
+	 * 
+	 * @return a Project entity
+	 */
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public Project getProject(String path) throws ProjectException {
+		try {
+			String caller = membership.getProfilePathForConnectedIdentifier();
+			pep.checkSecurity(caller, path, "read");
+
+			FactoryResourceIdentifier identifier = binding.lookup(path);
+			checkResourceType(identifier, "Project");
+
+			Project project = em.find(Project.class, identifier.getId());
+			if (project == null) {
+				throw new ProjectException("unable to find a project for id " + identifier.getId());
+			}
+
+			project.setResourcePath(path);
+			notification.throwEvent(new Event(path, caller, "Project", "project.project.read", ""));
+
+			return project;
+
+		} catch (Exception e) {
+			throw new ProjectException(e);
+		}
+	}
+
+	/**
+	 * 
+	 * 
+	 * @param path
+	 *            the location of the project in the resource tree
+	 * @param name
+	 * 
+	 * 
+	 * @param status
+	 *            if the project is on alpha, beta or release state
+	 * 
+	 * @param summary
+	 * 
+	 * @param licence
+	 */
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
+	public void updateProject(String path, String name, String status, String summary, String licence) throws ProjectException {
+		try {
+			if (name == null || name == "")
+				throw new ProjectException("your must specify a name for your project");
+			if (summary.length() < 10)
+				throw new ProjectException("describe in a more comprehensive manner your project");
+			if (summary.length() > 255)
+				throw new ProjectException("Your project description is too long. Please make it smaller than 256 bytes.");
+
+			String caller = membership.getProfilePathForConnectedIdentifier();
+
+			pep.checkSecurity(caller, path, "update");
+			FactoryResourceIdentifier identifier = binding.lookup(path);
+			checkResourceType(identifier, "Project");
+
+			Project project = em.find(Project.class, identifier.getId());
+			if (project == null) {
+				throw new ProjectException("unable to find a project for id " + identifier.getId());
+			}
+			project.setName(name);
+			project.setDev_status(status);
+			project.setSummary(summary);
+			project.setLicence(licence);
+			em.merge(project);
+
+			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
+			notification.throwEvent(new Event(path, caller, "Project", "project.project.update", ""));
+
+		} catch (Exception e) {
+			ctx.setRollbackOnly();
+			throw new ProjectException(e);
+
+		}
+
+	}
+
+	/**
+	 * update meta information about the project
+	 * 
+	 * @param path
+	 *            the location of the project in the resource tree
+	 * 
+	 * @param os
+	 *            the operating system used by this project
+	 * 
+	 * @param topics
+	 * 
+	 * @param language
+	 *            natural language used by this project
+	 * 
+	 * @param programming_language
+	 *            programming language used by this project
+	 * 
+	 * @param intended_audience
+	 * 
+	 */
+	@Override
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
+	public void updateTagsProject(String path, String[] os, String[] topics, String[] language, String[] programming_language, String[] intended_audience)
+			throws ProjectException {
+		try {
+			String caller = membership.getProfilePathForConnectedIdentifier();
+
+			pep.checkSecurity(caller, path, "update");
+			FactoryResourceIdentifier identifier = binding.lookup(path);
+			checkResourceType(identifier, "Project");
+
+			Project project = em.find(Project.class, identifier.getId());
+			if (project == null) {
+				throw new ProjectException("unable to find a project for id " + identifier.getId());
+			}
+			project.setOs(os);
+			project.setTopics(topics);
+			project.setSpoken_language(language);
+			project.setProgramming_language(programming_language);
+			project.setIntended_audience(intended_audience);
+			em.merge(project);
+
+			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
+			notification.throwEvent(new Event(path, caller, "Project", "project.project.update", ""));
+
+		} catch (Exception e) {
+			ctx.setRollbackOnly();
+			throw new ProjectException(e);
+
+		}
+
+	}
+
+	@Override
+	public String[] getResourceTypeList() {
+		return RESOURCE_TYPE_LIST;
+	}
+
+	@Override
+	public String getServiceName() {
+		return SERVICE_NAME;
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
+	public FactoryResource findResource(String path) throws FactoryException {
+		try {
+			FactoryResourceIdentifier identifier = binding.lookup(path);
+
+			if (!identifier.getService().equals(SERVICE_NAME)) {
+				throw new CoreServiceException("Resource " + identifier + " is not managed by " + SERVICE_NAME);
+			}
+
+			if (identifier.getType().equals("Project")) {
+				return getProject(path);
+			}
+
+			throw new CoreServiceException("Resource " + identifier + " is not managed by " + SERVICE_NAME);
+
+		} catch (Exception e) {
+			throw new CoreServiceException("unable to find the resource at path " + path, e);
+		}
+	}
+
+	private void checkResourceType(FactoryResourceIdentifier identifier, String resourceType) throws ProjectException {
+		if (!identifier.getService().equals(getServiceName())) {
+			throw new ProjectException("resource identifier " + identifier + " does not refer to service " + getServiceName());
+		}
+		if (!identifier.getType().equals(resourceType)) {
+			throw new ProjectException("resource identifier " + identifier + " does not refer to a resource of type " + resourceType);
+		}
+	}
+}

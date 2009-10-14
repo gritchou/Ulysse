@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!DOCTYPE web-app 
+    PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" 
+    "http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app>
+
+    <!-- General description of your web application -->
+
+    <display-name>An HTTP Binding Gateway to Jabber</display-name>
+    <description>
+      An implementation of JEP-0124 (HTTP-Binding). See
+      http://www.jabber.org/jeps/jep-0124.html for details.
+    </description>
+
+    <context-param>
+      <param-name>author</param-name>
+      <param-value>steve@zeank.in-berlin.de</param-value>
+      <description>
+        The EMAIL address of the author to whom questions
+        and comments about this application should be addressed.
+      </description>
+    </context-param>
+
+     <servlet>
+        <servlet-name>Jabber HTTP Binding Servlet</servlet-name>
+        <servlet-class>org.jabber.JabberHTTPBind.JHBServlet</servlet-class>
+    </servlet>
+    
+ 	<servlet-mapping>
+        <servlet-name>Jabber HTTP Binding Servlet</servlet-name>
+        <url-pattern>/JHB/</url-pattern>
+    </servlet-mapping>
+
+	<session-config>
+      <session-timeout>30</session-timeout>    <!-- 30 minutes -->
+    </session-config>
+
+
+</web-app>

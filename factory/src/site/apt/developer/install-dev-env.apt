@@ -1,0 +1,154 @@
+ ------
+Next Generation Forge Documentation - Developer Doc - Install Development Environment
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster
+ ------
+June 2009
+ ------
+
+Developer documentation - Installing the developer's environment
+
+  This installation guide is based on linux ubuntu only, if you want to perform installation on another OS, adapt the commands and procedures by yourself. 
+
+* Table of Content
+
+%{toc|section=0|fromDepth=2|toDepth=5}
+   
+
+* Overview of required software
+
+      * Sun Java Development Kit version 6 {{http://java.sun.com}}
+      
+      * Subversion client 
+     
+      * Eclipse Ganymede {{http://www.eclipse.org}}
+      
+      * Apache Maven 2 {{http://maven.apache.org}}
+      
+      * subclipse SVN plugin for Eclipse {{http://subclipse.tigris.org}}
+      
+      * m2eclipse, Maven2 plugin for Eclipse {{http://m2eclipse.sonatype.org}}
+      
+      * JBoss 5.0.1.GA {{http://www.jboss.org}}
+      
+* Install Sun JDK
+
+---------------------------------------------------
+sudo apt-get install sun-java6-jdk
+sudo update-java-alternatives -s java-6-sun
+---------------------------------------------------
+
+* Install Subversion client 
+
+---------------------------------------------------
+sudo apt-get install svn
+---------------------------------------------------
+
+* Install Eclipse Ganymede
+
+  To install eclipse ganymede, follow the instructions on the Eclipse web site (http://www.eclipse.org/downloads/) and choose the version named : "Eclipse IDE for Java EE Developers"
+  If you want to follow the ubuntu logic just unpack the downloaded file into your /opt directory
+
+--------------------------------------------------
+cd /opt
+sudo tar -xvzf ~/eclipse-jee-ganymede-SR2-linux-gtk.tar.gz
+sudo chmod -R 777 ./eclipse
+-------------------------------------------------- 
+
+  Once eclipse is installed, you should be able to launch it using /opt/eclipse/eclipse command.
+
+* Install Maven 2
+
+  You could choose to use your package manager to install maven2.
+
+--------------------------------------------------
+sudo apt-get install maven2
+--------------------------------------------------
+
+  You could also choose to download it from maven site and install it in your /opt directory.
+  
+--------------------------------------------------
+cd ~
+wget http://apache.mirrors.tds.net/maven/binaries/apache-maven-2.0.10-bin.tar.gz
+cd /opt
+sudo tar -xvzf ~/apache-maven-2.0.10-bin.tar.gz
+sudo chmod -R 777 ./apache-maven-2.0.10
+sudo ln -s ./apache-maven-2.0.10 ./maven
+--------------------------------------------------
+
+  If you choose this method, you should also add references to the maven directory in your $PATH environment variable. Edit your /etc/environment to add the following lines : 
+
+--------------------------------------------------
+PATH="$PATH:/opt/maven/bin"
+MAVEN_HOME="/opt/maven" 
+M2_REPO="$HOME/.m2/repository" 
+MAVEN_OPTS="-Xmx512m" 
+--------------------------------------------------
+
+* Install subclipse (SVN plugin for eclipse)
+
+  The subclipse eclipse plugin allows you to use subversion in your project and to have a great IHM for SVN repository. You have to install it as an eclipse plugin : 
+  
+--------------------------------------------------  
+Go to Help > Softwares Updates > Available Software > Add Site...
+Enter the location : http://subclipse.tigris.org/update_1.6.x
+Refresh the list
+Select the options to install under the new update site like the snapshot below :
+--------------------------------------------------
+
+[../images/subclipse-install-options.png]
+
+* Install m2eclipse (maven 2 plugin for eclipse)
+
+  The maven eclipse plugin allows you to use maven based project into eclipse. You have to install it as an eclipse plugin :
+
+--------------------------------------------------  
+Go to Help > Softwares Updates > Available Software > Add Site...
+Enter the location : http://m2eclipse.sonatype.org/update/
+Refresh the list
+Select the options to install under the new update site like the snapshot below :
+--------------------------------------------------
+     
+[../images/m2eclipse-install-options.png]
+
+* Install JBoss
+
+  The JBoss Application Server allows you to deploy the factory in order to be able to access web services, manage authentication, perform database storage, etc...
+
+--------------------------------------------------
+cd ~
+wget http://sourceforge.net/project/downloading.php?group_id=22866&filename=jboss-5.0.1.GA-jdk6.zip&a=30459565
+cd /opt
+sudo unzip ~/jboss-5.0.1.GA-jdk6.zip
+sudo chmod -R 777 ./jboss-5.0.1.GA
+sudo ln -s ./jboss-5.0.1.GA ./jboss
+--------------------------------------------------
+
+  You can now start the application server by simply using the command : 
+  
+--------------------------------------------------
+/opt/jboss/bin/run.sh
+--------------------------------------------------
+  
+* Get the source code and configure eclipse projects
+
+  The factory contains a parent maven module with many children maven modules. 
+  To get the source code, it's better to use the command line svn client because when performing checkout of new project with eclipse and especially with maven projects, sometimes things goes wrong.
+  By the way, using anonymous access to checkout the source code won't allow you to commit modifications because of recorded svn url in all .svn specific folders. Be aware of using an authenticated webdav access to ensure fully functional snapshot. 
+    
+--------------------------------------------------
+cd <your eclipse workspace folder>
+svn checkout --username login https://scm.gforge.inria.fr/svn/qualipso/trunk/factory
+--------------------------------------------------  
+
+  Once you have the base modules sources in your eclipse workspace, start eclipse and :
+  
+--------------------------------------------------
+Choose : File > Import... 
+Select the import source : General > Maven Projects
+Select the root directory where you checked out the source code (you should see a parent pom file with at least 4 children selected), and the finish.
+As all dependencies are declared using maven, downloading all dependencies the first time should take a while, maybe take some time to drink a coffee...
+If you want to add other specific modules which are not included as children of factory module, just repeat the operation chossing the module directory as root directory for the maven import. 
+--------------------------------------------------
+  
+  

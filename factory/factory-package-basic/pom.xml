@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<!-- 
+Author Jerome Blanchard (jayblanc@gmail.com)
+Date 20 May 2009
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<parent>
+		<artifactId>factory</artifactId>
+		<groupId>org.qualipso</groupId>
+		<version>0.4-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.qualipso</groupId>
+	<artifactId>factory-package-basic</artifactId>
+	<name>Qualipso Factory Basic Component Packaging</name>
+	<version>0.4-SNAPSHOT</version>
+	<packaging>ear</packaging>
+	<scm>
+		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-package-basic</connection>
+		<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-package-basic</developerConnection>
+	</scm>
+	<build>
+		<defaultGoal>package</defaultGoal>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-ear-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<displayName>Factory Basic Package</displayName>
+					<description>A basic bundle of factory components</description>
+					<generateApplicationXml>true</generateApplicationXml>
+					<version>5</version>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.cargo</groupId>
+				<artifactId>cargo-maven2-plugin</artifactId>
+				<version>1.0</version>
+				<configuration>
+					<container>
+						<containerId>jboss5x</containerId>
+						<type>remote</type>
+					</container>
+					<configuration>
+						<type>runtime</type>
+						<properties>
+							<cargo.hostname>localhost</cargo.hostname>
+						</properties>
+					</configuration>
+					<deployer>
+						<type>remote</type>
+						<deployables>
+							<deploayble>
+								<groupId>org.qualipso</groupId>
+								<artifactId>factory-package-basic</artifactId>
+								<type>ear</type>
+							</deploayble>
+						</deployables>
+					</deployer>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>2.0-beta-7</version>
+				<configuration>
+					<templateFile>${project.parent.basedir}/src/site/resources/qualipso-factory-template.vm</templateFile>
+					<outputDirectory>${project.parent.reporting.outputDirectory}/${name}</outputDirectory>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-core</artifactId>
+			<version>0.3.2-SNAPSHOT</version>
+			<type>ejb</type>
+		</dependency>
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-service-helloworld</artifactId>
+			<version>0.2.3-SNAPSHOT</version>
+			<type>ejb</type>
+		</dependency>
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-service-greeting</artifactId>
+			<version>0.2.3-SNAPSHOT</version>
+			<type>ejb</type>
+		</dependency>
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-service-project</artifactId>
+			<version>0.2.3-SNAPSHOT</version>
+			<type>ejb</type>
+		</dependency>
+<!--		
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-service-voip-conferences</artifactId>
+			<version>0.0.3-SNAPSHOT</version>
+			<type>ejb</type>
+		</dependency>
+-->
+	</dependencies>
+</project>
