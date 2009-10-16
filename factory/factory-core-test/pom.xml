@@ -8,7 +8,7 @@ Date 20 May 2009
 	<parent>
 		<artifactId>factory</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.4-SNAPSHOT</version>
+		<version>0.4</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
@@ -104,7 +104,7 @@ Date 20 May 2009
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-core</artifactId>
-			<version>0.3.2-SNAPSHOT</version>
+			<version>0.3.3-SNAPSHOT</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -137,5 +137,11 @@ Date 20 May 2009
 			<artifactId>cargo-core-api-container</artifactId>
 			<version>1.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-service-greeting</artifactId>
+			<version>0.0.1</version>
+			<scope>runtime</scope>
+		</dependency>		
 	</dependencies>
 </project>

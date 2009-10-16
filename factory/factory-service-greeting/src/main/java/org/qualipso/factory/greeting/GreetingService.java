@@ -14,7 +14,7 @@ import org.qualipso.factory.greeting.entity.Name;
  * @date 11 june 2009
  */
 @Remote
-@WebService(name = "GreetingService", targetNamespace = "http://org.qualipso.factory.ws/service/greeting")
+@WebService(name = "GreetingService", targetNamespace = "http://org.qualipso.factory.ws/greeting")
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface GreetingService extends FactoryService {
 	
@@ -34,6 +34,31 @@ public interface GreetingService extends FactoryService {
 	@WebMethod
 	@WebResult(name = "message")
 	public String sayHello(String path) throws GreetingServiceException;
+	
+	
+	/*@WebMethod
+    @WebResult(name = "message")
+    public Event createEvent(String string, String caller,String name, String arg1, String arg) throws GreetingServiceException;*/
+	
+	
+	@WebMethod
+    @WebResult(name = "message")
+    public String throwEventOK() throws GreetingServiceException;
+	
+	@WebMethod
+    @WebResult(name = "message")
+    public String throwEventKO() throws GreetingServiceException;
+	
+	/*@WebMethod
+    @WebResult(name = "message")
+    public createQueue(String path) throws GreetingServiceException;
+	
+	
+	@WebMethod
+    @WebResult(name = "message")
+	public List getEvents(String path) throws GreetingServiceException;*/
+	
+	
 	
 	
 }

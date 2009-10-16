@@ -22,7 +22,6 @@ import java.util.Date;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 20 May 2009
@@ -32,7 +31,50 @@ import javax.xml.bind.annotation.XmlType;
 )
 @SuppressWarnings("serial")
 public class Event implements Serializable {
-    private String fromResource;
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Event other = (Event) obj;
+		if (args == null) {
+			if (other.args != null)
+				return false;
+		} else if (!args.equals(other.args))
+			return false;
+		if (date == null) {
+			if (other.date != null)
+				return false;
+		} else if (!date.equals(other.date))
+			return false;
+		if (eventType == null) {
+			if (other.eventType != null)
+				return false;
+		} else if (!eventType.equals(other.eventType))
+			return false;
+		if (fromResource == null) {
+			if (other.fromResource != null)
+				return false;
+		} else if (!fromResource.equals(other.fromResource))
+			return false;
+		if (resourceType == null) {
+			if (other.resourceType != null)
+				return false;
+		} else if (!resourceType.equals(other.resourceType))
+			return false;
+		if (throwedBy == null) {
+			if (other.throwedBy != null)
+				return false;
+		} else if (!throwedBy.equals(other.throwedBy))
+			return false;
+		return true;
+	}
+
+	private String fromResource;
     private String throwedBy;
     private String resourceType;
     private Date date;

@@ -8,7 +8,7 @@ Date 20 May 2009
 	<parent>
 		<artifactId>factory</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.4-SNAPSHOT</version>
+		<version>0.4</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
@@ -88,7 +88,7 @@ Date 20 May 2009
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-greeting</artifactId>
-			<version>0.2.3-SNAPSHOT</version>
+			<version>0.0.1</version>
 			<type>ejb</type>
 		</dependency>
 		<dependency>
