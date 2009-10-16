@@ -9,7 +9,7 @@ Date 20 May 2009
 	<artifactId>factory</artifactId>
 	<packaging>pom</packaging>
 	<name>Qualipso Factory</name>
-	<version>0.5-SNAPSHOT</version>
+	<version>0.4</version>
 	<url>http://qualipso.gforge.inria.fr</url>
 	<issueManagement>
 		<system>gforge</system>
