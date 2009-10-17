@@ -31,44 +31,8 @@ import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.notification.Event;
 
 
-//import javax.ejb.Remote;
-//import javax.jws.WebMethod;
-//import javax.jws.WebResult;
-//import javax.jws.WebService;
-//import javax.jws.soap.SOAPBinding;
-//import javax.xml.bind.annotation.XmlType;
-//
-//import org.ejb3unit.hibernate.annotations.Entity;
-//import org.qualipso.factory.FactoryService;
-//
-//
-///**
-// * Provides a time service for the factory.
-// * 
-// * @author <a href="mailto:christophe.bouthier@loria.fr">Christophe Bouthier</a>
-// * @date 27 July 2009
-// */
-//
-//
-//@Remote
-//@WebService(name = "ClockService", targetNamespace = "http://org.qualipso.funkyfactory.ws/service")
-//@SOAPBinding(style = SOAPBinding.Style.RPC)
-//public interface NotificationService extends FactoryService {
-//
-//	/**
-//	 * Return the current time.
-//	 * 
-//	 * @return the current time, in a String
-//	 * @throws NotificationServiceException
-//	 */
-//	@WebMethod
-//	@WebResult(name = "time")
-//	public String getTime() throws NotificationServiceException;
-//	
-//}
-
 @Remote
-@WebService(name = "NotificationService", targetNamespace = "http://org.qualipso.factory.ws/notification")
+@WebService(name = "NotificationService", targetNamespace = "http://org.qualipso.factory.ws/service/notification")
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface NotificationService extends FactoryService{
 

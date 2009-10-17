@@ -36,43 +36,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link File }
-     * 
-     */
-    public File createFile() {
-        return new File();
-    }
-
-    /**
      * Create an instance of {@link SecurityServiceException }
      * 
      */
     public SecurityServiceException createSecurityServiceException() {
         return new SecurityServiceException();
-    }
-
-    /**
-     * Create an instance of {@link FactoryException }
-     * 
-     */
-    public FactoryException createFactoryException() {
-        return new FactoryException();
-    }
-
-    /**
-     * Create an instance of {@link Link }
-     * 
-     */
-    public Link createLink() {
-        return new Link();
-    }
-
-    /**
-     * Create an instance of {@link StringArray }
-     * 
-     */
-    public StringArray createStringArray() {
-        return new StringArray();
     }
 
     /**
@@ -92,11 +60,43 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link Link }
+     * 
+     */
+    public Link createLink() {
+        return new Link();
+    }
+
+    /**
      * Create an instance of {@link Profile }
      * 
      */
     public Profile createProfile() {
         return new Profile();
+    }
+
+    /**
+     * Create an instance of {@link FactoryException }
+     * 
+     */
+    public FactoryException createFactoryException() {
+        return new FactoryException();
+    }
+
+    /**
+     * Create an instance of {@link File }
+     * 
+     */
+    public File createFile() {
+        return new File();
+    }
+
+    /**
+     * Create an instance of {@link StringArray }
+     * 
+     */
+    public StringArray createStringArray() {
+        return new StringArray();
     }
 
     /**

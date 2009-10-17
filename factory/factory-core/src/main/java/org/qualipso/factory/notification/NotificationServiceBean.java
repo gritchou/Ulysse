@@ -31,6 +31,7 @@ import org.jboss.ejb3.annotation.SecurityDomain;
 import org.jboss.ws.annotation.EndpointConfig;
 import org.jboss.wsf.spi.annotation.WebContext;
 import org.qualipso.factory.FactoryException;
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,9 +39,9 @@ import org.qualipso.factory.notification.Event;
 
 
 
-@Stateless(name = "Notification", mappedName = "NotificationService")
-@WebService(endpointInterface = "org.qualipso.factory.service.notification.NotificationService", targetNamespace = "http://org.qualipso.funkyfactory.ws/notification", serviceName = "NotificationService", portName = "NotificationService")
-@WebContext(contextRoot = "/factory-service-notification", urlPattern = "/notification")
+@Stateless(name = "Notification", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX + "NotificationService")
+@WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace = "http://org.qualipso.factory.ws/service/notification", serviceName = "NotificationService", portName = "NotificationServicePort")
+@WebContext(contextRoot = "/factory-core", urlPattern = "/notification")
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")

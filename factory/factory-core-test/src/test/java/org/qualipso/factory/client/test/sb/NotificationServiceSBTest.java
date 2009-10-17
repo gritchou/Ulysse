@@ -54,14 +54,14 @@ public class NotificationServiceSBTest {
 	@BeforeClass
 	public static void before() throws NamingException, LoginException, NotificationServiceException, MembershipServiceException {
 		Properties properties = new Properties();
-		properties.put("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
-		properties.put("java.naming.factory.url.pkgs", "org.jboss.naming:org.jnp.interfaces");
-		properties.put("java.naming.provider.url", "localhost:1099");
+		properties.put("java.naming.factory.initial","org.jnp.interfaces.NamingContextFactory");
+		properties.put("java.naming.factory.url.pkgs","org.jboss.naming:org.jnp.interfaces");
+		properties.put("java.naming.provider.url","localhost:1099");
 		System.setProperty("java.security.auth.login.config", ClassLoader.getSystemResource("jaas.config").getPath());
 		context = new InitialContext(properties);
 		
-		UsernamePasswordHandler uph = new UsernamePasswordHandler("kermit", "thefrog"); 
-		LoginContext loginContext = new LoginContext("tests", uph);
+		UsernamePasswordHandler uph = new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS); 
+		LoginContext loginContext = new LoginContext("qualipso", uph);
 		loginContext.login();
 		//membership =  (MembershipService) context.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX+"MembershipService");
 		//binding = (BindingService) context.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX+"BindingService");
@@ -70,8 +70,8 @@ public class NotificationServiceSBTest {
 	
 	@Before
 	public void setUp() throws NamingException, NotificationServiceException{
-		notification = (NotificationService) context.lookup("NotificationService");
-		eqs = (EventQueueService) context.lookup("EventQueueService");
+		notification = (NotificationService) context.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX + "NotificationService");
+		eqs = (EventQueueService) context.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX+"EventQueueService");
 		
 		/**
 		 * queues sont créer par l'utilisateur donc par le test (injection dependance)
