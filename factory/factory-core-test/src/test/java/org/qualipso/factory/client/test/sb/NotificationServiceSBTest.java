@@ -95,6 +95,7 @@ public class NotificationServiceSBTest {
 	public void testNotification1() throws Exception{
 		
 		//greeting.sayHello()
+		
 		String e1 = greeting.throwEventOK();
 		
 		//pause pour l'asynchronisme

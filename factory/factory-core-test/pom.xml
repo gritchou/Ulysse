@@ -104,7 +104,7 @@ Date 20 May 2009
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-core</artifactId>
-			<version>0.3.3-SNAPSHOT</version>
+			<version>0.3.4-SNAPSHOT</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -140,8 +140,9 @@ Date 20 May 2009
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-greeting</artifactId>
-			<version>0.0.1</version>
+			<version>0.2.3-SNAPSHOT</version>
 			<scope>runtime</scope>
-		</dependency>		
+		</dependency>
+	
 	</dependencies>
 </project>
