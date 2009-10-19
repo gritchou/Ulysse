@@ -36,11 +36,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link SecurityServiceException }
+     * Create an instance of {@link FactoryException }
      * 
      */
-    public SecurityServiceException createSecurityServiceException() {
-        return new SecurityServiceException();
+    public FactoryException createFactoryException() {
+        return new FactoryException();
     }
 
     /**
@@ -52,11 +52,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Folder }
+     * Create an instance of {@link Profile }
      * 
      */
-    public Folder createFolder() {
-        return new Folder();
+    public Profile createProfile() {
+        return new Profile();
     }
 
     /**
@@ -68,22 +68,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Profile }
-     * 
-     */
-    public Profile createProfile() {
-        return new Profile();
-    }
-
-    /**
-     * Create an instance of {@link FactoryException }
-     * 
-     */
-    public FactoryException createFactoryException() {
-        return new FactoryException();
-    }
-
-    /**
      * Create an instance of {@link File }
      * 
      */
@@ -92,11 +76,27 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link SecurityServiceException }
+     * 
+     */
+    public SecurityServiceException createSecurityServiceException() {
+        return new SecurityServiceException();
+    }
+
+    /**
      * Create an instance of {@link StringArray }
      * 
      */
     public StringArray createStringArray() {
         return new StringArray();
+    }
+
+    /**
+     * Create an instance of {@link Folder }
+     * 
+     */
+    public Folder createFolder() {
+        return new Folder();
     }
 
     /**
