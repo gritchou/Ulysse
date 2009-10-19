@@ -31,6 +31,7 @@ import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.Event;
 //import org.qualipso.factory.service.notification.entity.Event;
 import org.qualipso.factory.notification.NotificationService;
+import org.qualipso.factory.indexing.IndexingService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
@@ -61,6 +62,7 @@ public class GreetingServiceBean implements GreetingService {
 	private SessionContext ctx;
 	private EntityManager em;
 	private EventQueue eq;
+	private IndexingService indexing;
 	
 	public GreetingServiceBean() {
 	}
@@ -168,6 +170,9 @@ public class GreetingServiceBean implements GreetingService {
 			
 			//Using the notification service to throw an event : 
 			notification.throwEvent(new Event(path, caller, "Name", "greeting.name.create", ""));
+			
+			//Using the indexing service to index the resource
+			indexing.index(name.getFactoryResourceIdentifier());
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			logger.error("unable to create the name at path " + path, e);
@@ -241,6 +246,9 @@ public class GreetingServiceBean implements GreetingService {
 			
 			//Using the notification service to throw an event : 
 			notification.throwEvent(new Event(path, caller, "Name", "greeting.name.update", ""));
+			
+			//Using the indexing service to index the resource
+			indexing.reIndex(name.getFactoryResourceIdentifier());
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			logger.error("unable to update the name at path " + path, e);
@@ -282,6 +290,9 @@ public class GreetingServiceBean implements GreetingService {
 			
 			//Using the notification service to throw an event : 
 			notification.throwEvent(new Event(path, caller, "Name", "greeting.name.delete", ""));
+			
+			//Using the indexing service to index the resource
+			indexing.delete(name.getFactoryResourceIdentifier());
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			logger.error("unable to delete the name at path " + path, e);

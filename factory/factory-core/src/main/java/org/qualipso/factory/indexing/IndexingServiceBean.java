@@ -5,7 +5,9 @@ import javax.ejb.Stateless;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.SecurityDomain;
+import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.notification.NotificationServiceBean;
+import java.util.ArrayList;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -21,31 +23,31 @@ public class IndexingServiceBean implements IndexingService {
 	}
 
 	@Override
-	public void index(IndexableContent content) throws IndexingServiceException {
+	public void index(FactoryResourceIdentifier fri) throws IndexingServiceException {
 		//TODO
 		logger.warn("index(...) called ### NOT IMPLEMENTED");
-		logger.debug("params : content=\r\n" + content + "\r\n}");
+		logger.debug("params : FactoryResourceIdentifier=\r\n" + fri + "\r\n}");
 	}
 
 	@Override
-	public void reindex(IndexableContent content) throws IndexingServiceException {
+	public void reindex(FactoryResourceIdentifier fri) throws IndexingServiceException {
 		//TODO
 		logger.warn("reindex(...) called ### NOT IMPLEMENTED");
-		logger.debug("params : content=\r\n" + content + "\r\n}");
+		logger.debug("params : FactoryResourceIdentifier=\r\n" + fri + "\r\n}");
 	}
 
 	@Override
-	public void remove(String path) throws IndexingServiceException {
+	public void remove(FactoryResourceIdentifier fri) throws IndexingServiceException {
 		//TODO
 		logger.warn("remove(...) called ### NOT IMPLEMENTED");
-		logger.debug("params : path=" + path);
+		logger.debug("params : FactoryResourceIdentifier=" + fri);
 	}
 
 	@Override
-	public SearchResult[] search(String pathPattern, String service, String resource, String query) throws IndexingServiceException {
+	public ArrayList<SearchResult> search(String query) throws IndexingServiceException {
 		//TODO
 		logger.warn("search(...) called ### NOT IMPLEMENTED");
-		logger.debug("params : pathPattern=" + pathPattern + ", service=" + service + ", resource=" + resource + ", query=" + query);
-		return new SearchResult[0];
+		logger.debug("params : query=" + query);
+		return null;
 	}
 }

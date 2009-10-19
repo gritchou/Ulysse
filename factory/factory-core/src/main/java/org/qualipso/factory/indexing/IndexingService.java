@@ -17,6 +17,8 @@
 package org.qualipso.factory.indexing;
 
 import javax.ejb.Local;
+import java.util.ArrayList;
+import org.qualipso.factory.FactoryResourceIdentifier;
 
 
 /**
@@ -25,11 +27,11 @@ import javax.ejb.Local;
  */
 @Local
 public interface IndexingService {
-	public void index(IndexableContent content) throws IndexingServiceException;
+	public void index(FactoryResourceIdentifier fri) throws IndexingServiceException;
 
-    public void reindex(IndexableContent content) throws IndexingServiceException;
+    public void reindex(FactoryResourceIdentifier fri) throws IndexingServiceException;
 
-    public void remove(String path) throws IndexingServiceException;
+    public void remove(FactoryResourceIdentifier fri) throws IndexingServiceException;
 
-    public SearchResult[] search(String pathPattern, String service, String resource, String query) throws IndexingServiceException;
+    public ArrayList<SearchResult> search(String query) throws IndexingServiceException;
 }

@@ -13,7 +13,7 @@ Date 20 May 2009
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-core</artifactId>
 	<name>Qualipso Factory Core Component</name>
-	<version>0.3.3-SNAPSHOT</version>
+	<version>0.3.4-SNAPSHOT</version>
 	<packaging>ejb</packaging>
 	<scm>
 		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-core</connection>
