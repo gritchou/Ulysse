@@ -21,7 +21,7 @@ import org.qualipso.factory.indexing.IndexingServiceBean;
 import org.qualipso.factory.membership.MembershipService;
 
 
-import org.qualipso.factory.notification.Event;
+import org.qualipso.factory.eventqueue.entity.Event;
 
 import org.qualipso.factory.security.pep.PEPService;
 

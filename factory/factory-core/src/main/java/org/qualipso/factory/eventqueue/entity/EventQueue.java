@@ -11,7 +11,7 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
-import org.qualipso.factory.notification.Event;
+import org.qualipso.factory.eventqueue.entity.Event;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)

@@ -33,7 +33,7 @@ import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.membership.entity.Group;
 import org.qualipso.factory.membership.entity.Profile;
 import org.qualipso.factory.membership.entity.ProfileInfo;
-import org.qualipso.factory.notification.Event;
+import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.auth.AuthenticationService;
 import org.qualipso.factory.security.pap.PAPService;

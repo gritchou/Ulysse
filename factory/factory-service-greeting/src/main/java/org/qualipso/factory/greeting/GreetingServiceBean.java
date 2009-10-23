@@ -28,7 +28,7 @@ import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.greeting.entity.Name;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
-import org.qualipso.factory.notification.Event;
+import org.qualipso.factory.eventqueue.entity.Event;
 //import org.qualipso.factory.service.notification.entity.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;

@@ -18,10 +18,11 @@ import org.junit.Test;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.client.test.AllTests;
 import org.qualipso.factory.eventqueue.EventQueueService;
+import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.greeting.GreetingService;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
-import org.qualipso.factory.notification.Event;
+import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.notification.NotificationServiceException;
 
@@ -76,9 +77,9 @@ public class NotificationServiceSBTest {
 	}
 	
 	@After
-	public void tearDown(){
-		eqs.deleteEventQueue(pathQueue1);
-		eqs.deleteEventQueue(pathQueue2);
+	public void tearDown() throws EventQueueServiceException{
+		eqs.removeQueue(pathQueue1);
+		eqs.removeQueue(pathQueue2);
 	}
 	
 	/**

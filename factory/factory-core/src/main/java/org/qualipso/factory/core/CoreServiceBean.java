@@ -39,7 +39,7 @@ import org.qualipso.factory.core.entity.FileDataSource;
 import org.qualipso.factory.core.entity.Folder;
 import org.qualipso.factory.core.entity.Link;
 import org.qualipso.factory.membership.MembershipService;
-import org.qualipso.factory.notification.Event;
+import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;

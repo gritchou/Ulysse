@@ -28,7 +28,7 @@ import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 
 import org.qualipso.factory.FactoryService;
-import org.qualipso.factory.notification.Event;
+import org.qualipso.factory.eventqueue.entity.Event;
 
 
 @Remote
