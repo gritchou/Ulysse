@@ -53,7 +53,7 @@ import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
 import org.qualipso.factory.notification.Event;
-import org.qualipso.factory.eventqueue.entity.EventQueue;
+import org.qualipso.factory.eventqueue.entity.*;
 
 /**
  * Implementation of the ClockService. Provides a time service for the factory.
@@ -384,6 +384,114 @@ public class EventQueueServiceBean implements EventQueueService {
     @Override
     public String getServiceName() {
         return SERVICE_NAME;
+    }
+
+
+    @Override
+    public void deleteEvent(String path, Event e) throws EventQueueServiceException {
+        // TODO Auto-generated method stub
+        
+    }
+
+
+    @Override
+    public Event findEvent(String path, Event e) throws EventQueueServiceException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    @Override
+    public Event getLastEvent(String path) throws EventQueueServiceException {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+
+    @Override
+    public void removeQueue(String path) throws EventQueueServiceException {
+        // TODO Auto-generated method stub
+        
+    }
+
+
+    public static Log getLogger() {
+        return logger;
+    }
+
+
+    public static void setLogger(Log logger) {
+        EventQueueServiceBean.logger = logger;
+    }
+
+
+    public BindingService getBinding() {
+        return binding;
+    }
+
+
+    public void setBinding(BindingService binding) {
+        this.binding = binding;
+    }
+
+
+    public PEPService getPep() {
+        return pep;
+    }
+
+
+    public void setPep(PEPService pep) {
+        this.pep = pep;
+    }
+
+
+    public PAPService getPap() {
+        return pap;
+    }
+
+
+    public void setPap(PAPService pap) {
+        this.pap = pap;
+    }
+
+
+    public NotificationService getNotification() {
+        return notification;
+    }
+
+
+    public void setNotification(NotificationService notification) {
+        this.notification = notification;
+    }
+
+
+    public MembershipService getMembership() {
+        return membership;
+    }
+
+
+    public void setMembership(MembershipService membership) {
+        this.membership = membership;
+    }
+
+
+    public SessionContext getCtx() {
+        return ctx;
+    }
+
+
+    public void setCtx(SessionContext ctx) {
+        this.ctx = ctx;
+    }
+
+
+    public EntityManager getEm() {
+        return em;
+    }
+
+
+    public void setEm(EntityManager em) {
+        this.em = em;
     }
 
 }
