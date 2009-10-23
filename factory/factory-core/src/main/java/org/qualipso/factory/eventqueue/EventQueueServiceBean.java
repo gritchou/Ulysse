@@ -62,7 +62,7 @@ import org.qualipso.factory.eventqueue.entity.*;
  * @date 27 July 2009
  */
 @Stateless(name = "EventQueue", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX+"EventQueueService")
-@WebService(endpointInterface = "org.qualipso.factory.eventqueue.EventQueueService", targetNamespace = "http://org.qualipso.funkyfactory.ws/service/eventqueue", serviceName = "EventQueueService", portName = "EventQueueServicePort")
+@WebService(endpointInterface = "org.qualipso.factory.eventqueue.EventQueueService", targetNamespace = "http://org.qualipso.factory.ws/service/eventqueue", serviceName = "EventQueueService", portName = "EventQueueServicePort")
 @WebContext(contextRoot = "/factory-core", urlPattern = "/eventqueue")
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")

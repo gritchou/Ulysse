@@ -26,7 +26,6 @@ import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.greeting.entity.Name;
-import org.qualipso.factory.indexing.IndexingService;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.Event;
@@ -36,7 +35,6 @@ import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
 
-
 import java.awt.EventQueue;
 
 /**
@@ -44,7 +42,7 @@ import java.awt.EventQueue;
  * @date 11 june 2009
  */
 @Stateless(name = "Greeting", mappedName = "GreetingService")
-@WebService(endpointInterface = "org.qualipso.factory.greeting.GreetingService", targetNamespace = "http://org.qualipso.factory.ws/service/greeting", serviceName = "GreetingService", portName = "GreetingServicePort")
+@WebService(endpointInterface = "org.qualipso.factory.greeting.GreetingService", targetNamespace = "http://org.qualipso.factory.ws/service/greeting", serviceName = "GreetingService", portName = "GreetingService")
 @WebContext(contextRoot = "/factory-service-greeting", urlPattern = "/greeting")
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
@@ -63,7 +61,6 @@ public class GreetingServiceBean implements GreetingService {
 	private SessionContext ctx;
 	private EntityManager em;
 	private EventQueue eq;
-	private IndexingService indexing;
 	
 	public GreetingServiceBean() {
 	}
@@ -85,14 +82,7 @@ public class GreetingServiceBean implements GreetingService {
 	public SessionContext getSessionContext() {
 		return this.ctx;
 	}
-	@EJB
-	public void setIndexingService(IndexingService indexing) {
-		this.indexing = indexing;
-	}
 
-	public IndexingService getIndexingService() {
-		return this.indexing;
-	}
 	@EJB
 	public void setBindingService(BindingService binding) {
 		this.binding = binding;
@@ -178,11 +168,6 @@ public class GreetingServiceBean implements GreetingService {
 			
 			//Using the notification service to throw an event : 
 			notification.throwEvent(new Event(path, caller, "Name", "greeting.name.create", ""));
-			
-			//Using the indexing service to index the resource
-			indexing.index(name.getFactoryResourceIdentifier());
-
-
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			logger.error("unable to create the name at path " + path, e);
@@ -256,10 +241,6 @@ public class GreetingServiceBean implements GreetingService {
 			
 			//Using the notification service to throw an event : 
 			notification.throwEvent(new Event(path, caller, "Name", "greeting.name.update", ""));
-			
-			//Using the indexing service to index the resource
-			indexing.reindex(name.getFactoryResourceIdentifier());
-			
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			logger.error("unable to update the name at path " + path, e);
@@ -301,9 +282,6 @@ public class GreetingServiceBean implements GreetingService {
 			
 			//Using the notification service to throw an event : 
 			notification.throwEvent(new Event(path, caller, "Name", "greeting.name.delete", ""));
-			
-			//Using the indexing service to index the resource
-			indexing.remove(name.getFactoryResourceIdentifier());
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			logger.error("unable to delete the name at path " + path, e);
