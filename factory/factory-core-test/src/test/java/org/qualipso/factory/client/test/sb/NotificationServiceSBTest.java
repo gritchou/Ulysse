@@ -85,9 +85,18 @@ public class NotificationServiceSBTest {
 	 * throw one event into one queue and check the event is inserted
 	 * @throws Exception
 	 */
+<<<<<<< HEAD:factory/factory-core-test/src/test/java/org/qualipso/factory/client/test/sb/NotificationServiceSBTest.java
 	@Test(timeout=100)
 	public void testNotification1() throws Exception{	
 		String caller = membership.getProfilePathForConnectedIdentifier();
+=======
+	@Test
+	public void testNotification1() throws Exception{
+		
+		//greeting.sayHello()
+		
+		String e1 = greeting.throwEventOK();
+>>>>>>> f3aeb60ea8d002b9d77084b79d8744474c6e2eda:factory/factory-core-test/src/test/java/org/qualipso/factory/client/test/sb/NotificationServiceSBTest.java
 		
 		greeting.createName("/name", "toto");
 		Event[] lEvent1 = new Event[]{};

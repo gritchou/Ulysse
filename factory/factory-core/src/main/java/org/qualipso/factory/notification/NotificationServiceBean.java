@@ -22,10 +22,15 @@
  */
 package org.qualipso.factory.notification;
 
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 import javax.jws.soap.SOAPBinding.Style;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 import org.jboss.ejb3.annotation.SecurityDomain;
 import org.jboss.ws.annotation.EndpointConfig;
@@ -35,7 +40,12 @@ import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.qualipso.factory.binding.BindingService;
+import org.qualipso.factory.membership.MembershipServiceBean;
 import org.qualipso.factory.notification.Event;
+import org.qualipso.factory.security.auth.AuthenticationService;
+import org.qualipso.factory.security.pap.PAPService;
+import org.qualipso.factory.security.pep.PEPService;
 
 
 
@@ -47,25 +57,92 @@ import org.qualipso.factory.notification.Event;
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 
 public class NotificationServiceBean implements NotificationService{
-
+	
+	private static final String SERVICE_NAME = "NotificationService";
+	private static final String[] RESOURCE_TYPE_LIST = new String[] {};
+	
 	private static Log logger = LogFactory.getLog(NotificationServiceBean.class);
+	
+	private PEPService pep;
+	private PAPService pap;
+	private BindingService binding;
+	private NotificationService notification;
+	private AuthenticationService authentication;
+	private SessionContext ctx;
+	private EntityManager em;
+	
+	
+	public NotificationServiceBean() {
+	}
+	
+	@PersistenceContext
+	public void setEntityManager(EntityManager em) {
+		this.em = em;
+	}
+
+	public EntityManager getEntityManager() {
+		return this.em;
+	}
+
+	@Resource
+	public void setSessionContext(SessionContext ctx) {
+		this.ctx = ctx;
+	}
+
+	public SessionContext getSessionContext() {
+		return this.ctx;
+	}
+
+	@EJB
+	public void setBindingService(BindingService binding) {
+		this.binding = binding;
+	}
+
+	public BindingService getBindingService() {
+		return this.binding;
+	}
+
+	@EJB
+	public void setPEPService(PEPService pep) {
+		this.pep = pep;
+	}
+
+	public PEPService getPEPService() {
+		return this.pep;
+	}
+
+	@EJB
+	public void setPAPService(PAPService pap) {
+		this.pap = pap;
+	}
+
+	public PAPService getPAPService() {
+		return this.pap;
+	}
+
+	@EJB
+	public void setAuthenticationService(AuthenticationService authentication) {
+		this.authentication = authentication;
+	}
+
+	public AuthenticationService getAuthenticationService() {
+		return this.authentication;
+	}
 
 	@Override
-	public FactoryResource findResource(String arg0) throws FactoryException {
+	public FactoryResource findResource(String path) throws FactoryException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String[] getResourceTypeList() {
-		// TODO Auto-generated method stub
-		return null;
+		return RESOURCE_TYPE_LIST;
 	}
 
 	@Override
 	public String getServiceName() {
-		// TODO Auto-generated method stub
-		return null;
+		return SERVICE_NAME;
 	}
 
 	@Override

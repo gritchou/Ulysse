@@ -140,8 +140,9 @@ Date 20 May 2009
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-greeting</artifactId>
-			<version>0.0.1</version>
+			<version>0.2.3-SNAPSHOT</version>
 			<scope>runtime</scope>
-		</dependency>		
+		</dependency>
+	
 	</dependencies>
 </project>

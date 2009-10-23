@@ -79,16 +79,16 @@ Date 20 May 2009
 			<version>0.3.3-SNAPSHOT</version>
 			<type>ejb</type>
 		</dependency>
-		<!-- <dependency>
-			<groupId>org.qualipso</groupId>
-			<artifactId>factory-service-helloworld</artifactId>
-			<version>0.2.3-SNAPSHOT</version>
-			<type>ejb</type>
-		</dependency> -->
+<!--		<dependency>-->
+<!--			<groupId>org.qualipso</groupId>-->
+<!--			<artifactId>factory-service-helloworld</artifactId>-->
+<!--			<version>0.2.3-SNAPSHOT</version>-->
+<!--			<type>ejb</type>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-greeting</artifactId>
-			<version>0.0.1</version>
+			<version>0.2.3-SNAPSHOT</version>
 			<type>ejb</type>
 		</dependency>
 		<dependency>
@@ -99,6 +99,14 @@ Date 20 May 2009
 		</dependency>
 <!--		
 		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-service-voip-conferences</artifactId>
+			<version>0.0.3-SNAPSHOT</version>
+			<type>ejb</type>
+		</dependency>
+-->
+	</dependencies>
+</project>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-voip-conferences</artifactId>
 			<version>0.0.3-SNAPSHOT</version>
