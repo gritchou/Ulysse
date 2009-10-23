@@ -31,14 +31,14 @@ import org.qualipso.factory.notification.NotificationServiceException;
  */
 public class NotificationServiceSBTest {
 	private static Context context;
-	private NotificationService notification;
-	private GreetingService greeting;
-	private EventQueueService eqs;
-	private MembershipService membership;
+	private static NotificationService notification;
+	private static GreetingService greeting;
+	private static EventQueueService eqs;
+	private static MembershipService membership;
 	private String pathQueue1;
 	private String pathQueue2;
 	
-	/**
+	/** 
 	 * Set up service for all tests.
 	 * @throws LoginException 
 	 * @throws NotificationServiceException 
@@ -85,18 +85,13 @@ public class NotificationServiceSBTest {
 	 * throw one event into one queue and check the event is inserted
 	 * @throws Exception
 	 */
-<<<<<<< HEAD:factory/factory-core-test/src/test/java/org/qualipso/factory/client/test/sb/NotificationServiceSBTest.java
+
 	@Test(timeout=100)
-	public void testNotification1() throws Exception{	
-		String caller = membership.getProfilePathForConnectedIdentifier();
-=======
-	@Test
 	public void testNotification1() throws Exception{
-		
+		String caller = membership.getProfilePathForConnectedIdentifier();
 		//greeting.sayHello()
 		
 		String e1 = greeting.throwEventOK();
->>>>>>> f3aeb60ea8d002b9d77084b79d8744474c6e2eda:factory/factory-core-test/src/test/java/org/qualipso/factory/client/test/sb/NotificationServiceSBTest.java
 		
 		greeting.createName("/name", "toto");
 		Event[] lEvent1 = new Event[]{};
