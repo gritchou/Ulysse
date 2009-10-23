@@ -41,8 +41,8 @@ import java.awt.EventQueue;
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 11 june 2009
  */
-@Stateless(name = "Greeting4", mappedName = "GreetingService")
-@WebService(endpointInterface = "org.qualipso.factory.greeting.GreetingService", targetNamespace = "http://org.qualipso.factory.ws/greeting", serviceName = "GreetingService", portName = "GreetingService")
+@Stateless(name = "Greeting", mappedName = "GreetingService")
+@WebService(endpointInterface = "org.qualipso.factory.greeting.GreetingService", targetNamespace = "http://org.qualipso.factory.ws/service/greeting", serviceName = "GreetingService", portName = "GreetingService")
 @WebContext(contextRoot = "/factory-service-greeting", urlPattern = "/greeting")
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")

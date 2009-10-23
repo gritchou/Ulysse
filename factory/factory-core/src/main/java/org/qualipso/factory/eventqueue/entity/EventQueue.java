@@ -17,13 +17,13 @@ import org.qualipso.factory.notification.Event;
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 11 june 2009
  */
-@Entity
-@XmlType(name = "EventQueue", namespace = "http://org.qualipso.factory.ws/resource/eventqueue", propOrder =  {"events"}
-)
-@SuppressWarnings("serial")
+//@Entity
+//@XmlType(name = "EventQueue", namespace = "http://org.qualipso.factory.ws/resource/eventqueue", propOrder =  {"events"}
+//)
+//@SuppressWarnings("serial")
 public class EventQueue extends FactoryResource {
 	
-	@Id
+	//@Id
 	private String name;
 	private String path;
 	
@@ -49,9 +49,9 @@ public class EventQueue extends FactoryResource {
 		this.name = name;
 	}
 	
-	@XmlAttribute(name = "path", required = true)
-	@Transient
-	@Override
+	//@XmlAttribute(name = "path", required = true)
+	//@Transient
+	//@Override
 	public String getResourcePath() {
 		return path;
 	}
@@ -61,14 +61,14 @@ public class EventQueue extends FactoryResource {
 	}
 	
 
-	@Override
-	@XmlTransient
+//	@Override
+//	@XmlTransient
 	public FactoryResourceIdentifier getFactoryResourceIdentifier() {
 		return new FactoryResourceIdentifier("EventQueueService", "EventQueue", getName());
 	}
 
-	@Override
-	@XmlTransient
+//	@Override
+//	@XmlTransient
 	public String getResourceName() {
 		return name;
 	}

@@ -79,12 +79,12 @@ Date 20 May 2009
 			<version>0.3.3-SNAPSHOT</version>
 			<type>ejb</type>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-helloworld</artifactId>
 			<version>0.2.3-SNAPSHOT</version>
 			<type>ejb</type>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-greeting</artifactId>

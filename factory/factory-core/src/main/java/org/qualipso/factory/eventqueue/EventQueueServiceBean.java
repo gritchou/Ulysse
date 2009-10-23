@@ -61,9 +61,9 @@ import org.qualipso.factory.eventqueue.entity.EventQueue;
  * @author <a href="mailto:christophe.bouthier@loria.fr">Christophe Bouthier</a>
  * @date 27 July 2009
  */
-@Stateless(name = "EventQueue2", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX+"EventQueueService")
-@WebService(endpointInterface = "org.qualipso.factory.service.eventqueue.EventQueueService", targetNamespace = "http://org.qualipso.funkyfactory.ws/service/eventqueue", serviceName = "EventQueueService", portName = "EventQueueService")
-@WebContext(contextRoot = "/factory-service", urlPattern = "/eventqueue")
+@Stateless(name = "EventQueue", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX+"EventQueueService")
+@WebService(endpointInterface = "org.qualipso.factory.eventqueue.EventQueueService", targetNamespace = "http://org.qualipso.factory.ws/service/eventqueue", serviceName = "EventQueueService", portName = "EventQueueServicePort")
+@WebContext(contextRoot = "/factory-core", urlPattern = "/eventqueue")
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
