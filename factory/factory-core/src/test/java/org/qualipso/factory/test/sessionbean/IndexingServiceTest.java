@@ -3,7 +3,14 @@ import static org.hamcrest.text.StringContains.containsString;
 import static org.qualipso.factory.test.jmock.action.SaveParamsAction.saveParams;
 import static org.qualipso.factory.test.jmock.matcher.EventWithTypeEqualsToMatcher.anEventWithTypeEqualsTo;
 
-import java.util.Vector;
+import java.util.ArrayList;
+
+import javax.ejb.SessionContext;
+import javax.jms.Message;
+import javax.jms.Queue;
+import javax.jms.QueueConnectionFactory;
+
+
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,13 +22,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qualipso.factory.FactoryResourceIdentifier;
 
-import org.qualipso.factory.eventqueue.EventQueueService;
+
+import org.qualipso.factory.indexing.Indexer;
+import org.qualipso.factory.indexing.IndexerBean;
 import org.qualipso.factory.indexing.IndexingService;
 import org.qualipso.factory.indexing.IndexingServiceBean;
+import org.qualipso.factory.indexing.SearchResult;
 import org.qualipso.factory.membership.MembershipService;
-
-
-import org.qualipso.factory.eventqueue.entity.Event;
 
 import org.qualipso.factory.security.pep.PEPService;
 
@@ -32,14 +39,17 @@ public class IndexingServiceTest extends BaseSessionBeanFixture<IndexingServiceB
 	private static Log logger = LogFactory.getLog(IndexingServiceTest.class);
 
 	@SuppressWarnings("unchecked")
-	private static final Class[] usedBeans = {Event.class};
+	private static final Class[] usedBeans = {};
 	public IndexingServiceTest() {
     	super(IndexingServiceBean.class, usedBeans);
     }
 	private Mockery mockery;
-	private MembershipService membership;
 	private PEPService pep;
-	
+	private MembershipService membership;
+	private SessionContext ctx;
+	private Queue indexingQueue;
+	private QueueConnectionFactory queueConnectionFactory;
+	private Indexer indexer;
 	
 	
 	@BeforeClass
@@ -49,28 +59,77 @@ public class IndexingServiceTest extends BaseSessionBeanFixture<IndexingServiceB
 		mockery = new Mockery();
 		membership = mockery.mock(MembershipService.class);
 		pep = mockery.mock(PEPService.class);
-		
+		ctx = mockery.mock(SessionContext.class);
+		indexingQueue = mockery.mock(Queue.class);
+		queueConnectionFactory = mockery.mock(QueueConnectionFactory.class);
+		indexer = mockery.mock(Indexer.class);
 		
 		
 		getBeanToTest().setMembershipService(membership);
 		getBeanToTest().setPEPService(pep);
+		getBeanToTest().setSessionContext(ctx);
+		getBeanToTest().setIndexingQueue(indexingQueue);
+		getBeanToTest().setQueueConnectionFactory(queueConnectionFactory);
+		getBeanToTest().setIndexer(indexer);
+		
 		
 	}
 	@Test
 	public void testCRUDIndexing(){
 		logger.debug("testing CRUDIndex..");
 		 final Sequence sequence1 = mockery.sequence("sequence1");
+		 final Sequence sequence2 = mockery.sequence("sequence2");
+		 final Sequence sequence3 = mockery.sequence("sequence3");
+		 final Sequence sequence4 = mockery.sequence("sequence4");
 	     
 	     try {
 				mockery.checking(new Expectations() {
 					{
-						
-						//queueSender.send(message);
-						
+					oneOf(queueConnectionFactory).createQueueConnection().createQueueSession(true, javax.jms.Session.AUTO_ACKNOWLEDGE).createSender(indexingQueue).send(with(any(Message.class)));
+					inSequence(sequence1);
 					}
 				});
 				IndexingService service = getBeanToTest();
 				service.index(new FactoryResourceIdentifier());
+				mockery.assertIsSatisfied();
+				
+				mockery.checking(new Expectations() {
+					{
+					oneOf(queueConnectionFactory).createQueueConnection().createQueueSession(true, javax.jms.Session.AUTO_ACKNOWLEDGE).createSender(indexingQueue).send(with(any(Message.class)));
+					inSequence(sequence2);
+					}
+				});
+				service.reindex(new FactoryResourceIdentifier());
+				mockery.assertIsSatisfied();
+				
+				mockery.checking(new Expectations() {
+					{
+					oneOf(queueConnectionFactory).createQueueConnection().createQueueSession(true, javax.jms.Session.AUTO_ACKNOWLEDGE).createSender(indexingQueue).send(with(any(Message.class)));
+					inSequence(sequence3);
+					}
+				});
+				service.remove(new FactoryResourceIdentifier());
+				mockery.assertIsSatisfied();
+				
+				mockery.checking(new Expectations() {
+					{
+					oneOf(indexer).search("bug AND forge");
+					will(returnValue(new ArrayList<SearchResult>()));
+					inSequence(sequence4);
+					oneOf(membership).getProfilePathForConnectedIdentifier();
+					will(returnValue("/profiles/kermit"));
+					inSequence(sequence4);
+					allowing(pep).checkSecurity(with(any(String.class)), with(any(String.class)), with(any(String.class)));
+					inSequence(sequence4);
+					
+
+					}
+				});
+				service.search("bug AND forge");
+				mockery.assertIsSatisfied();
+				
+				
+				
 				
 	     }catch(Exception e){
 	    	 logger.error(e.getMessage(), e);

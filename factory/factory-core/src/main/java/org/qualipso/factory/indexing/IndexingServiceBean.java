@@ -4,22 +4,25 @@ import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
+import javax.jms.Message;
+import javax.jms.Queue;
+import javax.jms.QueueConnection;
+import javax.jms.QueueConnectionFactory;
+import javax.jms.QueueSender;
+import javax.jms.QueueSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.SecurityDomain;
+
 import org.qualipso.factory.FactoryResourceIdentifier;
-import org.qualipso.factory.binding.BindingService;
-import org.qualipso.factory.eventqueue.EventQueueService;
-
 import org.qualipso.factory.membership.MembershipService;
-
-import org.qualipso.factory.eventqueue.entity.Event;
-import org.qualipso.factory.notification.NotificationServiceBean;
-import org.qualipso.factory.security.pap.PAPService;
+import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.security.pep.PEPService;
+import org.qualipso.factory.security.pep.PEPServiceException;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 
 
@@ -27,25 +30,25 @@ import java.util.ArrayList;
 
 /**
  * @author Benjamin Dreux (benjiiiiii@gmail.com)
- * @date 22 october 2009
+ * @date 25 october 2009
  */
 @Stateless(name = "Indexing", mappedName = "IndexingService")
 @SecurityDomain(value = "JBossWSDigest")
 public class IndexingServiceBean implements IndexingService {
 	
-	private static Log logger = LogFactory.getLog(NotificationServiceBean.class);
-	static String indexingQueue;
-	private BindingService binding;
+	private static Log logger = LogFactory.getLog(IndexingServiceBean.class);
+	static String indexingQueuePath = "queue/QualipsoFactory/Indexing";
+	
 	private PEPService pep;
-	private PAPService pap;
 	private MembershipService membership;
 	private SessionContext ctx;
-	private EventQueueService eventQueue;
+	private Queue indexingQueue;
+	private QueueConnectionFactory queueConnectionFactory;
+	private Indexer indexer;
 	
     
     public IndexingServiceBean() {
 	}
-    
 
 	@Resource
 	public void setSessionContext(SessionContext ctx) {
@@ -55,16 +58,7 @@ public class IndexingServiceBean implements IndexingService {
 	public SessionContext getSessionContext() {
 		return this.ctx;
 	}
-
-	@EJB
-	public void setBindingService(BindingService binding) {
-		this.binding = binding;
-	}
-
-	public BindingService getBindingService() {
-		return this.binding;
-	}
-
+	
 	@EJB
 	public void setPEPService(PEPService pep) {
 		this.pep = pep;
@@ -75,14 +69,6 @@ public class IndexingServiceBean implements IndexingService {
 	}
 
 	@EJB
-	public void setPAPService(PAPService pap) {
-		this.pap = pap;
-	}
-
-	public PAPService getPAPService() {
-		return this.pap;
-	}
-	@EJB
 	public void setMembershipService(MembershipService membership) {
 		this.membership = membership;
 	}
@@ -91,70 +77,104 @@ public class IndexingServiceBean implements IndexingService {
 		return this.membership;
 	}
 	@EJB
-	public void setEventQueueService(EventQueueService eventQueue) {
-		this.eventQueue = eventQueue;
+	public void setIndexer(Indexer indexer) {
+		this.indexer = indexer;
 	}
 
-	public EventQueueService getEventQueueService() {
-		return this.eventQueue;
+	public Indexer getIndexer() {
+		return this.indexer;
 	}
-
+	
+	@Resource(mappedName="jms/QueueConnectionFactory")
+	public void setQueueConnectionFactory(QueueConnectionFactory queueConnectionFactory){
+		this.queueConnectionFactory = queueConnectionFactory;
+	}
+	public QueueConnectionFactory getQueueConnectionFatory(){
+		return this.queueConnectionFactory;
+	}
+	
+	@Resource(mappedName="jms/queue/QualipsoFactory/indexing")
+	public void setIndexingQueue(Queue indexingQueue){
+		this.indexingQueue = indexingQueue;
+	}
+	public Queue getIndexingQueue(){
+		return this.indexingQueue;
+	}
+	
 	@Override
 	public void index(FactoryResourceIdentifier fri) throws IndexingServiceException {
-
-//		logger.warn("index(...) called ### NOT IMPLEMENTED");
+		logger.debug("index(...) called ");
 		logger.debug("params : FactoryResourceIdentifier=\r\n" + fri + "\r\n}");
-
-		try{
-		Event e = new Event();
-		e.setThrowedBy("indeingService");
-		e.setEventType("index");
-		e.setArgs(fri.toString());
+		String action = "index";
 		
-		eventQueue.pushEvent(getIndexingQueue(), e);
-		
-		}catch(Exception e){
-			logger.error("unable create indexing queue", e);
-            ctx.setRollbackOnly();
-            throw new IndexingServiceException("unable create indexing queue", e);
-		}
+        sendMessage(action,fri);
 	}
-
 	@Override
 	public void reindex(FactoryResourceIdentifier fri) throws IndexingServiceException {
-		//TODO
-		logger.warn("reindex(...) called ### NOT IMPLEMENTED");
+		logger.debug("reindex(...) called ");
 		logger.debug("params : FactoryResourceIdentifier=\r\n" + fri + "\r\n}");
+		String action = "reindex";
+		
+        sendMessage(action,fri);
+
 	}
 
 	@Override
 	public void remove(FactoryResourceIdentifier fri) throws IndexingServiceException {
-		//TODO
-		logger.warn("remove(...) called ### NOT IMPLEMENTED");
+		logger.debug("remove(...) called ");
 		logger.debug("params : FactoryResourceIdentifier=" + fri);
+		String action = "remove";
+		
+        sendMessage(action,fri);
+
 	}
 
 	@Override
 	public ArrayList<SearchResult> search(String query) throws IndexingServiceException {
-		//TODO
-		logger.warn("search(...) called ### NOT IMPLEMENTED");
+		logger.debug("search(...) called ");
 		logger.debug("params : query=" + query);
-		return null;
+		ArrayList<SearchResult> unCheckRes = indexer.search(query);
+		return filter(unCheckRes);
 	}
-    public String getIndexingQueue() throws IndexingServiceException {
-        if (indexingQueue == null) {
-        	try {
-        		eventQueue.createEventQueue("indexing");
-        		indexingQueue = "indexing";
-        		} catch (Exception e) {
-        			logger.error("unable create indexing queue", e);
-                    ctx.setRollbackOnly();
-                    throw new IndexingServiceException("unable create indexing queue", e);
-				
+	private ArrayList<SearchResult> filter(ArrayList<SearchResult> uncheckedRes) throws IndexingServiceException {
+		Iterator<SearchResult> iter = uncheckedRes.iterator();
+		ArrayList<SearchResult> checkedRes = new ArrayList<SearchResult>();
+		try{	
+			String profile = membership.getProfilePathForConnectedIdentifier();
+			while(iter.hasNext()){
+				SearchResult current = iter.next();
+				FactoryResourceIdentifier fri = current.getResourceIdentifier();
+				try{
+					pep.checkSecurity(profile, fri.toString(), "read");
+					checkedRes.add(current);
+				}catch(PEPServiceException e){}
 			}
+		}catch(MembershipServiceException e){
+			logger.error("Error in indexingservice when filtring searchResult", e);
+            ctx.setRollbackOnly();
+            throw new IndexingServiceException("Error in indexingservice when filtring searchResult", e);  
+		}
+		return checkedRes;
+	}
+
+	private void sendMessage(String action, FactoryResourceIdentifier fri) throws IndexingServiceException{
+		try {
+            QueueConnection queueConnection = queueConnectionFactory.createQueueConnection();
+            QueueSession queueSession = queueConnection.createQueueSession(true, javax.jms.Session.AUTO_ACKNOWLEDGE);
+            QueueSender queueSender = queueSession.createSender(indexingQueue);
+            Message message = queueSession.createMessage();
+            message.setStringProperty("action", "index");
+            message.setStringProperty("uri", fri.toString());
+            queueSender.send(message);
+            queueSender.close();
+            queueSession.close();
+            queueConnection.close();
+        } catch (Exception e) {
+        	logger.error("Error in indexingservice when do " + action, e);
+            ctx.setRollbackOnly();
+            throw new IndexingServiceException("Error due to indexingService when do " + action, e);   
         }
-        return indexingQueue;
-    }
+	}
  
     
 }
