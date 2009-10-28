@@ -16,16 +16,18 @@
  */
 package org.qualipso.factory.indexing;
 
+
 import javax.ejb.Local;
 import java.util.ArrayList;
 import org.qualipso.factory.FactoryResourceIdentifier;
 
 
 /**
- * @author Jerome Blanchard (jayblanc@gmail.com)
+ * @author benjamin Dreux(benjiiiiii@gmail.co)
  * @date 20 May 2009
  */
 @Local
+
 public interface IndexingService {
 	public void index(FactoryResourceIdentifier fri) throws IndexingServiceException;
 

@@ -85,6 +85,7 @@ Date 20 May 2009
 <!--			<version>0.2.3-SNAPSHOT</version>-->
 <!--			<type>ejb</type>-->
 <!--		</dependency>-->
+<!--
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-greeting</artifactId>
@@ -97,7 +98,7 @@ Date 20 May 2009
 			<version>0.2.3-SNAPSHOT</version>
 			<type>ejb</type>
 		</dependency>
-<!--		
+		
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-voip-conferences</artifactId>
@@ -105,8 +106,8 @@ Date 20 May 2009
 			<type>ejb</type>
 		</dependency>
 -->
-	</dependencies>
-</project>
+	
+<!--
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-voip-conferences</artifactId>
 			<version>0.0.3-SNAPSHOT</version>

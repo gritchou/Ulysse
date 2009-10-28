@@ -1,37 +1,25 @@
 package org.qualipso.factory.test.sessionbean;
-import static org.hamcrest.text.StringContains.containsString;
-import static org.qualipso.factory.test.jmock.action.SaveParamsAction.saveParams;
-import static org.qualipso.factory.test.jmock.matcher.EventWithTypeEqualsToMatcher.anEventWithTypeEqualsTo;
 
 import java.util.ArrayList;
-
 import javax.ejb.SessionContext;
 import javax.jms.Message;
 import javax.jms.Queue;
 import javax.jms.QueueConnectionFactory;
-
-
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.Sequence;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qualipso.factory.FactoryResourceIdentifier;
-
-
-import org.qualipso.factory.indexing.Indexer;
-import org.qualipso.factory.indexing.IndexerBean;
+import org.qualipso.factory.indexing.Index;
+import org.qualipso.factory.indexing.IndexI;
 import org.qualipso.factory.indexing.IndexingService;
 import org.qualipso.factory.indexing.IndexingServiceBean;
 import org.qualipso.factory.indexing.SearchResult;
 import org.qualipso.factory.membership.MembershipService;
-
 import org.qualipso.factory.security.pep.PEPService;
-
 import com.bm.testsuite.BaseSessionBeanFixture;
 
 public class IndexingServiceTest extends BaseSessionBeanFixture<IndexingServiceBean> {
@@ -49,7 +37,7 @@ public class IndexingServiceTest extends BaseSessionBeanFixture<IndexingServiceB
 	private SessionContext ctx;
 	private Queue indexingQueue;
 	private QueueConnectionFactory queueConnectionFactory;
-	private Indexer indexer;
+	private IndexI index;
 	
 	
 	@BeforeClass
@@ -62,7 +50,7 @@ public class IndexingServiceTest extends BaseSessionBeanFixture<IndexingServiceB
 		ctx = mockery.mock(SessionContext.class);
 		indexingQueue = mockery.mock(Queue.class);
 		queueConnectionFactory = mockery.mock(QueueConnectionFactory.class);
-		indexer = mockery.mock(Indexer.class);
+		index = mockery.mock(IndexI.class);
 		
 		
 		getBeanToTest().setMembershipService(membership);
@@ -70,7 +58,7 @@ public class IndexingServiceTest extends BaseSessionBeanFixture<IndexingServiceB
 		getBeanToTest().setSessionContext(ctx);
 		getBeanToTest().setIndexingQueue(indexingQueue);
 		getBeanToTest().setQueueConnectionFactory(queueConnectionFactory);
-		getBeanToTest().setIndexer(indexer);
+		getBeanToTest().setIndex(index);
 		
 		
 	}
@@ -113,7 +101,7 @@ public class IndexingServiceTest extends BaseSessionBeanFixture<IndexingServiceB
 				
 				mockery.checking(new Expectations() {
 					{
-					oneOf(indexer).search("bug AND forge");
+					oneOf(index).search("bug AND forge");
 					will(returnValue(new ArrayList<SearchResult>()));
 					inSequence(sequence4);
 					oneOf(membership).getProfilePathForConnectedIdentifier();

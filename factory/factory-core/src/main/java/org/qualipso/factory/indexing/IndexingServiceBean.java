@@ -4,17 +4,26 @@ import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.Queue;
 import javax.jms.QueueConnection;
 import javax.jms.QueueConnectionFactory;
 import javax.jms.QueueSender;
 import javax.jms.QueueSession;
+import javax.jws.WebService;
+import javax.jws.soap.SOAPBinding;
+import javax.jws.soap.SOAPBinding.Style;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.SecurityDomain;
+import org.jboss.ws.annotation.EndpointConfig;
+import org.jboss.wsf.spi.annotation.WebContext;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
@@ -32,8 +41,10 @@ import java.util.Iterator;
  * @author Benjamin Dreux (benjiiiiii@gmail.com)
  * @date 25 october 2009
  */
+
 @Stateless(name = "Indexing", mappedName = "IndexingService")
 @SecurityDomain(value = "JBossWSDigest")
+
 public class IndexingServiceBean implements IndexingService {
 	
 	private static Log logger = LogFactory.getLog(IndexingServiceBean.class);
@@ -44,7 +55,7 @@ public class IndexingServiceBean implements IndexingService {
 	private SessionContext ctx;
 	private Queue indexingQueue;
 	private QueueConnectionFactory queueConnectionFactory;
-	private Indexer indexer;
+	private IndexI index;
 	
     
     public IndexingServiceBean() {
@@ -76,14 +87,14 @@ public class IndexingServiceBean implements IndexingService {
 	public MembershipService getMembershipService() {
 		return this.membership;
 	}
-	@EJB
-	public void setIndexer(Indexer indexer) {
-		this.indexer = indexer;
+	
+	public void setIndex(IndexI index) {
+		this.index = index;
+	}
+	public IndexI getIndex(){
+		return this.index;
 	}
 
-	public Indexer getIndexer() {
-		return this.indexer;
-	}
 	
 	@Resource(mappedName="jms/QueueConnectionFactory")
 	public void setQueueConnectionFactory(QueueConnectionFactory queueConnectionFactory){
@@ -93,7 +104,7 @@ public class IndexingServiceBean implements IndexingService {
 		return this.queueConnectionFactory;
 	}
 	
-	@Resource(mappedName="jms/queue/QualipsoFactory/indexing")
+	@Resource(mappedName="jms/queue/indexingQueue")
 	public void setIndexingQueue(Queue indexingQueue){
 		this.indexingQueue = indexingQueue;
 	}
@@ -102,16 +113,19 @@ public class IndexingServiceBean implements IndexingService {
 	}
 	
 	@Override
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public void index(FactoryResourceIdentifier fri) throws IndexingServiceException {
-		logger.debug("index(...) called ");
+		logger.info("index(...) called ");
 		logger.debug("params : FactoryResourceIdentifier=\r\n" + fri + "\r\n}");
 		String action = "index";
 		
         sendMessage(action,fri);
 	}
+
 	@Override
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public void reindex(FactoryResourceIdentifier fri) throws IndexingServiceException {
-		logger.debug("reindex(...) called ");
+		logger.info("reindex(...) called ");
 		logger.debug("params : FactoryResourceIdentifier=\r\n" + fri + "\r\n}");
 		String action = "reindex";
 		
@@ -120,8 +134,9 @@ public class IndexingServiceBean implements IndexingService {
 	}
 
 	@Override
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public void remove(FactoryResourceIdentifier fri) throws IndexingServiceException {
-		logger.debug("remove(...) called ");
+		logger.info("remove(...) called ");
 		logger.debug("params : FactoryResourceIdentifier=" + fri);
 		String action = "remove";
 		
@@ -130,12 +145,14 @@ public class IndexingServiceBean implements IndexingService {
 	}
 
 	@Override
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public ArrayList<SearchResult> search(String query) throws IndexingServiceException {
-		logger.debug("search(...) called ");
+		logger.info("search(...) called ");
 		logger.debug("params : query=" + query);
-		ArrayList<SearchResult> unCheckRes = indexer.search(query);
+		ArrayList<SearchResult> unCheckRes = index.search(query);
 		return filter(unCheckRes);
 	}
+
 	private ArrayList<SearchResult> filter(ArrayList<SearchResult> uncheckedRes) throws IndexingServiceException {
 		Iterator<SearchResult> iter = uncheckedRes.iterator();
 		ArrayList<SearchResult> checkedRes = new ArrayList<SearchResult>();
@@ -157,24 +174,32 @@ public class IndexingServiceBean implements IndexingService {
 		return checkedRes;
 	}
 
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	private void sendMessage(String action, FactoryResourceIdentifier fri) throws IndexingServiceException{
-		try {
-            QueueConnection queueConnection = queueConnectionFactory.createQueueConnection();
-            QueueSession queueSession = queueConnection.createQueueSession(true, javax.jms.Session.AUTO_ACKNOWLEDGE);
-            QueueSender queueSender = queueSession.createSender(indexingQueue);
-            Message message = queueSession.createMessage();
-            message.setStringProperty("action", "index");
-            message.setStringProperty("uri", fri.toString());
-            queueSender.send(message);
-            queueSender.close();
-            queueSession.close();
-            queueConnection.close();
-        } catch (Exception e) {
-        	logger.error("Error in indexingservice when do " + action, e);
+		try{
+			QueueConnection queueConnection = queueConnectionFactory.createQueueConnection();
+			try{
+				QueueSession queueSession = queueConnection.createQueueSession(true, javax.jms.Session.AUTO_ACKNOWLEDGE);
+				try{
+					QueueSender queueSender = queueSession.createSender(indexingQueue);
+					try {
+
+						Message message = queueSession.createMessage();
+						message.setStringProperty("action", action);
+						message.setStringProperty("uri", fri.toString());
+						queueSender.send(message);
+						queueSender.close();
+						queueSession.close();
+						queueConnection.close();
+					}finally{queueSender.close();}
+				}finally{queueSession.close();}
+			}finally{queueConnection.close();}
+		}catch(JMSException e){
+			logger.error("Error in indexingservice when sending message "+ action, e);
             ctx.setRollbackOnly();
-            throw new IndexingServiceException("Error due to indexingService when do " + action, e);   
-        }
+            throw new IndexingServiceException("Error in indexingservice when sending message "+ action, e);  
+		}
 	}
- 
-    
+
+
 }
