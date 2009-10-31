@@ -107,11 +107,3 @@ Date 20 May 2009
 -->
 	</dependencies>
 </project>
-			<groupId>org.qualipso</groupId>
-			<artifactId>factory-service-voip-conferences</artifactId>
-			<version>0.0.3-SNAPSHOT</version>
-			<type>ejb</type>
-		</dependency>
--->
-	</dependencies>
-</project>

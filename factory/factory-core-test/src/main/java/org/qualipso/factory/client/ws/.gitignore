@@ -15,4 +15,5 @@ ObjectFactory.java
 SecurityServiceException_Exception.java
 SecurityService.java
 SecurityService_Service.java
+FactoryResource.java
 
