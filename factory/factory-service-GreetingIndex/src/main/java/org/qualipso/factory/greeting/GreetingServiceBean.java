@@ -27,7 +27,7 @@ import org.qualipso.factory.greeting.entity.Name;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.Event;
-import org.qualipso.factory.indexing;
+import org.qualipso.factory.indexing.IndexingService;
 //import org.qualipso.factory.service.notification.entity.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
@@ -322,7 +322,11 @@ public class GreetingServiceBean implements GreetingService {
 			checkResourceType(identifier, "Name");
 		
 			//STARTING SPECIFIC EXTERNAL SERVICE RESOURCE LOADING OR METHOD CALLS
-			Name name = em.find(Name.class, identifier.getId());
+			Name name;
+            for(int i = 0; i < names.size(); i++){
+                if((names.get(i).getFactoryResourceIdentifier()).equals(identifier))
+                    name = names.get(i); 
+            }
 			if ( name == null ) {
 				throw new GreetingServiceException("unable to find a name for id " + identifier.getId());
 			}
