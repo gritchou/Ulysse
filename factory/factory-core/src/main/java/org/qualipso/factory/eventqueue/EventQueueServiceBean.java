@@ -395,7 +395,7 @@ public class EventQueueServiceBean implements EventQueueService {
 
 
     @Override
-    public Event findEvent(String path, Event e) throws EventQueueServiceException {
+    public Event[] findEvent(String path, String e) throws EventQueueServiceException {
         // TODO Auto-generated method stub
         return null;
     }

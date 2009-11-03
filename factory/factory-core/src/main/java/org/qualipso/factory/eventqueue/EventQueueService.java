@@ -67,7 +67,7 @@ public interface EventQueueService extends FactoryService {
     
     
     @WebMethod
-    public Event findEvent(String path, Event e) throws EventQueueServiceException;
+    public Event[] findEvent(String path, String e) throws EventQueueServiceException;
     
     
     @WebMethod
