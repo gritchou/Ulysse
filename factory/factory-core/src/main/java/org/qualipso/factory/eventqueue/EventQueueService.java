@@ -30,7 +30,6 @@ import javax.jws.soap.SOAPBinding;
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.eventqueue.entity.*;
 
-
 /**
  * Provides a time service for the factory.
  * 
@@ -38,41 +37,32 @@ import org.qualipso.factory.eventqueue.entity.*;
  * @date 27 July 2009
  */
 
-
 @Remote
 @WebService(name = "EventQueueService", targetNamespace = "http://org.qualipso.factory.ws/service/eventqueue")
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface EventQueueService extends FactoryService {
-    
+
     public static final String PROFILES_PATH = "/eventqueues";
 
     @WebMethod
     public void createEventQueue(String path) throws EventQueueServiceException;
-    
-    
+
     @WebMethod
     public Event[] getEvents(String queuePath) throws EventQueueServiceException;
-    
-   
+
     @WebMethod
     public void pushEvent(String path, Event e) throws EventQueueServiceException;
-    
-    
+
     @WebMethod
     public Event getLastEvent(String path) throws EventQueueServiceException;
-    
-    
+
     @WebMethod
     public void deleteEvent(String path, Event e) throws EventQueueServiceException;
-    
-    
+
     @WebMethod
     public Event[] findEvent(String path, String e) throws EventQueueServiceException;
-    
-    
+
     @WebMethod
-    public void removeQueue (String path) throws EventQueueServiceException;
-    
-    
-    
+    public void removeQueue(String path) throws EventQueueServiceException;
+
 }

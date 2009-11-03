@@ -61,7 +61,7 @@ import org.qualipso.factory.eventqueue.entity.EventQueue;
  * @author <a href="mailto:christophe.bouthier@loria.fr">Christophe Bouthier</a>
  * @date 27 July 2009
  */
-@Stateless(name = "EventQueue", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX+"EventQueueService")
+@Stateless(name = "EventQueue", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX + "EventQueueService")
 @WebService(endpointInterface = "org.qualipso.factory.eventqueue.EventQueueService", targetNamespace = "http://org.qualipso.factory.ws/service/eventqueue", serviceName = "EventQueueService", portName = "EventQueueServicePort")
 @WebContext(contextRoot = "/factory-core", urlPattern = "/eventqueue")
 @SOAPBinding(style = Style.RPC)
@@ -85,70 +85,75 @@ public class EventQueueServiceBean implements EventQueueService {
     public EventQueueServiceBean() {
     }
 
-    
     /**
      * cette methode positionne l Entity Manager
-    *@param em Entity Manager   
-   */
+     * 
+     * @param em
+     *            Entity Manager
+     */
     @PersistenceContext
     public void setEntityManager(EntityManager em) {
         this.em = em;
     }
 
-    
-    /**    
-     * cette methode retourne l Entity Manager 
+    /**
+     * cette methode retourne l Entity Manager
+     * 
      * @return em l'entity manager
-    */
+     */
     public EntityManager getEntityManager() {
         return this.em;
     }
 
-    
     /**
      * cette methode positionne la Session Context
-     * @param ctx la Session Context 
-    */
+     * 
+     * @param ctx
+     *            la Session Context
+     */
     @Resource
     public void setSessionContext(SessionContext ctx) {
         this.ctx = ctx;
     }
 
-    
     /**
      * cette methode retourne la Session Context
+     * 
      * @return la Session Context
-    */
+     */
     public SessionContext getSessionContext() {
         return this.ctx;
     }
 
-    
     /**
      * cette methode positionne le Binding Service
-     * @param binding le  Binding Service
      * 
-    */
+     * @param binding
+     *            le Binding Service
+     * 
+     */
     @EJB(name = "BindingService")
     public void setBindingService(BindingService binding) {
         this.binding = binding;
     }
 
-    
     /**
-     *
+     * 
      *cette methode retourne le Binding Service
+     * 
      * @return le Binding Service
-    */
+     */
     public BindingService getBindingService() {
         return this.binding;
     }
 
     /**
      * cette methode positionne le PEP Service
-     * @param pep le  PEP Service
      * 
-    */
+     * @param pep
+     *            le PEP Service
+     * 
+     */
     @EJB(name = "PEPService")
     public void setPEPService(PEPService pep) {
         this.pep = pep;
@@ -156,18 +161,20 @@ public class EventQueueServiceBean implements EventQueueService {
 
     /**
      * cette methode retourne le PEP Service
+     * 
      * @return PEP Service
-    */
+     */
     public PEPService getPEPService() {
         return this.pep;
     }
 
-    
     /**
      * cette methode positionne le PAP Service
-     * @param pap le  PAP Service
      * 
-    */
+     * @param pap
+     *            le PAP Service
+     * 
+     */
     @EJB(name = "PAPService")
     public void setPAPService(PAPService pap) {
         this.pap = pap;
@@ -175,36 +182,41 @@ public class EventQueueServiceBean implements EventQueueService {
 
     /**
      * cette methode retourne le PAP Service
+     * 
      * @return PAPS ervice
-    */
+     */
     public PAPService getPAPService() {
         return this.pap;
     }
 
     /**
      * cette methode positionne le Notification Service
-     * @param notification le  Notification Service
      * 
-    */
+     * @param notification
+     *            le Notification Service
+     * 
+     */
     @EJB(name = "NotificationService")
     public void setNotificationService(NotificationService notification) {
         this.notification = notification;
     }
 
-    
     /**
      * cette methode retourne le Notification Service
+     * 
      * @return le Service Notification
-    */
+     */
     public NotificationService getNotificationService() {
         return this.notification;
     }
 
     /**
      * cette methode positionne le Membership Service
-     * @param membership le Membership Service
      * 
-    */
+     * @param membership
+     *            le Membership Service
+     * 
+     */
     @EJB(name = "MembershipService")
     public void setMembershipService(MembershipService membership) {
         this.membership = membership;
@@ -212,24 +224,25 @@ public class EventQueueServiceBean implements EventQueueService {
 
     /**
      * cette methode retourne le Membership Service
+     * 
      * @return le Membership Service
-    */
+     */
     public MembershipService getMembershipService() {
         return this.membership;
     }
 
-    
-    
-   /**
-    * cette methode retourne les evenements contenu dans la queue 
-    * sinon une exception si la queue n est pas trouve
-    * @param   name le nom de la queue    
-    * @return  returne un tableau des evenements contenu dans la queue  
-   */
+    /**
+     * cette methode retourne les evenements contenu dans la queue sinon une
+     * exception si la queue n est pas trouve
+     * 
+     * @param name
+     *            le nom de la queue
+     * @return returne un tableau des evenements contenu dans la queue
+     */
     @Override
     public Event[] getEvents(String name) throws EventQueueServiceException {
         String path = getEventQueuePathFromName(name);
-        
+
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
@@ -241,28 +254,29 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
-                Event[] evs=new Event[eventqueue.getEvents().size()];
+
+                Event[] evs = new Event[eventqueue.getEvents().size()];
                 return eventqueue.getEvents().toArray(evs);
-                
-            }else{
+
+            } else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to create an event queue", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to create an event queue", e);
         }
     }
 
-    
     /**
      * cette méthode permet de creer une nouvelle queue a partir de son nom
-     * sinon retourne une exception si la queue n a pas pu etre cree
-     * la queue est rendu persistante et bindee par la suite
-    * @param name le nom de la nouvelle queue a creer   
-    *  
-   */
+     * sinon retourne une exception si la queue n a pas pu etre cree la queue
+     * est rendu persistante et bindee par la suite
+     * 
+     * @param name
+     *            le nom de la nouvelle queue a creer
+     * 
+     */
     @Override
     public void createEventQueue(String name) throws EventQueueServiceException {
         logger.info("createEventQueue(...) called");
@@ -271,49 +285,52 @@ public class EventQueueServiceBean implements EventQueueService {
         try {
             String caller = membership.getProfilePathForConnectedIdentifier();
             pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
-            
-            EventQueue evq=new EventQueue();
+
+            EventQueue evq = new EventQueue();
             evq.setEvents(new ArrayList<Event>());
             evq.setName(name);
             evq.setResourcePath(path);
-            
+
             em.persist(evq);
-            
+
             binding.bind(evq.getFactoryResourceIdentifier(), path);
-           
+
             String policyId = UUID.randomUUID().toString();
             pap.createPolicy(policyId, PAPServiceHelper.buildOwnerPolicy(policyId, path, path));
             // il manque peut être les setProperty
-            
-        } catch ( Exception e ) {
+
+        } catch (Exception e) {
             logger.error("unable to create an event queue", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to create an event queue", e);
         }
     }
-    
-    
+
     /**
      * cette methode retourne le path de l event queue associe a name
-     * @param name le nom de la queue
+     * 
+     * @param name
+     *            le nom de la queue
      * @return le path de l event queue associé au nom name
-    */
-    private String getEventQueuePathFromName(String name){
-        return PROFILES_PATH+"/"+name;
+     */
+    private String getEventQueuePathFromName(String name) {
+        return PROFILES_PATH + "/" + name;
     }
 
-    
     /**
-     * cette methode place un evenement dans la queue associe au name
-     * sinon retourne une exception si l evenement n est pas ajoute
-     * @param name le nom de l'event queue
-     * @param event l evenement a pusher dans la queue
+     * cette methode place un evenement dans la queue associe au name sinon
+     * retourne une exception si l evenement n est pas ajoute
      * 
-    */
+     * @param name
+     *            le nom de l'event queue
+     * @param event
+     *            l evenement a pusher dans la queue
+     * 
+     */
     @Override
     public void pushEvent(String name, Event event) throws EventQueueServiceException {
         String path = getEventQueuePathFromName(name);
-        
+
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
@@ -325,14 +342,14 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
+
                 eventqueue.getEvents().add(event);
-                
+
                 em.persist(eventqueue);
-            }else{
+            } else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to create an event queue", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to create an event queue", e);
@@ -340,11 +357,13 @@ public class EventQueueServiceBean implements EventQueueService {
     }
 
     /**
-     * cette methode retourne l event queue associe a path
-     * sinon une exception si l'event queue n'est pas trouve 
-     * @param path le path de l event queue 
+     * cette methode retourne l event queue associe a path sinon une exception
+     * si l'event queue n'est pas trouve
+     * 
+     * @param path
+     *            le path de l event queue
      * @return event queue associé a path
-    */
+     */
     @Override
     public FactoryResource findResource(String path) throws FactoryException {
         logger.info("findResource(...) called");
@@ -367,11 +386,11 @@ public class EventQueueServiceBean implements EventQueueService {
         throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
     }
 
-    
     /**
      * cette methode retourne le Resource Type List
+     * 
      * @return Resource Type List
-    */
+     */
     @Override
     public String[] getResourceTypeList() {
         return RESOURCE_TYPE_LIST;
@@ -379,20 +398,19 @@ public class EventQueueServiceBean implements EventQueueService {
 
     /**
      * cette methode retourne le nom du service
+     * 
      * @return le nom du cervice
-    */
+     */
     @Override
     public String getServiceName() {
         return SERVICE_NAME;
     }
 
-
     @Override
     public void deleteEvent(String path, Event e) throws EventQueueServiceException {
         // TODO Auto-generated method stub
-        
-    }
 
+    }
 
     @Override
     public Event[] findEvent(String path, String e) throws EventQueueServiceException {
@@ -400,95 +418,77 @@ public class EventQueueServiceBean implements EventQueueService {
         return null;
     }
 
-
     @Override
     public Event getLastEvent(String path) throws EventQueueServiceException {
         // TODO Auto-generated method stub
         return null;
     }
 
-
     @Override
     public void removeQueue(String path) throws EventQueueServiceException {
         // TODO Auto-generated method stub
-        
-    }
 
+    }
 
     public static Log getLogger() {
         return logger;
     }
 
-
     public static void setLogger(Log logger) {
         EventQueueServiceBean.logger = logger;
     }
-
 
     public BindingService getBinding() {
         return binding;
     }
 
-
     public void setBinding(BindingService binding) {
         this.binding = binding;
     }
-
 
     public PEPService getPep() {
         return pep;
     }
 
-
     public void setPep(PEPService pep) {
         this.pep = pep;
     }
-
 
     public PAPService getPap() {
         return pap;
     }
 
-
     public void setPap(PAPService pap) {
         this.pap = pap;
     }
-
 
     public NotificationService getNotification() {
         return notification;
     }
 
-
     public void setNotification(NotificationService notification) {
         this.notification = notification;
     }
-
 
     public MembershipService getMembership() {
         return membership;
     }
 
-
     public void setMembership(MembershipService membership) {
         this.membership = membership;
     }
-
 
     public SessionContext getCtx() {
         return ctx;
     }
 
-
     public void setCtx(SessionContext ctx) {
         this.ctx = ctx;
     }
 
-
     public EntityManager getEm() {
         return em;
     }
-
 
     public void setEm(EntityManager em) {
         this.em = em;

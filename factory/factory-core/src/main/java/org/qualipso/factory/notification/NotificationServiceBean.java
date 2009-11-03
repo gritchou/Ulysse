@@ -22,32 +22,48 @@
  */
 package org.qualipso.factory.notification;
 
+import java.io.Serializable;
+import java.util.List;
+import java.util.UUID;
+
 import javax.annotation.Resource;
+import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
+import javax.ejb.MessageDriven;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
+import javax.jms.ObjectMessage;
+import javax.jms.Queue;
+import javax.jms.Session;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 import javax.jws.soap.SOAPBinding.Style;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.SecurityDomain;
 import org.jboss.ws.annotation.EndpointConfig;
 import org.jboss.wsf.spi.annotation.WebContext;
 import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.qualipso.factory.binding.BindingService;
-import org.qualipso.factory.membership.MembershipServiceBean;
+import org.qualipso.factory.eventqueue.EventQueueService;
+import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.notification.entity.Rule;
 import org.qualipso.factory.security.auth.AuthenticationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
-
-
 
 @Stateless(name = "Notification", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX + "NotificationService")
 @WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace = "http://org.qualipso.factory.ws/service/notification", serviceName = "NotificationService", portName = "NotificationServicePort")
@@ -55,108 +71,177 @@ import org.qualipso.factory.security.pep.PEPService;
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
+@MessageDriven(mappedName = "jms/EventMessageQueue", messageListenerInterface = MessageListener.class, activationConfig = {
+        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+        @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/EventMessageQueue"),
+        @ActivationConfigProperty(propertyName = "messagingType", propertyValue = "javax.jms.MessageListener") })
+public class NotificationServiceBean implements NotificationService {
 
-public class NotificationServiceBean implements NotificationService{
-	
-	private static final String SERVICE_NAME = "NotificationService";
-	private static final String[] RESOURCE_TYPE_LIST = new String[] {};
-	
-	private static Log logger = LogFactory.getLog(NotificationServiceBean.class);
-	
-	private PEPService pep;
-	private PAPService pap;
-	private BindingService binding;
-	private NotificationService notification;
-	private AuthenticationService authentication;
-	private SessionContext ctx;
-	private EntityManager em;
-	
-	
-	public NotificationServiceBean() {
-	}
-	
-	@PersistenceContext
-	public void setEntityManager(EntityManager em) {
-		this.em = em;
-	}
+    private static final String SERVICE_NAME = "NotificationService";
+    private static final String[] RESOURCE_TYPE_LIST = new String[] {};
 
-	public EntityManager getEntityManager() {
-		return this.em;
-	}
+    private static Log logger = LogFactory.getLog(NotificationServiceBean.class);
 
-	@Resource
-	public void setSessionContext(SessionContext ctx) {
-		this.ctx = ctx;
-	}
+    private PEPService pep;
+    private PAPService pap;
+    private BindingService binding;
+    private AuthenticationService authentication;
+    private SessionContext ctx;
+    private EntityManager em;
+    private EventQueueService eventQueue;
+    @Resource(mappedName = "jms/ConnectionFactory")
+    private static ConnectionFactory connectionFactory;
+    @Resource(mappedName = "jms/EventMessageQueue")
+    private static Queue queue;
 
-	public SessionContext getSessionContext() {
-		return this.ctx;
-	}
+    public NotificationServiceBean() {
+    }
 
-	@EJB
-	public void setBindingService(BindingService binding) {
-		this.binding = binding;
-	}
+    @PersistenceContext
+    public void setEntityManager(EntityManager em) {
+        this.em = em;
+    }
 
-	public BindingService getBindingService() {
-		return this.binding;
-	}
+    public EntityManager getEntityManager() {
+        return this.em;
+    }
 
-	@EJB
-	public void setPEPService(PEPService pep) {
-		this.pep = pep;
-	}
+    @Resource
+    public void setSessionContext(SessionContext ctx) {
+        this.ctx = ctx;
+    }
 
-	public PEPService getPEPService() {
-		return this.pep;
-	}
+    public SessionContext getSessionContext() {
+        return this.ctx;
+    }
 
-	@EJB
-	public void setPAPService(PAPService pap) {
-		this.pap = pap;
-	}
+    @EJB
+    public void setBindingService(BindingService binding) {
+        this.binding = binding;
+    }
 
-	public PAPService getPAPService() {
-		return this.pap;
-	}
+    public BindingService getBindingService() {
+        return this.binding;
+    }
 
-	@EJB
-	public void setAuthenticationService(AuthenticationService authentication) {
-		this.authentication = authentication;
-	}
+    @EJB
+    public void setPEPService(PEPService pep) {
+        this.pep = pep;
+    }
 
-	public AuthenticationService getAuthenticationService() {
-		return this.authentication;
-	}
+    public PEPService getPEPService() {
+        return this.pep;
+    }
 
-	@Override
-	public FactoryResource findResource(String path) throws FactoryException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @EJB
+    public void setPAPService(PAPService pap) {
+        this.pap = pap;
+    }
 
-	@Override
-	public String[] getResourceTypeList() {
-		return RESOURCE_TYPE_LIST;
-	}
+    public PAPService getPAPService() {
+        return this.pap;
+    }
 
-	@Override
-	public String getServiceName() {
-		return SERVICE_NAME;
-	}
+    @EJB
+    public void setAuthenticationService(AuthenticationService authentication) {
+        this.authentication = authentication;
+    }
 
-	@Override
-	public void register(String subjectre, String objectre, String targetre,
-			String queuePath) throws NotificationServiceException {
-		// TODO Auto-generated method stub
-		
-	}
+    public AuthenticationService getAuthenticationService() {
+        return this.authentication;
+    }
 
-	@Override
-	public void throwEvent(Event e) throws NotificationServiceException {
-		// TODO Auto-generated method stub
-		
-	}
+    @EJB
+    public void setEventQueueService(EventQueueService eventQueue) {
+        this.eventQueue = eventQueue;
+    }
 
+    public EventQueueService getEventQueueService() {
+        return this.eventQueue;
+    }
+
+    @Override
+    public FactoryResource findResource(String path) throws FactoryException {
+        return null;
+    }
+
+    @Override
+    public String[] getResourceTypeList() {
+        return RESOURCE_TYPE_LIST;
+    }
+
+    @Override
+    public String getServiceName() {
+        return SERVICE_NAME;
+    }
+
+    @Override
+    public void register(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException {
+        Rule r = new Rule();
+        r.setSubjectre(subjectre);
+        r.setObjectre(objectre);
+        r.setTargetre(targetre);
+        r.setQueuePath(queuePath);
+        r.setId(UUID.randomUUID().toString());
+        em.persist(r);
+    }
+
+    @Override
+    public void unregister(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException {
+        Query q = em.createQuery("select * from Rule where subjectre=:subjectre and objectre=:objectre and targetre=:targetre and queuePath=:queuePath");
+        q.setParameter("subjectre", subjectre);
+        q.setParameter("objectre", objectre);
+        q.setParameter("targetre", targetre);
+        q.setParameter("queuePath", queuePath);
+        int n = q.executeUpdate();
+        if (n != 1) {
+            logger.warn("can't unregister " + subjectre + "/" + objectre + "/" + queuePath);
+        }
+    }
+
+    @Override
+    public void throwEvent(Event event) throws NotificationServiceException {
+        Connection connection;
+        try {
+            connection = connectionFactory.createConnection();
+            Session session = (Session) connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+            ObjectMessage om = session.createObjectMessage();
+            om.setObject(event);
+            MessageProducer messageProducer = session.createProducer(queue);
+            messageProducer.send(om);
+        } catch (JMSException e) {
+            logger.error("unable to throw event", e);
+            throw new NotificationServiceException("unable to throw event", e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void onMessage(Message message) {
+        if (message instanceof ObjectMessage) {
+            try {
+                Serializable o = ((ObjectMessage) message).getObject();
+                if (o instanceof Event) {
+                    Event ev = (Event) o;
+                    Query q = em.createQuery("select * from Rule");
+                    List<Rule> l = q.getResultList();
+                    for (Rule rule : l) {
+                        if (rule.match(ev)) {
+                            try {
+                                eventQueue.pushEvent(rule.getQueuePath(), ev);
+                            } catch (EventQueueServiceException e) {
+                                logger.error("unable to push event : " + ev + "\nin queue : " + rule.getQueuePath(), e);
+                            }
+                        }
+                    }
+                } else {
+                    logger.warn("bad object message type : " + o + "\nin message : " + message);
+                }
+            } catch (JMSException e) {
+                logger.error("unable to retrieve jms message object", e);
+            }
+        } else {
+            logger.warn("bad message type : " + message);
+        }
+    }
 
 }
