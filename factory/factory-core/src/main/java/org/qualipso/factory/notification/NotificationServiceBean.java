@@ -71,11 +71,7 @@ import org.qualipso.factory.security.pep.PEPService;
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
-@MessageDriven(mappedName = "jms/EventMessageQueue", messageListenerInterface = MessageListener.class, activationConfig = {
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-        @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/EventMessageQueue"),
-        @ActivationConfigProperty(propertyName = "messagingType", propertyValue = "javax.jms.MessageListener") })
-public class NotificationServiceBean implements NotificationService {
+public class NotificationServiceBean implements NotificationService{
 
     private static final String SERVICE_NAME = "NotificationService";
     private static final String[] RESOURCE_TYPE_LIST = new String[] {};
@@ -215,33 +211,6 @@ public class NotificationServiceBean implements NotificationService {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public void onMessage(Message message) {
-        if (message instanceof ObjectMessage) {
-            try {
-                Serializable o = ((ObjectMessage) message).getObject();
-                if (o instanceof Event) {
-                    Event ev = (Event) o;
-                    Query q = em.createQuery("select * from Rule");
-                    List<Rule> l = q.getResultList();
-                    for (Rule rule : l) {
-                        if (rule.match(ev)) {
-                            try {
-                                eventQueue.pushEvent(rule.getQueuePath(), ev);
-                            } catch (EventQueueServiceException e) {
-                                logger.error("unable to push event : " + ev + "\nin queue : " + rule.getQueuePath(), e);
-                            }
-                        }
-                    }
-                } else {
-                    logger.warn("bad object message type : " + o + "\nin message : " + message);
-                }
-            } catch (JMSException e) {
-                logger.error("unable to retrieve jms message object", e);
-            }
-        } else {
-            logger.warn("bad message type : " + message);
-        }
-    }
+    
 
 }
