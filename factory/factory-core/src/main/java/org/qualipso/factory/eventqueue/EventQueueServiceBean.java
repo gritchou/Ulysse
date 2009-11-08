@@ -132,7 +132,7 @@ public class EventQueueServiceBean implements EventQueueService {
      *            le Binding Service
      * 
      */
-    @EJB(name = "BindingService")
+    @EJB
     public void setBindingService(BindingService binding) {
         this.binding = binding;
     }
@@ -154,7 +154,7 @@ public class EventQueueServiceBean implements EventQueueService {
      *            le PEP Service
      * 
      */
-    @EJB(name = "PEPService")
+    @EJB
     public void setPEPService(PEPService pep) {
         this.pep = pep;
     }
@@ -175,7 +175,7 @@ public class EventQueueServiceBean implements EventQueueService {
      *            le PAP Service
      * 
      */
-    @EJB(name = "PAPService")
+    @EJB
     public void setPAPService(PAPService pap) {
         this.pap = pap;
     }
@@ -196,7 +196,7 @@ public class EventQueueServiceBean implements EventQueueService {
      *            le Notification Service
      * 
      */
-    @EJB(name = "NotificationService")
+    @EJB
     public void setNotificationService(NotificationService notification) {
         this.notification = notification;
     }
@@ -217,7 +217,7 @@ public class EventQueueServiceBean implements EventQueueService {
      *            le Membership Service
      * 
      */
-    @EJB(name = "MembershipService")
+    @EJB
     public void setMembershipService(MembershipService membership) {
         this.membership = membership;
     }
@@ -429,69 +429,5 @@ public class EventQueueServiceBean implements EventQueueService {
         // TODO Auto-generated method stub
 
     }
-
-    public static Log getLogger() {
-        return logger;
-    }
-
-    public static void setLogger(Log logger) {
-        EventQueueServiceBean.logger = logger;
-    }
-
-    public BindingService getBinding() {
-        return binding;
-    }
-
-    public void setBinding(BindingService binding) {
-        this.binding = binding;
-    }
-
-    public PEPService getPep() {
-        return pep;
-    }
-
-    public void setPep(PEPService pep) {
-        this.pep = pep;
-    }
-
-    public PAPService getPap() {
-        return pap;
-    }
-
-    public void setPap(PAPService pap) {
-        this.pap = pap;
-    }
-
-    public NotificationService getNotification() {
-        return notification;
-    }
-
-    public void setNotification(NotificationService notification) {
-        this.notification = notification;
-    }
-
-    public MembershipService getMembership() {
-        return membership;
-    }
-
-    public void setMembership(MembershipService membership) {
-        this.membership = membership;
-    }
-
-    public SessionContext getCtx() {
-        return ctx;
-    }
-
-    public void setCtx(SessionContext ctx) {
-        this.ctx = ctx;
-    }
-
-    public EntityManager getEm() {
-        return em;
-    }
-
-    public void setEm(EntityManager em) {
-        this.em = em;
-    }
-
+    
 }

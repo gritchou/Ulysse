@@ -22,21 +22,15 @@
  */
 package org.qualipso.factory.notification;
 
-import java.io.Serializable;
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Resource;
-import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
-import javax.ejb.MessageDriven;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Queue;
@@ -58,7 +52,6 @@ import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.eventqueue.EventQueueService;
-import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.notification.entity.Rule;
 import org.qualipso.factory.security.auth.AuthenticationService;
@@ -71,7 +64,7 @@ import org.qualipso.factory.security.pep.PEPService;
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
-public class NotificationServiceBean implements NotificationService{
+public class NotificationServiceBean implements NotificationService {
 
     private static final String SERVICE_NAME = "NotificationService";
     private static final String[] RESOURCE_TYPE_LIST = new String[] {};
@@ -147,7 +140,7 @@ public class NotificationServiceBean implements NotificationService{
         return this.authentication;
     }
 
-    @EJB
+
     public void setEventQueueService(EventQueueService eventQueue) {
         this.eventQueue = eventQueue;
     }
@@ -210,7 +203,5 @@ public class NotificationServiceBean implements NotificationService{
             throw new NotificationServiceException("unable to throw event", e);
         }
     }
-
-    
 
 }

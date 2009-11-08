@@ -16,6 +16,7 @@ import javax.persistence.Query;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jboss.ejb3.annotation.Depends;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
@@ -25,6 +26,7 @@ import org.qualipso.factory.notification.entity.Rule;
     @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
     @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/EventMessageQueue"),
     @ActivationConfigProperty(propertyName = "messagingType", propertyValue = "javax.jms.MessageListener") })
+@Depends ("jboss.mq.destination:service=Queue,name=eventmessage")
 public class EventMessageBean implements MessageListener {
     
     private static Log logger = LogFactory.getLog(EventMessageBean.class);
