@@ -24,18 +24,17 @@ package org.qualipso.factory.notification;
 
 import org.qualipso.factory.FactoryException;
 
-
 @SuppressWarnings("serial")
-public class NotificationServiceException extends FactoryException{
-	public NotificationServiceException(String message, Exception rootCause) {
-		super(message, rootCause);
-	}
+public class NotificationServiceException extends FactoryException {
+    public NotificationServiceException(String message, Exception rootCause) {
+        super(message, rootCause);
+    }
 
-	public NotificationServiceException(String message) {
-		super(message);
-	}
+    public NotificationServiceException(String message) {
+        super(message);
+    }
 
-	public NotificationServiceException(Exception rootCause) {
-		super(rootCause);
-	}
+    public NotificationServiceException(Exception rootCause) {
+        super(rootCause);
+    }
 }

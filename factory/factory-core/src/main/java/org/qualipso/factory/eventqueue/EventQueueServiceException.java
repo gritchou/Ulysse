@@ -26,7 +26,6 @@ import javax.xml.ws.WebFault;
 
 import org.qualipso.factory.FactoryException;
 
-
 /**
  * Exception for the Clock service.
  * 
@@ -37,32 +36,38 @@ import org.qualipso.factory.FactoryException;
 @SuppressWarnings("serial")
 public class EventQueueServiceException extends FactoryException {
 
-	/**
-	 * Constructor
-	 * 
-	 * @param message		human-readable explanation of the exception
-	 * @param rootCause		primary exception that caused this exception (real cause of the problem)
-	 */
-	public EventQueueServiceException(String message, Exception rootCause) {
-		super(message, rootCause);
-	}
+    /**
+     * Constructor
+     * 
+     * @param message
+     *            human-readable explanation of the exception
+     * @param rootCause
+     *            primary exception that caused this exception (real cause of
+     *            the problem)
+     */
+    public EventQueueServiceException(String message, Exception rootCause) {
+        super(message, rootCause);
+    }
 
-	/**
-	 * Constructor
-	 *
-	 * @param rootCause		primary exception that caused this exception (real cause of the problem)
-	 */
-	public EventQueueServiceException(Exception rootCause) {
-		super(rootCause);
-	}
+    /**
+     * Constructor
+     * 
+     * @param rootCause
+     *            primary exception that caused this exception (real cause of
+     *            the problem)
+     */
+    public EventQueueServiceException(Exception rootCause) {
+        super(rootCause);
+    }
 
-	/**
-	 * Constructor
-	 *
-	 * @param message		human-readable explanation of the exception
-	 */
-	public EventQueueServiceException(String message) {
-		super(message);
-	}
-	
+    /**
+     * Constructor
+     * 
+     * @param message
+     *            human-readable explanation of the exception
+     */
+    public EventQueueServiceException(String message) {
+        super(message);
+    }
+
 }

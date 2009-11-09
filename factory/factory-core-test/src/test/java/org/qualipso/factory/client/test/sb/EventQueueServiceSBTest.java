@@ -36,10 +36,10 @@ import org.qualipso.factory.eventqueue.*;
 import org.qualipso.factory.eventqueue.entity.*;
 
 
-public class EventQueueServiceBTest {
+public class EventQueueServiceSBTest {
     private static Context context;
     
-    private static Log logger = LogFactory.getLog(EventQueueServiceBTest.class);
+    private static Log logger = LogFactory.getLog(EventQueueServiceSBTest.class);
    // private BindingService binding;
     private MembershipService membership;
     private PEPService pep;

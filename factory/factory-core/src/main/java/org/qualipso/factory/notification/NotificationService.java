@@ -30,24 +30,18 @@ import javax.jws.soap.SOAPBinding;
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.eventqueue.entity.Event;
 
-
 @Remote
 @WebService(name = "NotificationService", targetNamespace = "http://org.qualipso.factory.ws/service/notification")
 @SOAPBinding(style = SOAPBinding.Style.RPC)
-public interface NotificationService extends FactoryService{
+public interface NotificationService extends FactoryService {
 
-	/*@WebMethod
-	public void throwEvent(String pathQueue, Event event) throws NotificationServiceException;
+    @WebMethod
+    public void register(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException;
 
-	@WebMethod
-	public Event pop(String pathQueue) throws NotificationServiceException;
-	@WebMethod
-	public String createQueue(String string, String caller) throws NotificationServiceException;*/
-	
-	@WebMethod
-	public void register(String subjectre, String objectre, String targetre, String queuePath)throws NotificationServiceException;
-	
-	@WebMethod
-	public void throwEvent(Event e) throws NotificationServiceException;
+    @WebMethod
+    public void unregister(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException;
+    
+    @WebMethod
+    public void throwEvent(Event e) throws NotificationServiceException;
 
 }
