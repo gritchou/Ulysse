@@ -305,7 +305,7 @@ public class IndexingServiceSBTest{
 	}
 	
 	/**
-	 * Test a full disk issue. This test use  a spécific greetingService.createNamei. 
+	 * Test a full disk issue. This test use  a specific greetingService.createNamei. 
 	 * This operation act like it might but don't add the new name to the entity manager
 	 * @ throws GreetingServiceException, IndexingServiceException
 	 */
