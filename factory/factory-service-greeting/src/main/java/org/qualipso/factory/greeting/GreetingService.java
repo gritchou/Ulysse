@@ -8,6 +8,8 @@ import javax.jws.soap.SOAPBinding;
 
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.greeting.entity.Name;
+import org.qualipso.factory.membership.MembershipServiceException;
+import org.qualipso.factory.notification.NotificationServiceException;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -17,48 +19,38 @@ import org.qualipso.factory.greeting.entity.Name;
 @WebService(name = "GreetingService", targetNamespace = "http://org.qualipso.factory.ws/greeting")
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface GreetingService extends FactoryService {
-	
-	@WebMethod
-	public void createName(String path, String name) throws GreetingServiceException;
-	
-	@WebMethod
-	@WebResult(name = "name")
-	public Name readName(String path) throws GreetingServiceException;
-	
-	@WebMethod
-	public void updateName(String path, String name) throws GreetingServiceException;
-	
-	@WebMethod
-	public void deleteName(String path) throws GreetingServiceException;
-	
-	@WebMethod
-	@WebResult(name = "message")
-	public String sayHello(String path) throws GreetingServiceException;
-	
-	
-	/*@WebMethod
-    @WebResult(name = "message")
-    public Event createEvent(String string, String caller,String name, String arg1, String arg) throws GreetingServiceException;*/
-	
-	
-	@WebMethod
-    @WebResult(name = "message")
-    public String throwEventOK() throws GreetingServiceException;
-	
-	@WebMethod
-    @WebResult(name = "message")
-    public String throwEventKO() throws GreetingServiceException;
-	
-	/*@WebMethod
-    @WebResult(name = "message")
-    public createQueue(String path) throws GreetingServiceException;
-	
-	
-	@WebMethod
-    @WebResult(name = "message")
-	public List getEvents(String path) throws GreetingServiceException;*/
-	
-	
-	
+	   @WebMethod
+	    public void createName(String path, String name) throws GreetingServiceException;
+
+	    @WebMethod
+	    @WebResult(name = "name")
+	    public Name readName(String path) throws GreetingServiceException;
+
+	    @WebMethod
+	    public void updateName(String path, String name) throws GreetingServiceException;
+
+	    @WebMethod
+	    public void deleteName(String path) throws GreetingServiceException;
+
+	    @WebMethod
+	    @WebResult(name = "message")
+	    public String sayHello(String path) throws GreetingServiceException;
+	    
+
+	    @WebMethod
+	    @WebResult(name = "name")    
+	    public void createNameWithUser(String path, String value,String caller) throws GreetingServiceException;
+	    
+	    @WebMethod
+	    @WebResult(name = "name")    
+	    public void throwNullEvent() throws NotificationServiceException;
+
+	    @WebMethod
+	    @WebResult(name = "name")    
+	    public void throw2SameEvent(String path) throws NotificationServiceException,MembershipServiceException;
+	    
+	    @WebMethod
+	    @WebResult(name = "name")
+	    public void throwFacticeEvent() throws NotificationServiceException;
 	
 }

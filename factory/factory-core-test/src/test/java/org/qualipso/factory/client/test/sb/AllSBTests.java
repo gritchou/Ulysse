@@ -28,8 +28,7 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses(value =  {
     MembershipServiceSBTest.class, 
-    BrowserServiceSBTest.class,
-    IndexingServiceSBTest.class}
+    BrowserServiceSBTest.class}
 )
 public class AllSBTests {
 	

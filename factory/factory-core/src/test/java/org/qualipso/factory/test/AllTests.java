@@ -59,7 +59,8 @@ import org.qualipso.factory.test.sessionbean.SecurityServiceTest;
 		BrowserServiceTest.class,
 		MembershipServiceTest.class, 
 		SecurityServiceTest.class,
-		IndexingServiceTest.class})
+		IndexingServiceTest.class,
+		NotificationServiceTest.class})
 public class AllTests {
 	
 	
