@@ -34,6 +34,7 @@ import org.qualipso.factory.test.sessionbean.IndexingServiceTest;
 import org.qualipso.factory.test.sessionbean.MembershipServiceTest;
 import org.qualipso.factory.test.sessionbean.PAPServiceTest;
 import org.qualipso.factory.test.sessionbean.SecurityServiceTest;
+import org.qualipso.factory.test.sessionbean.NotificationServiceTest;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)

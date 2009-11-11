@@ -141,12 +141,20 @@ public class NotificationServiceBean implements NotificationService {
     }
 
 
-    public void setEventQueueService(EventQueueService eventQueue) {
-        this.eventQueue = eventQueue;
+    public static void setConnectionFactory(ConnectionFactory c) {
+        connectionFactory = c;
     }
 
-    public EventQueueService getEventQueueService() {
-        return this.eventQueue;
+    public static ConnectionFactory getConnectionFactory() {
+        return connectionFactory;
+    }
+    
+    public static void setQueue(Queue q) {
+        queue = q;
+    }
+
+    public static Queue getQueue() {
+        return queue;
     }
 
     @Override
@@ -166,6 +174,18 @@ public class NotificationServiceBean implements NotificationService {
 
     @Override
     public void register(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException {
+        if(subjectre == null) {
+        	throw new NotificationServiceException("subjectre can't be null");
+        }
+        if(objectre == null) {
+        	throw new NotificationServiceException("objectre can't be null");
+        }
+        if(targetre == null) {
+        	throw new NotificationServiceException("targetre can't be null");
+        }
+        if(queuePath == null) {
+        	throw new NotificationServiceException("queuePath can't be null");
+        }
         Rule r = new Rule();
         r.setSubjectre(subjectre);
         r.setObjectre(objectre);
@@ -177,6 +197,18 @@ public class NotificationServiceBean implements NotificationService {
 
     @Override
     public void unregister(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException {
+        if(subjectre == null) {
+        	throw new NotificationServiceException("subjectre can't be null");
+        }
+        if(objectre == null) {
+        	throw new NotificationServiceException("objectre can't be null");
+        }
+        if(targetre == null) {
+        	throw new NotificationServiceException("targetre can't be null");
+        }
+        if(queuePath == null) {
+        	throw new NotificationServiceException("queuePath can't be null");
+        }
         Query q = em.createQuery("select * from Rule where subjectre=:subjectre and objectre=:objectre and targetre=:targetre and queuePath=:queuePath");
         q.setParameter("subjectre", subjectre);
         q.setParameter("objectre", objectre);
