@@ -16,7 +16,6 @@ import org.jboss.wsf.spi.annotation.WebContext;
 import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
-import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
 
@@ -24,9 +23,9 @@ import org.qualipso.factory.membership.MembershipServiceException;
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 11 june 2009
  */
-@Stateless(name = "HelloWorld", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX + "HelloWorldService")
-@WebService(endpointInterface = "org.qualipso.factory.helloworld.HelloWorldService", targetNamespace = "http://org.qualipso.factory.ws/service/helloworld", serviceName = "HelloWorldService", portName = "HelloWorldServicePort")
-@WebContext(contextRoot = "/factory-service-helloworld", urlPattern = "/helloworld")
+@Stateless(name = HelloWorldService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + HelloWorldService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.helloworld.HelloWorldService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + HelloWorldService.SERVICE_NAME, serviceName = HelloWorldService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_ROOT_MODULE_CONTEXT + "-" + HelloWorldService.SERVICE_NAME, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + HelloWorldService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
@@ -66,7 +65,7 @@ public class HelloWorldServiceBean implements HelloWorldService {
 
 	@Override
 	public String getServiceName() {
-		return "HelloWorldService";
+		return HelloWorldService.SERVICE_NAME;
 	}
 
 	@Override
@@ -75,7 +74,7 @@ public class HelloWorldServiceBean implements HelloWorldService {
 		logger.info("findResource(...) called");
 		logger.debug("params : path=" + path);
 		
-		throw new CoreServiceException("No Resource are managed by HelloWorld Service");
+		throw new HelloWorldServiceException("No Resource are managed by HelloWorld Service");
 	}
 
 }

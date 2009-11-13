@@ -58,7 +58,7 @@ import org.qualipso.factory.security.auth.AuthenticationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
 
-@Stateless(name = "Notification", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX + "NotificationService")
+@Stateless(name = "Notification", mappedName = FactoryNamingConvention.SERVICE_PREFIX + "NotificationService")
 @WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace = "http://org.qualipso.factory.ws/service/notification", serviceName = "NotificationService", portName = "NotificationServicePort")
 @WebContext(contextRoot = "/factory-core", urlPattern = "/notification")
 @SOAPBinding(style = Style.RPC)

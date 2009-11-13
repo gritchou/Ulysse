@@ -28,7 +28,6 @@ import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.binding.PathNotFoundException;
 import org.qualipso.factory.binding.PropertyNotFoundException;
 import org.qualipso.factory.membership.MembershipService;
-import org.qualipso.factory.membership.MembershipServiceBean;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.notification.NotificationService;
@@ -40,16 +39,14 @@ import org.qualipso.factory.security.pep.PEPService;
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 11 september 2009
  */
-@Stateless(name = "Security", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX + "SecurityService")
-@WebService(endpointInterface = "org.qualipso.factory.security.SecurityService", targetNamespace = "http://org.qualipso.factory.ws/service/security", serviceName = "SecurityService", portName = "SecurityServicePort")
-@WebContext(contextRoot = "/factory-core", urlPattern = "/security")
+@Stateless(name = SecurityService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + SecurityService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.security.SecurityService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + SecurityService.SERVICE_NAME, serviceName = SecurityService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + SecurityService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class SecurityServiceBean implements SecurityService {
 	
-	private static final String SERVICE_NAME = "SecurityService";
-	private static final String[] RESOURCE_TYPE_LIST = new String[] {};
 	private static Log logger = LogFactory.getLog(SecurityServiceBean.class);
 	
 	private BindingService binding;
@@ -144,7 +141,7 @@ public class SecurityServiceBean implements SecurityService {
 			
 			String policy = pap.getPolicy(binding.getProperty(npath, FactoryResourceProperty.POLICY_ID, false));
 			
-			notification.throwEvent(new Event(npath, caller, "Resource", "security.resource.get-security-policy", ""));
+			notification.throwEvent(new Event(npath, caller, FactoryResource.RESOURCE_NAME, Event.buildEventType(SecurityService.SERVICE_NAME, FactoryResource.RESOURCE_NAME, "get-security-policy"), ""));
 			
 			return policy;
 		} catch ( Exception e ) {
@@ -182,7 +179,7 @@ public class SecurityServiceBean implements SecurityService {
 			String newPolicy = PAPServiceHelper.addRuleToPolicy(policy, subject, permissions.split(","));
 			pap.updatePolicy(policyId, newPolicy);
 			
-			notification.throwEvent(new Event(npath, caller, "Resource", "security.resource.add-security-rule", ""));
+			notification.throwEvent(new Event(npath, caller, FactoryResource.RESOURCE_NAME, Event.buildEventType(SecurityService.SERVICE_NAME, FactoryResource.RESOURCE_NAME, "add-security-rule"), ""));
 		} catch ( Exception e ) {
 			e.printStackTrace();
 			ctx.setRollbackOnly();
@@ -220,7 +217,7 @@ public class SecurityServiceBean implements SecurityService {
 			String newPolicy = PAPServiceHelper.addRuleToPolicy(PAPServiceHelper.removeRuleFromPolicy(policy, subject), subject, permissions.split(","));
 			pap.updatePolicy(policyId, newPolicy);
 			
-			notification.throwEvent(new Event(npath, caller, "Resource", "security.resource.edit-security-rule", ""));
+			notification.throwEvent(new Event(npath, caller, FactoryResource.RESOURCE_NAME, Event.buildEventType(SecurityService.SERVICE_NAME, FactoryResource.RESOURCE_NAME, "edit-security-rule"), ""));
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			throw new SecurityServiceException("error in editing security rule : " + e.getMessage(), e);
@@ -257,7 +254,7 @@ public class SecurityServiceBean implements SecurityService {
 			String newPolicy = PAPServiceHelper.removeRuleFromPolicy(policy, subject);
 			pap.updatePolicy(policyId, newPolicy);
 			
-			notification.throwEvent(new Event(npath, caller, "Resource", "security.resource.remove-security-rule", ""));
+			notification.throwEvent(new Event(npath, caller, FactoryResource.RESOURCE_NAME, Event.buildEventType(SecurityService.SERVICE_NAME, FactoryResource.RESOURCE_NAME, "remove-security-rule"), ""));
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			throw new SecurityServiceException("error in removing security rule : " + e.getMessage(), e);
@@ -299,7 +296,7 @@ public class SecurityServiceBean implements SecurityService {
 			
 			binding.setProperty(npath, FactoryResourceProperty.OWNER, newOwnerPath);
 			
-			notification.throwEvent(new Event(npath, caller, "Resource", "security.resource.change-owner", "new-owner=" + newOwnerPath));
+			notification.throwEvent(new Event(npath, caller, FactoryResource.RESOURCE_NAME, Event.buildEventType(SecurityService.SERVICE_NAME, FactoryResource.RESOURCE_NAME, "change-owner"), "new-owner=" + newOwnerPath));
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			throw new SecurityServiceException("error in changing owner : " + e.getMessage(), e);

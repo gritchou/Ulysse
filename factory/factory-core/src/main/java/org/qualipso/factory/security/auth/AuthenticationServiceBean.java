@@ -29,13 +29,14 @@ import javax.persistence.PersistenceContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.SecurityDomain;
+import org.qualipso.factory.FactoryNamingConvention;
 
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 20 May 2009
  */
-@Stateless(name = "Authentication", mappedName = "AuthenticationService")
+@Stateless(name = AuthenticationService.SERVICE_NAME, mappedName = FactoryNamingConvention.LOCAL_SERVICE_PREFIX + AuthenticationService.SERVICE_NAME)
 @SecurityDomain(value = "JBossWSDigest")
 public class AuthenticationServiceBean implements AuthenticationService {
     private static Log logger = LogFactory.getLog(AuthenticationServiceBean.class);

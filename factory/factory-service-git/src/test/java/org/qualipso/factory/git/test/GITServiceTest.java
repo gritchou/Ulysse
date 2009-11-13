@@ -23,6 +23,7 @@ import org.qualipso.factory.membership.entity.Profile;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
+import org.qualipso.factory.ssh.SSHService;
 
 import com.bm.testsuite.BaseSessionBeanFixture;
 
@@ -43,6 +44,7 @@ public class GITServiceTest extends BaseSessionBeanFixture<GITServiceBean> {
 	private PEPService pep;
 	private PAPService pap;
 	private NotificationService notification;
+	private SSHService ssh;
 	
     public GITServiceTest() {
     	super(GITServiceBean.class, usedBeans);
@@ -57,11 +59,13 @@ public class GITServiceTest extends BaseSessionBeanFixture<GITServiceBean> {
 		pep = mockery.mock(PEPService.class);
 		pap = mockery.mock(PAPService.class);
 		notification = mockery.mock(NotificationService.class);
+		ssh = mockery.mock(SSHService.class);
 		getBeanToTest().setMembershipService(membership);
 		getBeanToTest().setNotificationService(notification);
 		getBeanToTest().setBindingService(binding);
 		getBeanToTest().setPEPService(pep);
 		getBeanToTest().setPAPService(pap);
+		getBeanToTest().setSSHService(ssh);
 	}
     
     public void testCRUDGITRepository() {

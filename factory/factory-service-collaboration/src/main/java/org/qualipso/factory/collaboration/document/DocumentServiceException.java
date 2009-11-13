@@ -8,15 +8,14 @@ import org.qualipso.factory.FactoryException;
 @SuppressWarnings("serial")
 public class DocumentServiceException extends FactoryException {
     public DocumentServiceException(String message, Exception rootCause) {
-        super(message, rootCause);
+	super(message, rootCause);
     }
 
     public DocumentServiceException(String message) {
-        super(message);
+	super(message);
     }
 
     public DocumentServiceException(Exception rootCause) {
-        super(rootCause);
+	super(rootCause);
     }
 }
-

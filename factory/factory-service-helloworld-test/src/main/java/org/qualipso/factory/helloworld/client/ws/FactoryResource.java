@@ -28,12 +28,11 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "factoryResource")
 @XmlSeeAlso({
-    Folder.class,
-    Group.class,
-    Profile.class,
-    ProfileFolder.class,
     File.class,
-    Link.class
+    Group.class,
+    Folder.class,
+    Link.class,
+    Profile.class
 })
 public abstract class FactoryResource {
 

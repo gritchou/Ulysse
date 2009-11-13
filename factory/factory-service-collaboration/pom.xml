@@ -4,14 +4,13 @@
 	<parent>
 		<artifactId>factory</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.4-SNAPSHOT</version>
+		<version>0.5-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
-	<artifactId>factory-service-collaboration
-	</artifactId>
+	<artifactId>factory-service-collaboration</artifactId>
 	<name>Qualipso Factory Collaboration Tools</name>
-	<version>0.2.4-SNAPSHOT</version>
+	<version>0.2.5-SNAPSHOT</version>
 	<packaging>ejb</packaging>
 	<scm>
 		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-collaboration</connection>
@@ -134,13 +133,13 @@
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-core</artifactId>
-			<version>0.3.2-SNAPSHOT</version>
+			<version>0.3.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-collaboration-wsclient
 			</artifactId>
-			<version>0.2.4-SNAPSHOT</version>
+			<version>0.2.5-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>

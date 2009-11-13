@@ -48,16 +48,14 @@ import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
 
-@Stateless(name = "Project", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX + "ProjectService")
-@WebService(endpointInterface = "org.qualipso.factory.project.ProjectService", targetNamespace = "http://org.qualipso.factory.ws/service/project", serviceName = "ProjectService", portName = "ProjectService")
-@WebContext(contextRoot = "/factory-service-project", urlPattern = "/project")
+@Stateless(name = ProjectService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + ProjectService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.project.ProjectService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + ProjectService.SERVICE_NAME, serviceName = ProjectService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_ROOT_MODULE_CONTEXT + "-" + ProjectService.SERVICE_NAME, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + ProjectService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class ProjectServiceBean implements ProjectService {
 
-	private static final String SERVICE_NAME = "ProjectService";
-	private static final String[] RESOURCE_TYPE_LIST = new String[] { "Project" };
 	private static Log logger = LogFactory.getLog(ProjectServiceBean.class);
 
 	private BindingService binding;
@@ -178,7 +176,7 @@ public class ProjectServiceBean implements ProjectService {
 			binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
 			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
 
-			notification.throwEvent(new Event(path, caller, "Project", "project.project.create", ""));
+			notification.throwEvent(new Event(path, caller, ProjectService.SERVICE_NAME, Event.buildEventType(ProjectService.SERVICE_NAME, Project.RESOURCE_NAME, "create"), ""));
 
 		} catch (Exception e) {
 
@@ -201,7 +199,7 @@ public class ProjectServiceBean implements ProjectService {
 			pep.checkSecurity(caller, path, "delete");
 
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Project");
+			checkResourceType(identifier, Project.RESOURCE_NAME);
 			Project project = em.find(Project.class, identifier.getId());
 
 			if (project == null) {
@@ -213,7 +211,7 @@ public class ProjectServiceBean implements ProjectService {
 			pap.deletePolicy(policyId);
 			
 			binding.unbind(path);
-			notification.throwEvent(new Event(path, membership.getProfilePathForConnectedIdentifier(), "Project", "project.project.delete", ""));
+			notification.throwEvent(new Event(path, membership.getProfilePathForConnectedIdentifier(), ProjectService.SERVICE_NAME, Event.buildEventType(ProjectService.SERVICE_NAME, Project.RESOURCE_NAME, "delete"), ""));
 
 		} catch (Exception e) {
 			ctx.setRollbackOnly();
@@ -234,7 +232,7 @@ public class ProjectServiceBean implements ProjectService {
 			pep.checkSecurity(caller, path, "read");
 
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Project");
+			checkResourceType(identifier, Project.RESOURCE_NAME);
 
 			Project project = em.find(Project.class, identifier.getId());
 			if (project == null) {
@@ -242,7 +240,7 @@ public class ProjectServiceBean implements ProjectService {
 			}
 
 			project.setResourcePath(path);
-			notification.throwEvent(new Event(path, caller, "Project", "project.project.read", ""));
+			notification.throwEvent(new Event(path, caller, ProjectService.SERVICE_NAME, Event.buildEventType(ProjectService.SERVICE_NAME, Project.RESOURCE_NAME, "read"), ""));
 
 			return project;
 
@@ -282,7 +280,7 @@ public class ProjectServiceBean implements ProjectService {
 
 			pep.checkSecurity(caller, path, "update");
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Project");
+			checkResourceType(identifier, Project.RESOURCE_NAME);
 
 			Project project = em.find(Project.class, identifier.getId());
 			if (project == null) {
@@ -295,7 +293,7 @@ public class ProjectServiceBean implements ProjectService {
 			em.merge(project);
 
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, "Project", "project.project.update", ""));
+			notification.throwEvent(new Event(path, caller, ProjectService.SERVICE_NAME, Event.buildEventType(ProjectService.SERVICE_NAME, Project.RESOURCE_NAME, "update"), ""));
 
 		} catch (Exception e) {
 			ctx.setRollbackOnly();
@@ -334,7 +332,7 @@ public class ProjectServiceBean implements ProjectService {
 
 			pep.checkSecurity(caller, path, "update");
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Project");
+			checkResourceType(identifier, Project.RESOURCE_NAME);
 
 			Project project = em.find(Project.class, identifier.getId());
 			if (project == null) {
@@ -348,7 +346,7 @@ public class ProjectServiceBean implements ProjectService {
 			em.merge(project);
 
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, "Project", "project.project.update", ""));
+			notification.throwEvent(new Event(path, caller, ProjectService.SERVICE_NAME, Event.buildEventType(ProjectService.SERVICE_NAME, Project.RESOURCE_NAME, "update"), ""));
 
 		} catch (Exception e) {
 			ctx.setRollbackOnly();
@@ -365,7 +363,7 @@ public class ProjectServiceBean implements ProjectService {
 
 	@Override
 	public String getServiceName() {
-		return SERVICE_NAME;
+		return ProjectService.SERVICE_NAME;
 	}
 
 	@Override
@@ -374,15 +372,15 @@ public class ProjectServiceBean implements ProjectService {
 		try {
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 
-			if (!identifier.getService().equals(SERVICE_NAME)) {
-				throw new CoreServiceException("Resource " + identifier + " is not managed by " + SERVICE_NAME);
+			if (!identifier.getService().equals(ProjectService.SERVICE_NAME)) {
+				throw new CoreServiceException("Resource " + identifier + " is not managed by " + ProjectService.SERVICE_NAME);
 			}
 
 			if (identifier.getType().equals("Project")) {
 				return getProject(path);
 			}
 
-			throw new CoreServiceException("Resource " + identifier + " is not managed by " + SERVICE_NAME);
+			throw new CoreServiceException("Resource " + identifier + " is not managed by " + ProjectService.SERVICE_NAME);
 
 		} catch (Exception e) {
 			throw new CoreServiceException("unable to find the resource at path " + path, e);

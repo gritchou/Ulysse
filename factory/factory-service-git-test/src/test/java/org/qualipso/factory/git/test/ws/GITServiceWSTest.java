@@ -1,5 +1,7 @@
 package org.qualipso.factory.git.test.ws;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.util.Map;
@@ -19,6 +21,7 @@ import org.qualipso.factory.git.client.ws.BootstrapService_Service;
 import org.qualipso.factory.git.client.ws.CoreService;
 import org.qualipso.factory.git.client.ws.CoreServiceException_Exception;
 import org.qualipso.factory.git.client.ws.CoreService_Service;
+import org.qualipso.factory.git.client.ws.GITRepository;
 import org.qualipso.factory.git.client.ws.GITService;
 import org.qualipso.factory.git.client.ws.GITService_Service;
 import org.qualipso.factory.git.test.AllTests;
@@ -72,7 +75,7 @@ public class GITServiceWSTest {
 	}
 	
     @Test
-    public void testCreateRepository() {
+    public void testCRUDRepository() {
         try {
             GITService_Service service = new GITService_Service();
             GITService port = service.getGITServicePort();
@@ -83,12 +86,46 @@ public class GITServiceWSTest {
             reqContext.put(BindingProvider.USERNAME_PROPERTY, "root");
             reqContext.put(BindingProvider.PASSWORD_PROPERTY, AllTests.ROOT_ACCOUNT_PASS);
             
-            port.createGITRepository("/testrepos/repo1", "MyFirstREpo", "Whaou");
+            try { 
+            	port.createGITRepository("/testrepos/repo1", "MyFirstRepo", "Whaou");
+            } catch ( Exception e ) {
+            	fail(e.getMessage());
+            }
             
+            try {
+            	GITRepository repo = port.readGITRepository("/testrepos/repo1");
+            	assertNotNull(repo);
+            	assertEquals("MyFirstRepo", repo.getName());
+            	assertEquals("Whaou", repo.getDescription());
+            } catch ( Exception e ) {
+            	fail(e.getMessage());
+            }
             
+            try {
+            	port.updateGITRepository("/testrepos/repo1", "MyFirstRepo!!", "Whaou!");
+            	GITRepository repo = port.readGITRepository("/testrepos/repo1");
+            	assertNotNull(repo);
+            	assertEquals("MyFirstRepo!!", repo.getName());
+            	assertEquals("Whaou!", repo.getDescription());
+            } catch ( Exception e ) {
+            	fail(e.getMessage());
+            }
+            
+            try {
+            	port.deleteGITRepository("/testrepos/repo1");
+            } catch ( Exception e ) {
+            	fail(e.getMessage());
+            }
+            try {
+            	GITRepository repo = port.readGITRepository("/testrepos/repo1");
+            	fail("This repository should not be accessible");
+            } catch ( Exception e ) {
+            	//
+            }
         } catch (Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
         }
     }
+    
 }

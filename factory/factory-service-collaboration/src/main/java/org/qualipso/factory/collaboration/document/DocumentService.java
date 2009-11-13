@@ -2,68 +2,118 @@ package org.qualipso.factory.collaboration.document;
 
 import javax.ejb.Remote;
 import javax.jws.WebMethod;
+import javax.jws.WebParam;
 import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.collaboration.document.entity.CollaborationFolder;
 import org.qualipso.factory.collaboration.document.entity.Document;
 import org.qualipso.factory.collaboration.document.entity.ListItem;
 
-/**
- * @author Jerome Blanchard (jayblanc@gmail.com)
- * @date 11 june 2009
- */
 @Remote
-@WebService(name = "DocumentService", targetNamespace = "http://org.qualipso.factory.ws/service/document")
+@WebService(name = DocumentService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE
+	+ DocumentService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
-public interface DocumentService extends FactoryService
-{
+public interface DocumentService extends FactoryService {
+    public static final String SERVICE_NAME = "document-management";
+    public static final String[] RESOURCE_TYPE_LIST = new String[] {
+	    Document.RESOURCE_NAME, CollaborationFolder.RESOURCE_NAME };
 
     @WebMethod
-    public void createDocument(String path, String name, String date, String type, String keywords, String version,
-	    String status, String fileName, String mimeType, byte[] binaryContent) throws DocumentServiceException;
+    public String createDocumentSimple(
+	    @WebParam(name = "parentPath") String parentPath,
+	    @WebParam(name = "name") String name,
+	    @WebParam(name = "date") String date,
+	    @WebParam(name = "type") String type,
+	    @WebParam(name = "keywords") String keywords,
+	    @WebParam(name = "version") String version,
+	    @WebParam(name = "status") String status,
+	    @WebParam(name = "fileName") String fileName,
+	    @WebParam(name = "mimeType") String mimeType,
+	    @WebParam(name = "binaryContent") byte[] binaryContent)
+	    throws DocumentServiceException;
+
+    @WebMethod
+    public String createDocument(
+	    @WebParam(name = "parentPath") String parentPath,
+	    @WebParam(name = "document") Document document)
+	    throws DocumentServiceException;
 
     @WebMethod
     @WebResult(name = "document")
-    public Document readDocument(String path) throws DocumentServiceException;
-    
+    public Document readDocument(@WebParam(name = "path") String path)
+	    throws DocumentServiceException;
+
     @WebMethod
     @WebResult(name = "document")
-    public Document readDocumentProperties(String path) throws DocumentServiceException;
+    public Document readDocumentProperties(@WebParam(name = "path") String path)
+	    throws DocumentServiceException;
 
     @WebMethod
-    public void updateDocument(String path, String name, String type, String keywords, String status, String fileName,
-	    String mimeType, byte[] binaryContent) throws DocumentServiceException;
+    public void updateDocument(@WebParam(name = "path") String path,
+	    @WebParam(name = "name") String name,
+	    @WebParam(name = "type") String type,
+	    @WebParam(name = "keywords") String keywords,
+	    @WebParam(name = "status") String status,
+	    @WebParam(name = "fileName") String fileName,
+	    @WebParam(name = "mimeType") String mimeType,
+	    @WebParam(name = "binaryContent") byte[] binaryContent)
+	    throws DocumentServiceException;
 
     @WebMethod
-    public void deleteDocument(String path) throws DocumentServiceException;
+    public void uploadDocumentVersion(@WebParam(name = "path") String path,
+	    @WebParam(name = "name") String name,
+	    @WebParam(name = "version") String version,
+	    @WebParam(name = "status") String status,
+	    @WebParam(name = "fileName") String fileName,
+	    @WebParam(name = "mimeType") String mimeType,
+	    @WebParam(name = "binaryContent") byte[] binaryContent)
+	    throws DocumentServiceException;
 
     @WebMethod
-    public String createFolder(String path, String name, String description) throws DocumentServiceException;
+    public void deleteDocument(@WebParam(name = "path") String path)
+	    throws DocumentServiceException;
 
     @WebMethod
-    @WebResult(name = "collaborationfolder")
-    public CollaborationFolder readFolder(String path) throws DocumentServiceException;
+    public String createFolder(@WebParam(name = "path") String parentPath,
+	    @WebParam(name = "name") String name,
+	    @WebParam(name = "description") String description)
+	    throws DocumentServiceException;
 
     @WebMethod
-    public void updateFolder(String path, String name, String description) throws DocumentServiceException;
+    @WebResult(name = "collaboration-folder")
+    public CollaborationFolder readFolder(@WebParam(name = "path") String path)
+	    throws DocumentServiceException;
 
     @WebMethod
-    public void deleteFolder(String path) throws DocumentServiceException;
-    
-    @WebMethod
-    @WebResult(name = "collaborationfolder")
-    public CollaborationFolder readFolderContent(String path) throws DocumentServiceException;
-    
-    @WebMethod
-    public ListItem[] getFolderContent(String path) throws DocumentServiceException;
+    public void updateFolder(@WebParam(name = "path") String path,
+	    @WebParam(name = "name") String name,
+	    @WebParam(name = "description") String description)
+	    throws DocumentServiceException;
 
     @WebMethod
-    public CollaborationFolder[] getSubfolders(String path) throws DocumentServiceException;
+    public void deleteFolder(@WebParam(name = "path") String path)
+	    throws DocumentServiceException;
 
     @WebMethod
-    public Document[] getFolderDocuments(String path) throws DocumentServiceException;
+    @WebResult(name = "collaboration-folder")
+    public CollaborationFolder readFolderContent(
+	    @WebParam(name = "path") String path)
+	    throws DocumentServiceException;
 
+    @WebMethod
+    public ListItem[] getFolderContent(@WebParam(name = "path") String path)
+	    throws DocumentServiceException;
+
+    @WebMethod
+    public CollaborationFolder[] getSubfolders(
+	    @WebParam(name = "path") String path)
+	    throws DocumentServiceException;
+
+    @WebMethod
+    public Document[] getFolderDocuments(@WebParam(name = "path") String path)
+	    throws DocumentServiceException;
 }

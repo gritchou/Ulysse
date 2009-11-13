@@ -12,21 +12,28 @@ import org.apache.commons.logging.LogFactory;
 import org.jboss.ws.core.StubExt;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qualipso.factory.client.ws.BootstrapService;
+import org.qualipso.factory.client.ws.Bootstrap;
 import org.qualipso.factory.client.ws.BootstrapServiceException_Exception;
-import org.qualipso.factory.client.ws.BootstrapService_Service;
-import org.qualipso.factory.client.ws.MembershipService;
-import org.qualipso.factory.client.ws.MembershipService_Service;
+import org.qualipso.factory.client.ws.Bootstrap_Service;
+import org.qualipso.factory.client.ws.Membership;
+import org.qualipso.factory.client.ws.Membership_Service;
 import org.qualipso.factory.client.ws.Profile;
 
 public class MembershipServiceWSTest {
 
 	private static Log logger = LogFactory.getLog(MembershipServiceWSTest.class);
 
+	private Membership membership;
+	
+	public MembershipServiceWSTest() {
+		membership = new Membership_Service().getMembershipServiceBeanPort();
+		((StubExt) membership).setConfigName("Standard WSSecurity Client");
+	}
+	
 	@BeforeClass
 	public static void init() {
 		try {
-			BootstrapService port = new BootstrapService_Service().getBootstrapServicePort(); 
+			Bootstrap port = new Bootstrap_Service().getBootstrapServiceBeanPort(); 
 			((StubExt) port).setConfigName("Standard WSSecurity Client");
 			port.bootstrap();
 		} catch (BootstrapServiceException_Exception e) {
@@ -37,21 +44,16 @@ public class MembershipServiceWSTest {
 	@Test
     public void testGetConnectedProfilePath() {
         try {
-            MembershipService_Service service = new MembershipService_Service();
-            MembershipService port = service.getMembershipServicePort();
-
-            ((StubExt) port).setConfigName("Standard WSSecurity Client");
-
-            String path = port.getProfilePathForConnectedIdentifier();
-            logger.debug("connected profile path : " + path);
+            String path = membership.getProfilePathForConnectedIdentifier();
+            logger.debug("connected profile path : " + membership);
             assertTrue(path.equals("/profiles/guest"));
             
-            Map<String, Object> reqContext = ((BindingProvider) port).getRequestContext();
+            Map<String, Object> reqContext = ((BindingProvider) membership).getRequestContext();
             reqContext.put(StubExt.PROPERTY_AUTH_TYPE, StubExt.PROPERTY_AUTH_TYPE_WSSE);
             reqContext.put(BindingProvider.USERNAME_PROPERTY, "kermit");
             reqContext.put(BindingProvider.PASSWORD_PROPERTY, "thefrog");
             
-            path = port.getProfilePathForConnectedIdentifier();
+            path = membership.getProfilePathForConnectedIdentifier();
             logger.debug("connected profile path : " + path);
             assertTrue(path.equals("/profiles/kermit"));
             
@@ -64,27 +66,21 @@ public class MembershipServiceWSTest {
     @Test
     public void testCreateProfile() {
         try {
-            MembershipService_Service service = new MembershipService_Service();
-            MembershipService port = service.getMembershipServicePort();
-
-            ((StubExt) port).setConfigName("Standard WSSecurity Client");
-
-            String path = port.getProfilePathForConnectedIdentifier();
+        	 String path = membership.getProfilePathForConnectedIdentifier();
             logger.debug("connected profile path : " + path);
             assertTrue(path.equals("/profiles/guest"));
             
-            port.createProfile("kermit", "TOTO", "titi", 0);
-            
-            Map<String, Object> reqContext = ((BindingProvider) port).getRequestContext();
+            Map<String, Object> reqContext = ((BindingProvider) membership).getRequestContext();
             reqContext.put(StubExt.PROPERTY_AUTH_TYPE, StubExt.PROPERTY_AUTH_TYPE_WSSE);
             reqContext.put(BindingProvider.USERNAME_PROPERTY, "kermit");
             reqContext.put(BindingProvider.PASSWORD_PROPERTY, "thefrog");
             
-            Profile profile = port.readProfile("/profiles/kermit");
+            membership.createProfile("kermit", "Kermit", "THE-FROG", 0);
+            Profile profile = membership.readProfile("/profiles/kermit");
+            assertTrue(profile.getFullname().equals("Kermit"));
+            assertTrue(profile.getEmail().equals("THE-FROG"));
             
-            assertTrue(profile.getFullname().equals("TOTO"));
-            
-            port.deleteProfile("/profiles/kermit");
+            membership.deleteProfile("/profiles/kermit");
             
         } catch (Exception e) {
             e.printStackTrace();

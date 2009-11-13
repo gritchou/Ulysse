@@ -6,6 +6,7 @@ import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
 
 /**
@@ -13,9 +14,12 @@ import org.qualipso.factory.FactoryService;
  * @date 23 june 2009
  */
 @Remote
-@WebService(name = "SecurityService", targetNamespace = "http://org.qualipso.factory.ws/service/security")
+@WebService(name = SecurityService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + SecurityService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface SecurityService extends FactoryService {
+	
+	public static final String SERVICE_NAME = "security";
+	public static final String[] RESOURCE_TYPE_LIST = new String[] {};
 	
 	@WebMethod
 	@WebResult(name = "security-policy")

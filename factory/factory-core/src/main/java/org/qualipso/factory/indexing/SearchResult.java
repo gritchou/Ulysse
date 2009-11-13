@@ -20,6 +20,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResourceIdentifier;
 
 
@@ -29,7 +30,7 @@ import org.qualipso.factory.FactoryResourceIdentifier;
  * @author cynthia FLORENTIN 
  */
 //TODO move this class to the factory level (FactorySearchResult)
-@XmlType(name = "SearchResult", namespace = "http://org.qualipso.factory.ws/index", propOrder =  {
+@XmlType(name = "search-result", namespace = FactoryNamingConvention.SEARCH_NAMESPACE, propOrder =  {
     "path", "score", "explain", "name", "type", "identifier"}
 )
 public class SearchResult implements SearchResultI {

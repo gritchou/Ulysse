@@ -14,7 +14,7 @@ Date 20 May 2009
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-git-test</artifactId>
 	<name>Qualipso Factory GIT Repository Component - Functional Test</name>
-	<version>0.1.1-SNAPSHOT</version>
+	<version>0.1.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<scm>
 		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-git-test</connection>
@@ -36,7 +36,7 @@ Date 20 May 2009
 								<wsdlUrl>http://localhost:8080/factory-core/core?wsdl</wsdlUrl>
 								<wsdlUrl>http://localhost:8080/factory-core/browser?wsdl</wsdlUrl>
 								<wsdlUrl>http://localhost:8080/factory-core/bootstrap?wsdl</wsdlUrl>
-								<wsdlUrl>http://localhost:8080/factory-service-git/git?wsdl</wsdlUrl>
+								<wsdlUrl>http://localhost:8080/factory-git/git?wsdl</wsdlUrl>
 							</wsdlUrls>
 							<packageName>org.qualipso.factory.git.client.ws</packageName>
 							<sourceDestDir>${basedir}/src/main/java</sourceDestDir>
@@ -66,27 +66,27 @@ Date 20 May 2009
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-core</artifactId>
-			<version>0.3.2-SNAPSHOT</version>
-			<scope>runtime</scope>
+			<version>0.3.3-SNAPSHOT</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-git</artifactId>
-			<version>0.1.1-SNAPSHOT</version>
-			<scope>runtime</scope>
+			<version>0.1.2-SNAPSHOT</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.ws.native</groupId>
 			<artifactId>jbossws-native-client</artifactId>
 			<version>3.0.5.GA</version>
-			<scope>runtime</scope>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.jbossas</groupId>
 			<artifactId>jboss-as-client</artifactId>
 			<version>5.0.1.GA</version>
 			<type>pom</type>
-			<scope>runtime</scope>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -99,11 +99,6 @@ Date 20 May 2009
 			<artifactId>commons-logging</artifactId>
 			<version>1.1.1</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus.cargo</groupId>
-			<artifactId>cargo-core-api-container</artifactId>
-			<version>1.0</version>
 		</dependency>
 	</dependencies>
 </project>

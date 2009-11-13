@@ -37,51 +37,56 @@ public class CComplexRequestProcessor implements IRequestProcessor
 		this.childrenCComplex = null;
 	}
 	
-	
 	public SOAPElement generateSOAP() throws SOAPException
 	{
 		SOAPFactory factory=SOAPFactory.newInstance();
 		SOAPElement rootElement;
+		
 		if(this.aComplexTypeName != null)
 			rootElement = factory.createElement(aComplexTypeName);
 		else
 			rootElement = factory.createElement("complex");
+		
 		//handle simple Element or SimpleTable element
 		if(argVal == null)
 			throw new SOAPException("Error, the HashTable is not instanciated ");
 		
-		Iterator<Entry<String, Vector<String>>> iter = argVal.entrySet().iterator();
-		while(iter.hasNext())
+		if(argVal.size() > 0)
 		{
-			Entry<String, Vector<String>> entry = iter.next();
-			if (entry.getValue().size()==1)
-			{
-				rootElement.addChildElement(factory.createElement(entry.getKey()).addTextNode(entry.getValue().firstElement()));
-			}
-			else
-			{
-				Vector<String> values=entry.getValue();
-				Iterator<String> iterValues = values.iterator();
-				
-				SOAPElement listElement = factory.createElement(entry.getKey());
-				
-				while(iterValues.hasNext())
+			Iterator<Entry<String, Vector<String>>> iter = argVal.entrySet().iterator();
+			while(iter.hasNext())
+			{	
+				Entry<String, Vector<String>> entry = iter.next();
+				if (entry.getValue().size()==1)
 				{
-					String value=iterValues.next();
-					listElement.addChildElement("item").addTextNode(value);
+					rootElement.addChildElement(factory.createElement(entry.getKey()).addTextNode(entry.getValue().firstElement()));
 				}
-				rootElement.addChildElement(listElement);
+				else
+				{
+					Vector<String> values=entry.getValue();
+					Iterator<String> iterValues = values.iterator();
+					
+					SOAPElement listElement = factory.createElement(entry.getKey());
+				
+					while(iterValues.hasNext())
+					{
+						String value=iterValues.next();
+						listElement.addChildElement("item").addTextNode(value);
+					}
+					rootElement.addChildElement(listElement);
+				}
 			}
 		}
 		
 		//handle complexChildren
-		if(childrenCComplex!=null) {
+		if(childrenCComplex	!=	null) {
 			Iterator<IRequestProcessor> iterChild = childrenCComplex.iterator();
 			while(iterChild.hasNext())
 			{
 				rootElement.addChildElement(iterChild.next().generateSOAP());
 			}
 		}
+		
 		return rootElement;
 
 		

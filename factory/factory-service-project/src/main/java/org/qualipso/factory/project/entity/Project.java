@@ -21,15 +21,19 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.project.ProjectService;
 
 @Entity
-@XmlType(name = "Project", namespace = "http://org.qualipso.factory.ws/resource/project", propOrder =  {
+@XmlType(name = Project.RESOURCE_NAME, namespace = FactoryNamingConvention.RESOURCE_NAMESPACE + Project.RESOURCE_NAME, propOrder =  {
     "name", "licence", "summary", "os", "spoken_language", "topics", "intended_audience", "dev_status"}
 )
 @SuppressWarnings("serial")
 public class Project extends FactoryResource {
+	
+	public static final String RESOURCE_NAME = "project";
 	
 	@Id
 	private String id;
@@ -50,7 +54,7 @@ public class Project extends FactoryResource {
 	@Override
 	@XmlTransient
 	public FactoryResourceIdentifier getFactoryResourceIdentifier() {
-		return new FactoryResourceIdentifier("ProjectService", "Project", getId());
+		return new FactoryResourceIdentifier(ProjectService.SERVICE_NAME, Project.RESOURCE_NAME, getId());
 	}
 
 	@Override

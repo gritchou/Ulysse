@@ -109,7 +109,7 @@ public interface GITService {
      * @throws GITServiceException_Exception
      */
     @WebMethod
-    public void updateGITREpository(
+    public void updateGITRepository(
         @WebParam(name = "arg0", partName = "arg0")
         String arg0,
         @WebParam(name = "arg1", partName = "arg1")

@@ -7,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 /**
+ * The Node class is the representation of a path segment. 
+ * 
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 18 June 2009
  */

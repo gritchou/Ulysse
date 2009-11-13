@@ -36,19 +36,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link File }
+     * Create an instance of {@link Group }
      * 
      */
-    public File createFile() {
-        return new File();
-    }
-
-    /**
-     * Create an instance of {@link Folder }
-     * 
-     */
-    public Folder createFolder() {
-        return new Folder();
+    public Group createGroup() {
+        return new Group();
     }
 
     /**
@@ -60,11 +52,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Name }
+     * Create an instance of {@link Link }
      * 
      */
-    public Name createName() {
-        return new Name();
+    public Link createLink() {
+        return new Link();
     }
 
     /**
@@ -84,6 +76,14 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link Name }
+     * 
+     */
+    public Name createName() {
+        return new Name();
+    }
+
+    /**
      * Create an instance of {@link Profile }
      * 
      */
@@ -92,19 +92,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Link }
+     * Create an instance of {@link File }
      * 
      */
-    public Link createLink() {
-        return new Link();
+    public File createFile() {
+        return new File();
     }
 
     /**
-     * Create an instance of {@link Group }
+     * Create an instance of {@link Folder }
      * 
      */
-    public Group createGroup() {
-        return new Group();
+    public Folder createFolder() {
+        return new Folder();
     }
 
     /**

@@ -8,19 +8,23 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.core.CoreService;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 24 july 2009
  */
 @Entity
-@XmlType(name = "Link", namespace = "http://org.qualipso.factory.ws/resource/link", propOrder =  {
+@XmlType(name = Link.RESOURCE_NAME, namespace = FactoryNamingConvention.RESOURCE_NAMESPACE + Link.RESOURCE_NAME, propOrder =  {
     "link"}
 )
 @SuppressWarnings("serial")
 public class Link extends FactoryResource {
+	
+	public static final String RESOURCE_NAME = "link";
 	
 	@Id
 	private String id;
@@ -62,7 +66,7 @@ public class Link extends FactoryResource {
 	@Override
 	@XmlTransient
 	public FactoryResourceIdentifier getFactoryResourceIdentifier() {
-		return new FactoryResourceIdentifier("CoreService", "Link", getId());
+		return new FactoryResourceIdentifier(CoreService.SERVICE_NAME, Link.RESOURCE_NAME, getId());
 	}
 
 	@Override

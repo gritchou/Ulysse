@@ -2,27 +2,21 @@ package org.qualipso.factory.collaboration.ws;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.Iterator;
 
-import javax.xml.namespace.QName;
-
-import org.apache.axiom.om.OMAbstractFactory;
-import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.OMFactory;
-import org.apache.axiom.om.OMNamespace;
-import org.apache.axis2.addressing.EndpointReference;
-
-public class CollaborationWSUtils
-{
-    protected static EndpointReference targetEPR = new EndpointReference("http://syros.eurodyn.com:8082/mermig/services/MermigWebService");
+public class CollaborationWSUtils {
+    public static final String USER_NAME = CollaborationProperties
+	    .getInstance().USER_NAME;
+    protected static final String USER_PWD = CollaborationProperties
+	    .getInstance().USER_PWD;
+    public static final String DEFAULT_FOLDER_ID = CollaborationProperties
+	    .getInstance().DEFAULT_FOLDER_ID;
+    public static final String DEFAULT_WORKSPACE_STR = CollaborationProperties
+	    .getInstance().DEFAULT_WORKSPACE_ID;
+    public static final long DEFAULT_WORKSPACE = Long
+	    .valueOf(DEFAULT_WORKSPACE_STR);
+    //
     protected static final String NAME_SPACE = "http://mermig.ed.com";
 
-    protected static OMFactory fac = OMAbstractFactory.getOMFactory();
-    protected static OMNamespace omNs = fac.createOMNamespace(NAME_SPACE, "ns");
-    public static final String USER_NAME = "demode";
-    public static final String USER_PWD = "demode123";
-    public static final String DEFAULT_FOLDER_ID = "1170";
     // Document Status
     public static final String STATUS_DRAFT = "DRAFT";
     public static final String STATUS_WORKING = "WORKING";
@@ -39,13 +33,11 @@ public class CollaborationWSUtils
     // Forum Status
     public static final String FORUM_STATUS_ACTIVE = "active";
     public static final String FORUM_STATUS_CLOSED = "closed";
-    
     //
-    public static final String workspaceIDStr = "10";
-    public static final long workspaceID = Long.valueOf(workspaceIDStr);
-    
-    public static final DateFormat WS_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-    public static final DateFormat WS_TIME_FORMAT = new SimpleDateFormat("HH:mm");
+    public static final DateFormat WS_DATE_FORMAT = new SimpleDateFormat(
+	    "yyyy-MM-dd");
+    public static final DateFormat WS_TIME_FORMAT = new SimpleDateFormat(
+	    "HH:mm");
     public static final String CALENDAR_MODIFY_SE = "series";
     public static final String CALENDAR_MODIFY_OC = "occurence";
     public static final String CALENDAR_EVENT = "event";
@@ -72,33 +64,4 @@ public class CollaborationWSUtils
     public static final String STATUS_CODE = "STATUS_CODE";
     public static final String STATUS_MESSAGE = "STATUS_MESSAGE";
 
-    public static QName getQName(String localName)
-    {
-	return (new QName(NAME_SPACE, localName));
-    }
-    
-    public static OMElement getInfoPayLoad()
-    {
-	OMElement method = fac.createOMElement("getInfo", omNs);
-	OMElement userElement = fac.createOMElement("username", omNs);
-	userElement.addChild(fac.createOMText(userElement, USER_NAME));
-	OMElement pwdElement = fac.createOMElement("password", omNs);
-	pwdElement.addChild(fac.createOMText(pwdElement, USER_PWD));
-
-	method.addChild(userElement);
-	method.addChild(pwdElement);
-
-	return method;
-    }
-    
-    public static String getFirstElement(HashMap valuesMap) throws Exception
-    {
-	String id = "";
-	Iterator iterator = valuesMap.keySet().iterator();
-	while( iterator. hasNext() ){
-	    id = (String)valuesMap.get(iterator.next());
-	    break;
-	}
-	return id;
-    }
 }

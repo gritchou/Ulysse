@@ -24,9 +24,9 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _Folder_QNAME = new QName("http://org.qualipso.factory.ws/service/jabuti", "folder");
-    private final static QName _JabutiServiceException_QNAME = new QName("http://org.qualipso.factory.ws/service/jabuti", "JabutiServiceException");
-    private final static QName _FactoryException_QNAME = new QName("http://org.qualipso.factory.ws/service/jabuti", "FactoryException");
+    private final static QName _FactoryException_QNAME = new QName("http://org.qualipso.factory.ws/service/bootstrap", "FactoryException");
+    private final static QName _Folder_QNAME = new QName("http://org.qualipso.factory.ws/service/bootstrap", "folder");
+    private final static QName _BootstrapServiceException_QNAME = new QName("http://org.qualipso.factory.ws/service/bootstrap", "BootstrapServiceException");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: org.qualipso.factory.jabuti.client.ws
@@ -44,19 +44,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link StringArray }
+     * Create an instance of {@link FactoryException }
      * 
      */
-    public StringArray createStringArray() {
-        return new StringArray();
+    public FactoryException createFactoryException() {
+        return new FactoryException();
     }
 
     /**
-     * Create an instance of {@link JabutiServiceException }
+     * Create an instance of {@link Group }
      * 
      */
-    public JabutiServiceException createJabutiServiceException() {
-        return new JabutiServiceException();
+    public Group createGroup() {
+        return new Group();
     }
 
     /**
@@ -76,11 +76,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link FactoryException }
+     * Create an instance of {@link BootstrapServiceException }
      * 
      */
-    public FactoryException createFactoryException() {
-        return new FactoryException();
+    public BootstrapServiceException createBootstrapServiceException() {
+        return new BootstrapServiceException();
+    }
+
+    /**
+     * Create an instance of {@link StringArray }
+     * 
+     */
+    public StringArray createStringArray() {
+        return new StringArray();
     }
 
     /**
@@ -92,38 +100,30 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Group }
+     * Create an instance of {@link JAXBElement }{@code <}{@link FactoryException }{@code >}}
      * 
      */
-    public Group createGroup() {
-        return new Group();
+    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/bootstrap", name = "FactoryException")
+    public JAXBElement<FactoryException> createFactoryException(FactoryException value) {
+        return new JAXBElement<FactoryException>(_FactoryException_QNAME, FactoryException.class, null, value);
     }
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link Folder }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/jabuti", name = "folder")
+    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/bootstrap", name = "folder")
     public JAXBElement<Folder> createFolder(Folder value) {
         return new JAXBElement<Folder>(_Folder_QNAME, Folder.class, null, value);
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link JabutiServiceException }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link BootstrapServiceException }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/jabuti", name = "JabutiServiceException")
-    public JAXBElement<JabutiServiceException> createJabutiServiceException(JabutiServiceException value) {
-        return new JAXBElement<JabutiServiceException>(_JabutiServiceException_QNAME, JabutiServiceException.class, null, value);
-    }
-
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link FactoryException }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/jabuti", name = "FactoryException")
-    public JAXBElement<FactoryException> createFactoryException(FactoryException value) {
-        return new JAXBElement<FactoryException>(_FactoryException_QNAME, FactoryException.class, null, value);
+    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/bootstrap", name = "BootstrapServiceException")
+    public JAXBElement<BootstrapServiceException> createBootstrapServiceException(BootstrapServiceException value) {
+        return new JAXBElement<BootstrapServiceException>(_BootstrapServiceException_QNAME, BootstrapServiceException.class, null, value);
     }
 
 }

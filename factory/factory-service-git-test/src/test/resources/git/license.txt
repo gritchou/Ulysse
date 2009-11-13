@@ -1,0 +1,1 @@
+This is the license with a change in master branch to generate a kind of conflict

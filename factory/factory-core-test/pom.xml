@@ -3,25 +3,23 @@
 Author Jerome Blanchard (jayblanc@gmail.com)
 Date 20 May 2009
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
-		<artifactId>factory</artifactId>
+		<artifactId>factory-parent</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.4</version>
+		<version>0.5-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-core-test</artifactId>
 	<name>Qualipso Factory Core Component - Functional Test</name>
-	<version>0.3.2-SNAPSHOT</version>
+	<version>0.3.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<scm>
-		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-core-test
-		</connection>
-		<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-core-test
-		</developerConnection>
-	</scm>
+		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/tags/factory-core-test-0.3.2</connection>
+		<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/tags/factory-core-test-0.3.2</developerConnection>
+	  <url>https://gforge.inria.fr/plugins/scmsvn/viewcvs.php/?root=qualipso/tags/factory-core-test-0.3.2?root=qualipso/tags/factory-0.4?root=qualipso/factory-core-test</url>
+  </scm>
 	<build>
 		<plugins>
 			<plugin>
@@ -137,12 +135,5 @@ Date 20 May 2009
 			<artifactId>cargo-core-api-container</artifactId>
 			<version>1.0</version>
 		</dependency>
-		<dependency>
-			<groupId>org.qualipso</groupId>
-			<artifactId>factory-service-greeting</artifactId>
-			<version>0.2.3-SNAPSHOT</version>
-			<scope>runtime</scope>
-		</dependency>
-	
 	</dependencies>
 </project>

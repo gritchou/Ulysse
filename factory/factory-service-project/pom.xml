@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <parent>
-    <artifactId>factory</artifactId>
-    <groupId>org.qualipso</groupId>
-    <version>0.4-SNAPSHOT</version>
-  </parent>
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.qualipso</groupId>
-  <artifactId>factory-service-project</artifactId>
-  <name>Qualipso Facotry Service Project Component</name>
-  <version>0.2.3-SNAPSHOT</version>
-  <packaging>ejb</packaging>
-  <scm>
-  	<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-project</connection>
-  	<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-project</developerConnection>
-  </scm>
-  <organization>
-  	<name>Thales Theresis</name>
-  	<url>http://www.thalesgroup.com</url>
-  </organization>
-  <build>
+	<parent>
+		<artifactId>factory-parent</artifactId>
+		<groupId>org.qualipso</groupId>
+		<version>0.5-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.qualipso</groupId>
+	<artifactId>factory-service-project</artifactId>
+	<name>Qualipso Factory Service Project Component</name>
+	<version>0.2.3-SNAPSHOT</version>
+	<packaging>ejb</packaging>
+	<scm>
+		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-project</connection>
+		<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-project</developerConnection>
+	</scm>
+	<organization>
+		<name>Thales Theresis</name>
+		<url>http://www.thalesgroup.com</url>
+	</organization>
+	<build>
 		<defaultGoal>package</defaultGoal>
 		<finalName>factory-service-project</finalName>
 		<plugins>
@@ -54,53 +54,54 @@
 			</plugin>
 		</plugins>
 	</build>
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.5</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-    	<groupId>javax.ejb</groupId>
-    	<artifactId>ejb-api</artifactId>
-    	<version>3.0</version>
-    	<scope>provided</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.jboss.jbossas</groupId>
-    	<artifactId>jboss-as-embedded</artifactId>
-    	<version>5.0.1.GA</version>
-    	<scope>provided</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.jboss.ws.native</groupId>
-    	<artifactId>jbossws-native-core</artifactId>
-    	<version>3.0.5.GA</version>
-    	<scope>provided</scope>
-    </dependency>
-    <dependency>
-    	<groupId>commons-logging</groupId>
-    	<artifactId>commons-logging</artifactId>
-    	<version>1.1.1</version>
-    </dependency>
-    <dependency>
-    	<groupId>com.bm</groupId>
-    	<artifactId>ejb3unit</artifactId>
-    	<version>2.0.0-RC-1</version>
-    	<scope>test</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.jmock</groupId>
-    	<artifactId>jmock-junit4</artifactId>
-    	<version>2.5.1</version>
-    	<scope>test</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.qualipso</groupId>
-    	<artifactId>factory-core</artifactId>
-    	<version>0.3.3-SNAPSHOT</version>
-    	<scope>provided</scope>
-    </dependency>
-  </dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-core</artifactId>
+			<version>0.3.3-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.ejb</groupId>
+			<artifactId>ejb-api</artifactId>
+			<version>3.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.jbossas</groupId>
+			<artifactId>jboss-as-embedded</artifactId>
+			<version>5.0.1.GA</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.ws.native</groupId>
+			<artifactId>jbossws-native-core</artifactId>
+			<version>3.0.5.GA</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.5</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.bm</groupId>
+			<artifactId>ejb3unit</artifactId>
+			<version>2.0.0-RC-1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jmock</groupId>
+			<artifactId>jmock-junit4</artifactId>
+			<version>2.5.1</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 </project>

@@ -11,12 +11,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
- * <p>Java class for Profile complex type.
+ * <p>Java class for profile complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="Profile">
+ * &lt;complexType name="profile">
  *   &lt;complexContent>
  *     &lt;extension base="{http://org.qualipso.factory.ws/service/helloworld}factoryResource">
  *       &lt;sequence>
@@ -36,7 +36,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Profile", namespace = "http://org.qualipso.factory.ws/resource/profile", propOrder = {
+@XmlType(name = "profile", namespace = "http://org.qualipso.factory.ws/resource/profile", propOrder = {
     "email"
 })
 public class Profile

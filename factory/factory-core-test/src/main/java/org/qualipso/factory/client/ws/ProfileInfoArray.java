@@ -10,16 +10,16 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for ProfileInfoArray complex type.
+ * <p>Java class for profile-infoArray complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="ProfileInfoArray">
+ * &lt;complexType name="profile-infoArray">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="item" type="{http://org.qualipso.factory.ws/resource/profile-info}ProfileInfo" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element name="item" type="{http://org.qualipso.factory.ws/resource/profile-info}profile-info" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -29,7 +29,7 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "ProfileInfoArray", namespace = "http://org.qualipso.factory.ws/resource/profile-info", propOrder = {
+@XmlType(name = "profile-infoArray", namespace = "http://org.qualipso.factory.ws/resource/profile-info", propOrder = {
     "item"
 })
 public class ProfileInfoArray {

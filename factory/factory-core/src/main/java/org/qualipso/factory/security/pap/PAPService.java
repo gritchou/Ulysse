@@ -24,6 +24,9 @@ import javax.ejb.Local;
  */
 @Local
 public interface PAPService {
+	
+	public static final String SERVICE_NAME = "pap";
+	
 	public void createPolicy(String policyId, String policy) throws PAPServiceException;
 
 	public void updatePolicy(String policyId, String policy) throws PAPServiceException;

@@ -9,6 +9,7 @@ import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.core.entity.File;
 import org.qualipso.factory.core.entity.FileData;
@@ -20,9 +21,12 @@ import org.qualipso.factory.core.entity.Link;
  * @date 24 july 2009
  */
 @Remote
-@WebService(name = "CoreService", targetNamespace = "http://org.qualipso.factory.ws/service/core")
+@WebService(name = CoreService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + CoreService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface CoreService extends FactoryService {
+	
+	public static final String SERVICE_NAME = "core";
+	public static final String[] RESOURCE_TYPE_LIST = new String[] {Folder.RESOURCE_NAME, File.RESOURCE_NAME, Link.RESOURCE_NAME};
 	
 	@WebMethod
 	public void createLink(@WebParam(name = "path") String path, @WebParam(name = "to-path") String toPath) throws CoreServiceException;

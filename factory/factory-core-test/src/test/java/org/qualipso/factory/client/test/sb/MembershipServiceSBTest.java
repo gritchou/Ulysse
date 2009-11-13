@@ -34,8 +34,8 @@ import org.junit.Test;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.bootstrap.BootstrapService;
 import org.qualipso.factory.bootstrap.BootstrapServiceException;
-import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.client.test.AllTests;
+import org.qualipso.factory.membership.MembershipService;
 
 
 /**
@@ -71,7 +71,7 @@ public class MembershipServiceSBTest {
 		properties.put("java.naming.provider.url","localhost:1099");
 		ctx = new InitialContext(properties);
 		
-		BootstrapService bootstrap = (BootstrapService) ctx.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX + "BootstrapService");
+		BootstrapService bootstrap = (BootstrapService) ctx.lookup(FactoryNamingConvention.getJNDINameForService("bootstrap"));
 		try {
 			bootstrap.bootstrap();
 		} catch (BootstrapServiceException e) {
@@ -84,7 +84,7 @@ public class MembershipServiceSBTest {
         logger.debug("testing get connected user identifier");
         
         try {
-        	MembershipService service = (MembershipService) ctx.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX + "MembershipService");
+        	MembershipService service = (MembershipService) ctx.lookup(FactoryNamingConvention.getJNDINameForService("membership"));
         	this.setMembershipService(service);
             String connectedProfile = getMembershipService().getProfilePathForConnectedIdentifier();
             logger.debug("connected user : " + connectedProfile);
@@ -103,4 +103,5 @@ public class MembershipServiceSBTest {
             fail(e.getMessage());
         }
     }
+	
 }

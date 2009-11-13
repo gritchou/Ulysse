@@ -1,36 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
-	<!--
-		Author Christophe Bouthier (christophe.bouthier@loria.fr) Date 27 July 2009
-	-->
+<!-- 
+Author Jerome Blanchard (jayblanc@gmail.com)
+Date 26 August 2009
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
-		<artifactId>factory</artifactId>
+		<artifactId>factory-parent</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.4-SNAPSHOT</version>
+		<version>0.5-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-greeting</artifactId>
-	<name>factory-service-greeting</name>
-	<packaging>ejb</packaging>
+	<name>Qualipso Factory Greeting Sample Component</name>
 	<version>0.2.3-SNAPSHOT</version>
+	<packaging>ejb</packaging>
+	<scm>
+		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-greeting</connection>
+		<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-greeting</developerConnection>
+	</scm>
 	<build>
 		<defaultGoal>package</defaultGoal>
 		<finalName>factory-service-greeting</finalName>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.4.3</version>
+				<configuration>
+					<argLine>
+						-Dsun.lang.ClassLoader.allowArraySyntax=true
+					</argLine>
+					<test>
+						org.qualipso.factory.greeting.test.AllTests
+					</test>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-ejb-plugin</artifactId>
 				<configuration>
 					<ejbVersion>3.0</ejbVersion>
-					<archive>
-						<manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
-					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>2.0-beta-7</version>
+				<configuration>
+					<templateFile>${project.parent.basedir}/src/site/resources/qualipso-factory-template.vm
+					</templateFile>
+					<outputDirectory>${project.parent.reporting.outputDirectory}/${name}
+					</outputDirectory>
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-core</artifactId>
+			<version>0.3.3-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
@@ -52,9 +86,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.jbossas</groupId>
-			<artifactId>jboss-as-client</artifactId>
+			<artifactId>jboss-as-embedded</artifactId>
 			<version>5.0.1.GA</version>
-			<type>pom</type>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -75,12 +108,6 @@
 			<version>4.5</version>
 			<type>jar</type>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.qualipso</groupId>
-			<artifactId>factory-core</artifactId>
-			<version>0.3.3-SNAPSHOT</version>
-			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>

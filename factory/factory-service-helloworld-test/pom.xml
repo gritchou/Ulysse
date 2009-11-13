@@ -35,7 +35,7 @@ Date 20 May 2009
 						<configuration>
 							<wsdlUrls>
 								<!-- TODO externalize server address in settings.xml -->
-								<wsdlUrl>http://localhost:8080/factory-service-helloworld/helloworld?wsdl</wsdlUrl>
+								<wsdlUrl>http://localhost:8080/factory-helloworld/helloworld?wsdl</wsdlUrl>
 							</wsdlUrls>
 							<packageName>org.qualipso.factory.helloworld.client.ws</packageName>
 							<sourceDestDir>${basedir}/src/main/java</sourceDestDir>

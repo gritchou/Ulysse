@@ -23,6 +23,8 @@ import org.qualipso.factory.bootstrap.BootstrapServiceException;
 import org.qualipso.factory.browser.BrowserService;
 import org.qualipso.factory.client.test.AllTests;
 import org.qualipso.factory.core.CoreService;
+import org.qualipso.factory.core.entity.Folder;
+import org.qualipso.factory.core.entity.Link;
 import org.qualipso.factory.membership.MembershipService;
 
 /**
@@ -53,7 +55,7 @@ public class BrowserServiceSBTest {
 		properties.put("java.naming.provider.url","localhost:1099");
 		ctx = new InitialContext(properties);
 		
-		BootstrapService bootstrap = (BootstrapService) ctx.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX + "BootstrapService");
+		BootstrapService bootstrap = (BootstrapService) ctx.lookup(FactoryNamingConvention.getJNDINameForService("bootstrap"));
 		try {
 			bootstrap.bootstrap();
 		} catch (BootstrapServiceException e) {
@@ -64,9 +66,9 @@ public class BrowserServiceSBTest {
     @Before
     public void before() {
     	try {
-    		membership = (MembershipService) ctx.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX + "MembershipService");
-			browser = (BrowserService) ctx.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX + "BrowserService");
-			core = (CoreService) ctx.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX + "CoreService");
+    		membership = (MembershipService) ctx.lookup(FactoryNamingConvention.getJNDINameForService("membership"));
+			browser = (BrowserService) ctx.lookup(FactoryNamingConvention.getJNDINameForService("browser"));
+			core = (CoreService) ctx.lookup(FactoryNamingConvention.getJNDINameForService("core"));
 			
 			LoginContext lc = new LoginContext("qualipso", new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS));
             lc.login();
@@ -137,13 +139,13 @@ public class BrowserServiceSBTest {
         	LoginContext lc = new LoginContext("qualipso", new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS));
             lc.login();
 
-            String[] childs = browser.listChildrenOfType("/testfolder", "CoreService", "Folder");
+            String[] childs = browser.listChildrenOfType("/testfolder", CoreService.SERVICE_NAME, Folder.RESOURCE_NAME);
             assertTrue(childs.length == 4);
             
-            String[] childs2 = browser.listChildrenOfType("/testfolder", "CoreService", "Link");
+            String[] childs2 = browser.listChildrenOfType("/testfolder", CoreService.SERVICE_NAME, Link.RESOURCE_NAME);
             assertTrue(childs2.length == 4);
             
-            String[] childs3 = browser.listChildrenOfType("/testfolder", "CoreService", ".*");
+            String[] childs3 = browser.listChildrenOfType("/testfolder", CoreService.SERVICE_NAME, ".*");
             assertTrue(childs3.length == 8);
 
             lc.logout();

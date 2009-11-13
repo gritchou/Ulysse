@@ -26,10 +26,20 @@ public class IssueDto implements Serializable {
 	private static final long serialVersionUID = -7930669178655297625L;
 
 	/**
-	 * path
+	 * projectPath
 	 */
-	private String path;
+	private String projectPath;
+	
+	/**
+	 * Number of the issue
+	 */
+	private String num;
 
+	/**
+	 * issuePath
+	 */
+	private String issuePath;
+	
 	/**
 	 * Issue summary
 	 */
@@ -77,17 +87,60 @@ public class IssueDto implements Serializable {
 	private long dateLastUpdate;
 
 	/**
-	 * @return the path
+	 * Creation date of the issue
 	 */
-	public String getPath() {
-		return path;
+	private Date dateCreation;
+	
+	/**
+	 * date of the last modification
+	 */
+	private Date dateModification;
+	
+	/**
+	 * @return the projectPath
+	 */
+	public String getProjectPath() {
+		return projectPath;
 	}
 
 	/**
-	 * @param path the path to set
+	 * @param projectPath the projectPath to set
 	 */
-	public void setPath(String path) {
-		this.path = path;
+	public void setProjectPath(String projectPath) {
+		this.projectPath = projectPath;
+	}
+
+	
+	
+	
+	/**
+	 * @return the num
+	 */
+	public String getNum() {
+		return num;
+	}
+
+	/**
+	 * @param num the num to set
+	 */
+	public void setNum(String num) {
+		this.num = num;
+	}
+
+	
+	
+	/**
+	 * @return the issuePath
+	 */
+	public String getIssuePath() {
+		return issuePath;
+	}
+
+	/**
+	 * @param issuePath the issuePath to set
+	 */
+	public void setIssuePath(String issuePath) {
+		this.issuePath = issuePath;
 	}
 
 	/**
@@ -224,6 +277,36 @@ public class IssueDto implements Serializable {
 	public void setDateLastUpdate(long dateLastUpdate) {
 		this.dateLastUpdate = dateLastUpdate;
 	}
+	
+	
+
+	/**
+	 * @return the dateCreation
+	 */
+	public Date getDateCreation() {
+		return dateCreation;
+	}
+
+	/**
+	 * @param dateCreation the dateCreation to set
+	 */
+	public void setDateCreation(Date dateCreation) {
+		this.dateCreation = dateCreation;
+	}
+
+	/**
+	 * @return the dateModification
+	 */
+	public Date getDateModification() {
+		return dateModification;
+	}
+
+	/**
+	 * @param dateLastModification the dateLastModification to set
+	 */
+	public void setDateModification(Date dateModification) {
+		this.dateModification = dateModification;
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -231,8 +314,10 @@ public class IssueDto implements Serializable {
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
-		sb.append("path=");
-		sb.append(this.path);
+		sb.append("projectPath=");
+		sb.append(this.projectPath);
+		sb.append("num=");
+		sb.append(this.num);
 		sb.append("; summary=");
 		sb.append(this.summary);
 		sb.append("; description=");
@@ -251,6 +336,10 @@ public class IssueDto implements Serializable {
 		sb.append(this.severity);
 		sb.append("; dateLastUpdate=");
 		sb.append(new Date(this.dateLastUpdate));
+		sb.append("; dateCreation=");
+		sb.append(dateCreation);
+		sb.append("; dateModification=");
+		sb.append(dateModification);
 		
 		return sb.toString();
 	}

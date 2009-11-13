@@ -19,13 +19,17 @@ import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.project.entity.Project;
 
 @Remote
-@WebService(name = "ProjectService", targetNamespace = "http://org.qualipso.factory.ws/service/project")
+@WebService(name = ProjectService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + ProjectService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface ProjectService extends FactoryService{
+	
+	public static final String SERVICE_NAME = "project";
+	public static final String[] RESOURCE_TYPE_LIST = new String[] { Project.RESOURCE_NAME };
 	
 	@WebMethod
 	public void createProject(String path, String name, String summary, String licence) throws ProjectException;

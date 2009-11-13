@@ -15,20 +15,32 @@ import javax.persistence.PersistenceContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.SecurityDomain;
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.entity.Node;
 
 /**
+ * Implementation of the Binding Service.<br/>
+ * <br/>
+ * Implementation is based on a EJB 3.0 Stateless Session Bean. Because internal visibility only, this bean does not implement 
+ * Remote interface but only Local one. 
+ * Bean name follow naming conventions of the factory and use the specific local service prefix.<br/>
+ * <br/>
+ * Bean security is configured for JBoss AS 5 and rely on JAAS to ensure Authentication and Autorization of user.
+ * 
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 18 June 2009
  */
-@Stateless(name = "Binding", mappedName = "BindingService")
+@Stateless(name = BindingService.SERVICE_NAME, mappedName = FactoryNamingConvention.LOCAL_SERVICE_PREFIX + BindingService.SERVICE_NAME)
 @SecurityDomain(value = "JBossWSDigest")
 public class BindingServiceBean implements BindingService {
 
 	private static Log logger = LogFactory.getLog(BindingServiceBean.class);
 
+	/**
+	 * A fixed ID for root node of the naming tree.
+	 */
 	private final String ROOT_NODE_ID = "1,618033-9887-4989-4848-204586834365";
 	private SessionContext ctx;
 	private EntityManager em;
@@ -99,7 +111,7 @@ public class BindingServiceBean implements BindingService {
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void unbind(String path) throws BindingServiceException, InvalidPathException, PathNotFoundException {
+	public void unbind(String path) throws BindingServiceException, InvalidPathException, PathNotFoundException, PathNotEmptyException {
 		logger.info("unbind(...) called");
 		logger.debug("params : path=" + path);
 		
@@ -268,6 +280,15 @@ public class BindingServiceBean implements BindingService {
 	}
 
 	// Private Usefull Methods
+	/**
+	 * Try to find a node by loading recursively all parents. <br/>
+	 * If the root node does not exists, create the root node.
+	 * 
+	 * @param path the path to find
+	 * @return the Node object representing this path
+	 * @throws PathNotFoundException if the path has not been found
+	 * @throws InvalidPathException if the path is not valid
+	 */
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	private Node findNodeByPath(String path) throws PathNotFoundException, InvalidPathException {
 		Node node = null;
@@ -295,6 +316,13 @@ public class BindingServiceBean implements BindingService {
 		return node;
 	}
 
+	/**
+	 * Try to find a node by querying using FactoryResourceIdentifier
+	 * 
+	 * @param identifier the FactoryResourceIdentifier which should be binded to this node
+	 * @return the node
+	 * @throws PathNotFoundException if the node is not found
+	 */
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	@SuppressWarnings("unchecked")
 	private Node findNodeByBindedResourceIdentifier(FactoryResourceIdentifier identifier) throws PathNotFoundException {
@@ -307,11 +335,24 @@ public class BindingServiceBean implements BindingService {
 		}
 	}
 
+	/**
+	 * Evaluate the path of a node.
+	 * 
+	 * @param node the node to evaluate
+	 * @return the path
+	 */
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	private String buildNodePath(Node node) {
 		return buildNodePath(node, "");
 	}
 
+	/**
+	 * Evaluate the path of a node recursively.
+	 * 
+	 * @param node the node to evaluate
+	 * @param path the actual path in evaluation
+	 * @return the path
+	 */
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	private String buildNodePath(Node node, String path) {
 		if (node.getParent() != null && !node.getParent().equals("")) {

@@ -6,21 +6,17 @@ import org.qualipso.factory.FactoryException;
 
 @WebFault
 @SuppressWarnings("serial")
-public class CalendarServiceException extends FactoryException
-{
+public class CalendarServiceException extends FactoryException {
 
-    public CalendarServiceException(String message, Exception rootCause)
-    {
+    public CalendarServiceException(String message, Exception rootCause) {
 	super(message, rootCause);
     }
 
-    public CalendarServiceException(String message)
-    {
+    public CalendarServiceException(String message) {
 	super(message);
     }
 
-    public CalendarServiceException(Exception rootCause)
-    {
+    public CalendarServiceException(Exception rootCause) {
 	super(rootCause);
     }
 }

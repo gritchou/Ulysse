@@ -1,16 +1,16 @@
 package org.qualipso.factory.collaboration.ws.beans;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.qualipso.factory.collaboration.ws.CollaborationWSUtils;
 
-public class CalendarDTO
-{
+public class CalendarDTO {
     private String id;
     // We persist the following
     private String name;
     private String seriesId;
-    private String date = "";//yyyy-mm-dd
+    private String date = "";// yyyy-mm-dd
     private String recurrence = CollaborationWSUtils.REC_0;
     private long times = 1;
     private String[] occurencePaths;
@@ -22,177 +22,170 @@ public class CalendarDTO
     private String contactName = "";
     private String contactEmail = "";
     private String contactPhone = "";
-    
-    
-    public String getId()
-    {
+    private HashMap<String,String> attachments;
+    private String forum;
+
+    public String getId() {
 	return id;
     }
 
-    public void setId(String id)
-    {
+    public void setId(String id) {
 	this.id = id;
     }
 
-    public String getName()
-    {
+    public String getName() {
 	return name;
     }
-    
-    public void setName(String value)
-    {
+
+    public void setName(String value) {
 	this.name = value;
     }
-    
-    public String getSeriesId()
-    {
+
+    public String getSeriesId() {
 	return seriesId;
     }
 
-    public void setSeriesId(String seriesId)
-    {
+    public void setSeriesId(String seriesId) {
 	this.seriesId = seriesId;
     }
-    
-    public String getDate()
-    {
+
+    public String getDate() {
 	return date;
     }
 
-    public void setDate(String date)
-    {
+    public void setDate(String date) {
 	this.date = date;
     }
-    
-    public String getType()
-    {
+
+    public String getType() {
 	return type;
     }
 
-    public void setType(String type)
-    {
+    public void setType(String type) {
 	this.type = type;
     }
-    
-    public String getRecurrence()
-    {
-        return recurrence;
+
+    public String getRecurrence() {
+	return recurrence;
     }
 
-    
-    public void setRecurrence(String recurrence)
-    {
-        this.recurrence = recurrence;
-    }
-    
-    public long getTimes()
-    {
-        return times;
+    public void setRecurrence(String recurrence) {
+	this.recurrence = recurrence;
     }
 
-    public void setTimes(long times)
-    {
-        this.times = times;
-    }
-    
-    public String[] getOccurencePaths()
-    {
-        return occurencePaths;
+    public long getTimes() {
+	return times;
     }
 
-    public void setOccurencePaths(String[] occurencePaths)
-    {
-        this.occurencePaths = occurencePaths;
+    public void setTimes(long times) {
+	this.times = times;
     }
-    
-    
-    public HashMap<String, String> getOccurenceIds()
-    {
+
+    public String[] getOccurencePaths() {
+	return occurencePaths;
+    }
+
+    public void setOccurencePaths(String[] occurencePaths) {
+	this.occurencePaths = occurencePaths;
+    }
+
+    public HashMap<String, String> getOccurenceIds() {
 	return occurenceIds;
     }
 
-    public void setOccurenceIds(HashMap<String, String> occurenceIds)
-    {
+    public void setOccurenceIds(HashMap<String, String> occurenceIds) {
 	this.occurenceIds = occurenceIds;
     }
-    
+
     @Override
-    public String toString(){
-	StringBuffer sb = new StringBuffer("CalendarItem.");
-	sb.append("\nID "+this.id);
-	sb.append("\nname "+this.name);
-	sb.append("\nlocation "+this.location);
-	sb.append("\ndate "+this.date);
-	sb.append("\nstartTime "+this.startTime);
-	sb.append("\nendTime "+this.endTime);
-	sb.append("\ncontactName "+this.contactName);
-	sb.append("\ncontactEmail "+this.contactEmail);
-	sb.append("\ncontactPhone "+this.contactPhone);
-	sb.append("\nseriesId "+this.seriesId);
-	sb.append("\nrecurrence "+this.recurrence);
-	sb.append("\ntimes "+this.times);
-	sb.append("\ntype "+this.type);
+    public String toString() {
+	StringBuffer sb = new StringBuffer("CalendarDTO.");
+	sb.append("\nID " + this.id);
+	sb.append("\nname " + this.name);
+	sb.append("\nlocation " + this.location);
+	sb.append("\ndate " + this.date);
+	sb.append("\nstartTime " + this.startTime);
+	sb.append("\nendTime " + this.endTime);
+	sb.append("\ncontactName " + this.contactName);
+	sb.append("\ncontactEmail " + this.contactEmail);
+	sb.append("\ncontactPhone " + this.contactPhone);
+	sb.append("\nseriesId " + this.seriesId);
+	sb.append("\nrecurrence " + this.recurrence);
+	sb.append("\ntimes " + this.times);
+	sb.append("\ntype " + this.type);
+	sb.append("\nforum " + this.forum);
+	if(this.attachments!=null && this.attachments.size()>0){
+	    sb.append("\nEvent contains attachments "+this.attachments.size());
+	    Iterator<String> hashIterator = this.attachments.keySet().iterator();
+	    while(hashIterator.hasNext()) {
+		String  docID = (String)hashIterator.next();
+		sb.append("\ndocument " + docID);
+	    }
+	}
 	return sb.toString();
     }
 
-    public String getLocation()
-    {
+    public String getLocation() {
 	return location;
     }
 
-    public void setLocation(String location)
-    {
+    public void setLocation(String location) {
 	this.location = location;
     }
 
-    public String getStartTime()
-    {
+    public String getStartTime() {
 	return startTime;
     }
 
-    public void setStartTime(String startTime)
-    {
+    public void setStartTime(String startTime) {
 	this.startTime = startTime;
     }
 
-    public String getEndTime()
-    {
+    public String getEndTime() {
 	return endTime;
     }
 
-    public void setEndTime(String endTime)
-    {
+    public void setEndTime(String endTime) {
 	this.endTime = endTime;
     }
 
-    public String getContactName()
-    {
+    public String getContactName() {
 	return contactName;
     }
 
-    public void setContactName(String contactName)
-    {
+    public void setContactName(String contactName) {
 	this.contactName = contactName;
     }
 
-    public String getContactEmail()
-    {
+    public String getContactEmail() {
 	return contactEmail;
     }
 
-    public void setContactEmail(String contactEmail)
-    {
+    public void setContactEmail(String contactEmail) {
 	this.contactEmail = contactEmail;
     }
-    
-    public String getContactPhone()
-    {
+
+    public String getContactPhone() {
 	return contactPhone;
     }
 
-    public void setContactPhone(String contactPhone)
-    {
+    public void setContactPhone(String contactPhone) {
 	this.contactPhone = contactPhone;
     }
 
+    public HashMap<String, String> getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(HashMap<String, String> attachments) {
+        this.attachments = attachments;
+    }
+
+    public String getForum() {
+        return forum;
+    }
+
+    public void setForum(String forum) {
+        this.forum = forum;
+    }
 }

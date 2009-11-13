@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 
-Author Jerome Blanchard (jayblanc@gmail.com)
-Date 26 August 2009
--->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
-		<artifactId>factory</artifactId>
+		<artifactId>factory-parent</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.4-SNAPSHOT</version>
+		<version>0.5-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-git</artifactId>
 	<name>Qualipso Factory GIT Repository Component</name>
-	<version>0.1.1-SNAPSHOT</version>
+	<version>0.1.2-SNAPSHOT</version>
 	<packaging>ejb</packaging>
 	<scm>
 		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-git</connection>
@@ -73,11 +69,17 @@ Date 26 August 2009
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-core</artifactId>
+			<version>0.3.3-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 			<version>1.1.1</version>
 			<type>jar</type>
-			<scope>compile</scope>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>javax.ejb</groupId>
@@ -115,11 +117,6 @@ Date 26 August 2009
 			<version>4.5</version>
 			<type>jar</type>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.qualipso</groupId>
-			<artifactId>factory-core</artifactId>
-			<version>0.3.2-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>

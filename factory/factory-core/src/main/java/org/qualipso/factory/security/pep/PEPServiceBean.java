@@ -8,13 +8,14 @@ import javax.ejb.TransactionAttributeType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.SecurityDomain;
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.security.pdp.PDPService;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 16 june 2009
  */
-@Stateless(name = "PEP", mappedName = "PEPService")
+@Stateless(name = PEPService.SERVICE_NAME, mappedName = FactoryNamingConvention.LOCAL_SERVICE_PREFIX + PEPService.SERVICE_NAME)
 @SecurityDomain(value = "JBossWSDigest")
 public class PEPServiceBean implements PEPService {
 	

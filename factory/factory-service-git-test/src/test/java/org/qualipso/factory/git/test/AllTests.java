@@ -3,6 +3,7 @@ package org.qualipso.factory.git.test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+import org.qualipso.factory.git.test.sb.AllSBTests;
 import org.qualipso.factory.git.test.ws.AllWSTests;
 
 /**
@@ -11,7 +12,8 @@ import org.qualipso.factory.git.test.ws.AllWSTests;
  */
 @RunWith(Suite.class)
 @SuiteClasses(value =  {
-    AllWSTests.class}
+    AllWSTests.class, 
+    AllSBTests.class}
 )
 public class AllTests {
 	

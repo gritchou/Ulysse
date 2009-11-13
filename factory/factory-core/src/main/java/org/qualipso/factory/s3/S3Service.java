@@ -4,6 +4,7 @@ import javax.ejb.Remote;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
 
 /**
@@ -11,10 +12,11 @@ import org.qualipso.factory.FactoryService;
  * @date 23 june 2009
  */
 @Remote
-@WebService(name = "S3Service", targetNamespace = "http://org.qualipso.factory.ws/service/s3")
+@WebService(name = S3Service.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + S3Service.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface S3Service extends FactoryService {
 	
-	
+	public static final String SERVICE_NAME = "s3";
+	public static final String[] RESOURCE_TYPE_LIST = new String[] {};
 
 }

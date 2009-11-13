@@ -12,6 +12,8 @@
  */
 package org.qualipso.factory.test.utils;
 
+import java.util.List;
+
 import org.qualipso.factory.binding.InvalidPathException;
 import org.qualipso.factory.bugtracker.utils.Utils;
 
@@ -31,16 +33,16 @@ public class UtilsTest extends TestCase {
 		/*
 		 * Test OK
 		 */
-		assertEquals("/toto/issue_10", Utils.generatePathIssueFactory("/toto", 10));
+		assertEquals("/toto/issue_10", Utils.generatePathIssueFactory("/toto", "10"));
 		
-		assertEquals("/toto/titi/issue_10", Utils.generatePathIssueFactory("/toto/titi", 10));
+		assertEquals("/toto/titi/issue_10", Utils.generatePathIssueFactory("/toto/titi", "10"));
 		
 		/*
 		 * Exception cases
 		 */
 		//Invalid projectPath
 		try {
-			Utils.generatePathIssueFactory("toto", 10);
+			Utils.generatePathIssueFactory("toto", "10");
 			fail("toto is not a valid path");
 		}
 		catch (InvalidPathException e) {
@@ -48,7 +50,7 @@ public class UtilsTest extends TestCase {
 		}
 		//Invalid projectPath
 		try {
-			Utils.generatePathIssueFactory("/toto/", 10);
+			Utils.generatePathIssueFactory("/toto/", "10");
 			fail("/toto/ is not a valid path");
 		}
 		catch (InvalidPathException e) {
@@ -56,7 +58,7 @@ public class UtilsTest extends TestCase {
 		}
 		//Invalid projectPath
 		try {
-			Utils.generatePathIssueFactory("", 10);
+			Utils.generatePathIssueFactory("", "10");
 			fail("'' is not a valid path");
 		}
 		catch (InvalidPathException e) {
@@ -64,7 +66,7 @@ public class UtilsTest extends TestCase {
 		}
 		//Invalid projectPath
 		try {
-			Utils.generatePathIssueFactory(null, 10);
+			Utils.generatePathIssueFactory(null, "10");
 			fail("null is not a valid path");
 		}
 		catch (InvalidPathException e) {
@@ -129,5 +131,38 @@ public class UtilsTest extends TestCase {
 		catch (InvalidPathException e) {
 			//OK
 		}
+	}
+	
+	public void testCopyToList() {
+		
+		/*
+		 * Array not null 
+		 */
+		String[] tab = new String[3];
+		tab[0] = "A";
+		tab[1] = "B";
+		tab[2] = "C";
+		
+		List<String> list = Utils.copyToList(tab);
+		assertEquals(tab.length, list.size());
+		
+		for (int i = 0; i < tab.length; i++) {
+			assertEquals(tab[i], list.get(i));
+		}
+		
+		//If I remove on the list, the array does't change
+		list.remove("B");
+		
+		//Check
+		assertEquals(3, tab.length);
+		assertEquals(2, list.size());
+		assertEquals("A", list.get(0));
+		assertEquals("C", list.get(1));
+		
+		/*
+		 * Array null
+		 */
+		list = Utils.copyToList(null);
+		assertTrue(list.isEmpty());
 	}
 }

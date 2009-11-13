@@ -10,8 +10,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ws.core.StubExt;
 import org.junit.Test;
-import org.qualipso.factory.greeting.client.ws.GreetingService;
-import org.qualipso.factory.greeting.client.ws.GreetingService_Service;
+import org.qualipso.factory.greeting.client.ws.Greeting;
+import org.qualipso.factory.greeting.client.ws.Greeting_Service;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -24,8 +24,7 @@ public class GreetingServiceTest {
     @Test
     public void testHello() {
         try {
-            GreetingService_Service service = new GreetingService_Service();
-            GreetingService port = service.getGreetingServicePort();
+            Greeting port = new Greeting_Service().getGreetingServiceBeanPort();
 
             ((StubExt) port).setConfigName("Standard WSSecurity Client");
 

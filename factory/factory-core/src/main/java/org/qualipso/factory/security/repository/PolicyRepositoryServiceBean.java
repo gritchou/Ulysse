@@ -7,6 +7,7 @@ import javax.ejb.Stateless;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.SecurityDomain;
+import org.qualipso.factory.FactoryNamingConvention;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -14,7 +15,7 @@ import org.jboss.ejb3.annotation.SecurityDomain;
  */
 //TODO Check that repository is not initialized each time a session bean instance is created... PolicyRepository should be a singleton.
 //TODO Maybe add a purge method to ensure bootstrap is performed in an empty repository
-@Stateless(name = "PolicyRepository", mappedName = "PolicyRepositoryService")
+@Stateless(name = PolicyRepositoryService.SERVICE_NAME, mappedName = FactoryNamingConvention.LOCAL_SERVICE_PREFIX + PolicyRepositoryService.SERVICE_NAME)
 @SecurityDomain(value = "JBossWSDigest")
 public class PolicyRepositoryServiceBean implements PolicyRepositoryService{
 	

@@ -7,6 +7,7 @@ import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryService;
 
@@ -15,9 +16,12 @@ import org.qualipso.factory.FactoryService;
  * @date 16 june 2009
  */
 @Remote
-@WebService(name = "BrowserService", targetNamespace = "http://org.qualipso.factory.ws/service/browser")
+@WebService(name = BrowserService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + BrowserService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface BrowserService extends FactoryService {
+	
+	public static final String SERVICE_NAME = "browser";
+	public static final String[] RESOURCE_TYPE_LIST = new String[] {};
 	
 	@WebMethod
 	@WebResult(name = "resource")

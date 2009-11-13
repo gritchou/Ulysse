@@ -21,13 +21,15 @@ import java.io.Serializable;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
+import org.qualipso.factory.FactoryNamingConvention;
+
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 8 june 2009
  */
 
-@XmlType(name = "ProfileInfo", namespace = "http://org.qualipso.factory.ws/resource/profile-info", propOrder =  {
+@XmlType(name = "profile-info", namespace = FactoryNamingConvention.RESOURCE_NAMESPACE + "profile-info", propOrder =  {
 	"name", "value"}
 )
 @SuppressWarnings("serial")

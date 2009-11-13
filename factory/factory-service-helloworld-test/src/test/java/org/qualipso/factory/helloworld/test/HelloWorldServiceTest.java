@@ -11,8 +11,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ws.core.StubExt;
 import org.junit.Test;
-import org.qualipso.factory.helloworld.client.ws.HelloWorldService;
-import org.qualipso.factory.helloworld.client.ws.HelloWorldService_Service;
+import org.qualipso.factory.helloworld.client.ws.Helloworld;
+import org.qualipso.factory.helloworld.client.ws.Helloworld_Service;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -24,8 +24,7 @@ public class HelloWorldServiceTest {
     @Test
     public void testSayHelloWorld() {
         try {
-            HelloWorldService_Service service = new HelloWorldService_Service();
-            HelloWorldService port = service.getHelloWorldServicePort();
+            Helloworld port = new Helloworld_Service().getHelloWorldServiceBeanPort();
 
             ((StubExt) port).setConfigName("Standard WSSecurity Client");
 
@@ -38,8 +37,7 @@ public class HelloWorldServiceTest {
         }
 
         try {
-        	HelloWorldService_Service service = new HelloWorldService_Service();
-            HelloWorldService port = service.getHelloWorldServicePort();
+        	Helloworld port = new Helloworld_Service().getHelloWorldServiceBeanPort();
             
             ((StubExt) port).setConfigName("Standard WSSecurity Client");
 

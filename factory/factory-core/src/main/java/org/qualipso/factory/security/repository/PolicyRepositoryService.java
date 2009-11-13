@@ -9,6 +9,8 @@ import javax.ejb.Local;
 @Local 
 public interface PolicyRepositoryService {
 	
+	public static final String SERVICE_NAME = "policy-repository";
+	
 	public PolicyRepository getPolicyRepository();
 
 }

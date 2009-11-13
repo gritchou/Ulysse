@@ -44,17 +44,14 @@ import org.qualipso.factory.security.pep.PEPService;
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 8 june 2009
  */
-@Stateless(name = "Membership", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX + "MembershipService")
-@WebService(endpointInterface = "org.qualipso.factory.membership.MembershipService", targetNamespace = "http://org.qualipso.factory.ws/service/membership", serviceName = "MembershipService", portName = "MembershipServicePort")
-@WebContext(contextRoot = "/factory-core", urlPattern = "/membership")
+@Stateless(name = MembershipService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + MembershipService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.membership.MembershipService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + MembershipService.SERVICE_NAME, serviceName = MembershipService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + MembershipService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class MembershipServiceBean implements MembershipService {
 
-	private static final String SERVICE_NAME = "MembershipService";
-	private static final String[] RESOURCE_TYPE_LIST = new String[] {"Profile", "Group"};
-	
 	private static Log logger = LogFactory.getLog(MembershipServiceBean.class);
 	
 	private PEPService pep;
@@ -196,7 +193,7 @@ public class MembershipServiceBean implements MembershipService {
 			binding.setProperty(path, FactoryResourceProperty.OWNER, path);
 			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
 			
-			notification.throwEvent(new Event(path, caller, "Profile", "membership.profile.create", ""));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "create"), ""));
 		} catch ( Exception e ) {
 			logger.error("unable to create a profile", e);
 			ctx.setRollbackOnly();
@@ -215,7 +212,7 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "read");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Profile");
+			checkResourceType(identifier, Profile.RESOURCE_NAME);
 		
 			Profile profile = em.find(Profile.class, identifier.getId());
 			if ( profile == null ) {
@@ -223,7 +220,7 @@ public class MembershipServiceBean implements MembershipService {
 			}
 			profile.setResourcePath(path);
 
-			notification.throwEvent(new Event(path, caller, "Profile", "membership.profile.read", ""));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "read"), ""));
 			
 			return profile;
 		} catch ( Exception e ) {
@@ -243,7 +240,7 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "update");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Profile");
+			checkResourceType(identifier, Profile.RESOURCE_NAME);
 		
 			Profile profile = em.find(Profile.class, identifier.getId());
 			if ( profile == null ) {
@@ -255,7 +252,7 @@ public class MembershipServiceBean implements MembershipService {
 			em.merge(profile);
 		
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, "Profile", "membership.profile.update", ""));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "update"), ""));
 		} catch ( Exception e ) {
 			logger.error("unable to update a profile", e);
 			ctx.setRollbackOnly();
@@ -274,7 +271,7 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "update");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Profile");
+			checkResourceType(identifier, Profile.RESOURCE_NAME);
 			
 			Profile profile = em.find(Profile.class, identifier.getId());
 			if ( profile == null ) {
@@ -284,7 +281,7 @@ public class MembershipServiceBean implements MembershipService {
 			em.merge(profile);
 		
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, "Profile", "membership.profile.update", ""));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "update"), ""));
 		} catch ( Exception e ) {
 			logger.error("unable to update the profile last login date", e);
 			ctx.setRollbackOnly();
@@ -303,7 +300,7 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "update");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Profile");
+			checkResourceType(identifier, Profile.RESOURCE_NAME);
 			
 			Profile profile = em.find(Profile.class, identifier.getId());
 			if ( profile == null ) {
@@ -313,7 +310,7 @@ public class MembershipServiceBean implements MembershipService {
 			em.merge(profile);
 		
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, "Profile", "membership.profile.update", ""));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "update"), ""));
 		} catch ( Exception e ) {
 			logger.error("unable to update the profile online status", e);
 			ctx.setRollbackOnly();
@@ -332,7 +329,7 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "delete");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Profile");
+			checkResourceType(identifier, Profile.RESOURCE_NAME);
 			
 			Profile profile = em.find(Profile.class, identifier.getId());
 			if ( profile == null ) {
@@ -342,7 +339,7 @@ public class MembershipServiceBean implements MembershipService {
 
 			binding.unbind(path);
 			//TODO remove security rule for this profile.
-			notification.throwEvent(new Event(path, caller, "Profile", "membership.profile.delete", ""));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "delete"), ""));
 		} catch ( Exception e ) {
 			logger.error("unable to delete profile", e);
 			ctx.setRollbackOnly();
@@ -361,7 +358,7 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "update");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Profile");
+			checkResourceType(identifier, Profile.RESOURCE_NAME);
 			
 			Profile profile = em.find(Profile.class, identifier.getId());
 			if ( profile == null ) {
@@ -371,7 +368,7 @@ public class MembershipServiceBean implements MembershipService {
 			em.merge(profile);
 		
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, "Profile", "membership.profile.info.set", "name:" + name + ", value:" + value));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "set-info"), "name:" + name + ", value:" + value));
 		} catch ( Exception e ) {
 			logger.error("unable to set profile info", e);
 			ctx.setRollbackOnly();
@@ -390,7 +387,7 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "read");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Profile");
+			checkResourceType(identifier, Profile.RESOURCE_NAME);
 		
 			Profile profile = em.find(Profile.class, identifier.getId());
 			if ( profile == null ) {
@@ -401,7 +398,7 @@ public class MembershipServiceBean implements MembershipService {
 			pinfo.setName(name);
 			pinfo.setValue(profile.getProfileInfo(name));
 			
-			notification.throwEvent(new Event(path, caller, "Profile", "membership.profile.info.get", "name:" + name));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "get-info"), "name:" + name));
 			return pinfo;
 		} catch ( Exception e ) {
 			logger.error("unable to get profile info", e);
@@ -420,7 +417,7 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "read");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Profile");
+			checkResourceType(identifier, Profile.RESOURCE_NAME);
 		
 			Profile profile = em.find(Profile.class, identifier.getId());
 			if ( profile == null ) {
@@ -435,7 +432,7 @@ public class MembershipServiceBean implements MembershipService {
 				pinfos.add(pinfo);
 			}
 			
-			notification.throwEvent(new Event(path, caller, "Profile", "membership.profile.info.list", ""));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "list-info"), ""));
 			ProfileInfo[] infos = new ProfileInfo[0];
 			return pinfos.toArray(infos); 
 		} catch ( Exception e ) {
@@ -471,7 +468,7 @@ public class MembershipServiceBean implements MembershipService {
 			binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
 			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
 			
-			notification.throwEvent(new Event(path, caller, "Group", "membership.group.create", ""));
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "create"), ""));
 		} catch ( Exception e ) {
 			logger.error("unable to create group", e);
 			ctx.setRollbackOnly();
@@ -490,7 +487,7 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "read");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Group");
+			checkResourceType(identifier, Group.RESOURCE_NAME);
 		
 			Group group = em.find(Group.class, identifier.getId());
 			if ( group == null ) {
@@ -498,7 +495,7 @@ public class MembershipServiceBean implements MembershipService {
 			}
 			group.setResourcePath(path);
 
-			notification.throwEvent(new Event(path, caller, "Group", "membership.group.read", ""));
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "read"), ""));
 			
 			return group;
 		} catch ( Exception e ) {
@@ -518,7 +515,7 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "update");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Group");
+			checkResourceType(identifier, Group.RESOURCE_NAME);
 		
 			Group group = em.find(Group.class, identifier.getId());
 			if ( group == null ) {
@@ -529,7 +526,7 @@ public class MembershipServiceBean implements MembershipService {
 			em.merge(group);
 		
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, "Group", "membership.group.update", ""));
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "update"), ""));
 		} catch ( Exception e ) {
 			logger.error("unable to update group", e);
 			ctx.setRollbackOnly();
@@ -548,7 +545,7 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "delete");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceType(identifier, "Group");
+			checkResourceType(identifier, Group.RESOURCE_NAME);
 			
 			Group group = em.find(Group.class, identifier.getId());
 			if ( group == null ) {
@@ -558,7 +555,7 @@ public class MembershipServiceBean implements MembershipService {
 
 			binding.unbind(path);
 			//TODO remove security rule for this group.
-			notification.throwEvent(new Event(path, caller, "Group", "membership.group.delete", ""));
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "delete"), ""));
 		} catch ( Exception e ) {
 			logger.error("unable to delete group", e);
 			ctx.setRollbackOnly();
@@ -577,19 +574,19 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "update");
 			
 			FactoryResourceIdentifier groupIdentifier = binding.lookup(path);
-			checkResourceType(groupIdentifier, "Group");
+			checkResourceType(groupIdentifier, Group.RESOURCE_NAME);
 			
 			FactoryResourceIdentifier memberIdentifier = binding.lookup(member);
 			Vector<String> memberTypes = new Vector<String> ();
-			memberTypes.add("Group");
-			memberTypes.add("Profile");
+			memberTypes.add(Group.RESOURCE_NAME);
+			memberTypes.add(Profile.RESOURCE_NAME);
 			checkResourceType(memberIdentifier, memberTypes);
 			
 			Group group = em.find(Group.class, groupIdentifier.getId());
 			if ( group == null ) {
 				throw new MembershipServiceException("unable to find a group for id " + groupIdentifier.getId());
 			}
-			if ( memberIdentifier.getType().equals("Group") ) {
+			if ( memberIdentifier.getType().equals(Group.RESOURCE_NAME) ) {
 				group.addMember("G:" + member);
 			} else {
 				group.addMember("P:" + member);
@@ -597,7 +594,7 @@ public class MembershipServiceBean implements MembershipService {
 			em.merge(group);
 
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, "Group", "membership.group.add-member", ""));
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "add-member"), ""));
 		} catch ( Exception e ) {
 			logger.error("unable to add member in group", e);
 			ctx.setRollbackOnly();
@@ -616,19 +613,19 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "update");
 			
 			FactoryResourceIdentifier groupIdentifier = binding.lookup(path);
-			checkResourceType(groupIdentifier, "Group");
+			checkResourceType(groupIdentifier, Group.RESOURCE_NAME);
 			
 			FactoryResourceIdentifier memberIdentifier = binding.lookup(member);
 			Vector<String> memberTypes = new Vector<String> ();
-			memberTypes.add("Group");
-			memberTypes.add("Profile");
+			memberTypes.add(Group.RESOURCE_NAME);
+			memberTypes.add(Profile.RESOURCE_NAME);
 			checkResourceType(memberIdentifier, memberTypes);
 			
 			Group group = em.find(Group.class, groupIdentifier.getId());
 			if ( group == null ) {
 				throw new MembershipServiceException("unable to find a group for id " + groupIdentifier.getId());
 			}
-			if ( memberIdentifier.getType().equals("Group") ) {
+			if ( memberIdentifier.getType().equals(Group.RESOURCE_NAME) ) {
 				group.removeMember("G:" + member);
 			} else {
 				group.removeMember("P:" + member);
@@ -636,7 +633,7 @@ public class MembershipServiceBean implements MembershipService {
 			em.merge(group);
 
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, "Group", "membership.group.remove-member", ""));
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "remove-member"), ""));
 		} catch ( Exception e ) {
 			logger.error("unable to remove member from group", e);
 			ctx.setRollbackOnly();
@@ -655,22 +652,22 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "read");
 			
 			FactoryResourceIdentifier groupIdentifier = binding.lookup(path);
-			checkResourceType(groupIdentifier, "Group");
+			checkResourceType(groupIdentifier, Group.RESOURCE_NAME);
 			
 			FactoryResourceIdentifier memberIdentifier = binding.lookup(member);
 			Vector<String> memberTypes = new Vector<String> ();
-			memberTypes.add("Group");
-			memberTypes.add("Profile");
+			memberTypes.add(Group.RESOURCE_NAME);
+			memberTypes.add(Profile.RESOURCE_NAME);
 			checkResourceType(memberIdentifier, memberTypes);
 			
 			boolean isMember = false;
-			if ( memberIdentifier.getType().equals("Group") ) {
+			if ( memberIdentifier.getType().equals(Group.RESOURCE_NAME) ) {
 				isMember = isMember(path, "G:" + member,new Vector<String> ());
 			} else {
 				isMember = isMember(path, "P:" + member,new Vector<String> ());
 			}
 			
-			notification.throwEvent(new Event(path, caller, "Group", "membership.group.is-member", ""));
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "is-member"), ""));
 			
 			return isMember;
 		} catch ( Exception e ) {
@@ -683,7 +680,7 @@ public class MembershipServiceBean implements MembershipService {
 	private boolean isMember(String path, String memberId, List<String> cycle) throws MembershipServiceException {
 		try {
 			FactoryResourceIdentifier groupIdentifier = binding.lookup(path);
-			checkResourceType(groupIdentifier, "Group");
+			checkResourceType(groupIdentifier, Group.RESOURCE_NAME);
 			
 			Group group = em.find(Group.class, groupIdentifier.getId());
 			
@@ -717,7 +714,7 @@ public class MembershipServiceBean implements MembershipService {
 			pep.checkSecurity(caller, path, "read");
 			
 			FactoryResourceIdentifier groupIdentifier = binding.lookup(path);
-			checkResourceType(groupIdentifier, "Group");
+			checkResourceType(groupIdentifier, Group.RESOURCE_NAME);
 			
 			Group group = em.find(Group.class, groupIdentifier.getId());
 			
@@ -728,7 +725,7 @@ public class MembershipServiceBean implements MembershipService {
 				members[i] = membersId[i].substring(2);
 			}
 			
-			notification.throwEvent(new Event(path, caller, "Group", "membership.group.list-members", ""));
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "list-members"), ""));
 			
 			return members;
 		} catch ( Exception e ) {
@@ -775,15 +772,15 @@ public class MembershipServiceBean implements MembershipService {
 		try {
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			
-			if ( !identifier.getService().equals("MembershipService") ) {
+			if ( !identifier.getService().equals(MembershipService.SERVICE_NAME) ) {
 				throw new CoreServiceException("Resource " + identifier + " is not managed by Membership Service");
 			}
 			
-			if ( identifier.getType().equals("Group") ) {
+			if ( identifier.getType().equals(Group.RESOURCE_NAME) ) {
 				return readGroup(path);
 			} 
 			
-			if ( identifier.getType().equals("Profile") ) {
+			if ( identifier.getType().equals(Profile.RESOURCE_NAME) ) {
 				return readProfile(path);
 			} 
 			

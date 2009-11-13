@@ -9,12 +9,12 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for File complex type.
+ * <p>Java class for file complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="File">
+ * &lt;complexType name="file">
  *   &lt;complexContent>
  *     &lt;extension base="{http://org.qualipso.factory.ws/service/security}factoryResource">
  *       &lt;sequence>
@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "File", namespace = "http://org.qualipso.factory.ws/resource/file", propOrder = {
+@XmlType(name = "file", namespace = "http://org.qualipso.factory.ws/resource/file", propOrder = {
     "name",
     "description",
     "size",

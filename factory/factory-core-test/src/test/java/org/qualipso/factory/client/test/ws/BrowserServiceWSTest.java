@@ -14,14 +14,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qualipso.factory.client.test.AllTests;
-import org.qualipso.factory.client.ws.BootstrapService;
+import org.qualipso.factory.client.ws.Bootstrap;
 import org.qualipso.factory.client.ws.BootstrapServiceException_Exception;
-import org.qualipso.factory.client.ws.BootstrapService_Service;
-import org.qualipso.factory.client.ws.BrowserService;
-import org.qualipso.factory.client.ws.BrowserService_Service;
-import org.qualipso.factory.client.ws.CoreService;
+import org.qualipso.factory.client.ws.Bootstrap_Service;
+import org.qualipso.factory.client.ws.Browser;
+import org.qualipso.factory.client.ws.Browser_Service;
+import org.qualipso.factory.client.ws.Core;
 import org.qualipso.factory.client.ws.CoreServiceException_Exception;
-import org.qualipso.factory.client.ws.CoreService_Service;
+import org.qualipso.factory.client.ws.Core_Service;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -31,13 +31,13 @@ public class BrowserServiceWSTest {
 	
 	private static Log logger = LogFactory.getLog(BrowserServiceWSTest.class);
 	
-	private BrowserService browser;
-	private CoreService core;
+	private Browser browser;
+	private Core core;
 	
 	@BeforeClass
 	public static void init() {
 		try {
-			BootstrapService port = new BootstrapService_Service().getBootstrapServicePort(); 
+			Bootstrap port = new Bootstrap_Service().getBootstrapServiceBeanPort(); 
 			((StubExt) port).setConfigName("Standard WSSecurity Client");
 			port.bootstrap();
 		} catch (BootstrapServiceException_Exception e) {
@@ -46,11 +46,8 @@ public class BrowserServiceWSTest {
 	}
 	
 	public BrowserServiceWSTest() {
-		BrowserService_Service browserService = new BrowserService_Service();
-        browser = browserService.getBrowserServicePort();
-        
-        CoreService_Service coreService = new CoreService_Service();
-        core = coreService.getCoreServicePort();
+		browser = new Browser_Service().getBrowserServiceBeanPort();
+        core = new Core_Service().getCoreServiceBeanPort();
 	}
 	
 	@Before

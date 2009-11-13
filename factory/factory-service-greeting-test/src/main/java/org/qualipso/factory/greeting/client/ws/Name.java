@@ -9,12 +9,12 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for Name complex type.
+ * <p>Java class for name complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="Name">
+ * &lt;complexType name="name">
  *   &lt;complexContent>
  *     &lt;extension base="{http://org.qualipso.factory.ws/service/greeting}factoryResource">
  *       &lt;sequence>
@@ -30,7 +30,7 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Name", namespace = "http://org.qualipso.factory.ws/resource/name", propOrder = {
+@XmlType(name = "name", namespace = "http://org.qualipso.factory.ws/resource/name", propOrder = {
     "value"
 })
 public class Name

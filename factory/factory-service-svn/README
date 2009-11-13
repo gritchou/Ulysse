@@ -1,0 +1,8 @@
+This is service is a *proof-of-concept* demonstrating how to alternatively
+integrate subversion into the factory.
+
+Since this integration relies on a SSH command, the factory might be able to check 
+authentication and access control when remote commands are invoked by svn clients
+(command line, tortoise, eclipse plugin, and so one). Additionally it might be possible
+to add fine grained security rules (on branches for example). 
+

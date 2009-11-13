@@ -4,13 +4,13 @@
 	<parent>
 		<artifactId>factory</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.4-SNAPSHOT</version>
+		<version>0.5-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-collaboration-test</artifactId>
 	<name>Qualipso Factory Functional Test for Collaboration Tools</name>
-	<version>0.2.4-SNAPSHOT</version>
+	<version>0.2.5-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<scm>
 		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-collaboration-test
@@ -19,8 +19,9 @@
 		</developerConnection>
 	</scm>
 	<properties>
+		<ws.factory.uri>http://localhost:8380/factory</ws.factory.uri>
 		<ws.core.uri>http://localhost:8380/factory-core</ws.core.uri>
-		<ws.root.uri>http://localhost:8380/factory-service</ws.root.uri>
+		<ws.service.uri>http://localhost:8380/factory-service</ws.service.uri>
 	</properties>
 	<build>
 		<plugins>
@@ -34,10 +35,10 @@
 						</goals>
 						<configuration>
 							<wsdlUrls>
-								<wsdlUrl>${ws.root.uri}-collaboration/document?wsdl</wsdlUrl>
-								<wsdlUrl>${ws.root.uri}-collaboration/calendar?wsdl</wsdlUrl>
-								<wsdlUrl>${ws.root.uri}-collaboration/forum?wsdl</wsdlUrl>
-								<wsdlUrl>${ws.root.uri}-project/project?wsdl</wsdlUrl>
+								<wsdlUrl>${ws.service.uri}-collaboration/document-management?wsdl</wsdlUrl>
+								<wsdlUrl>${ws.service.uri}-collaboration/calendar?wsdl</wsdlUrl>
+								<wsdlUrl>${ws.service.uri}-collaboration/forum-management?wsdl</wsdlUrl>
+								<wsdlUrl>${ws.factory.uri}-project/project?wsdl</wsdlUrl>
 								<wsdlUrl>${ws.core.uri}/bootstrap?wsdl</wsdlUrl>
 								<wsdlUrl>${ws.core.uri}/core?wsdl</wsdlUrl>
 								<wsdlUrl>${ws.core.uri}/browser?wsdl</wsdlUrl>
@@ -56,7 +57,8 @@
 					<argLine>
 						-Dsun.lang.ClassLoader.allowArraySyntax=true -Djava.endorsed.dirs=${jboss.home}/lib/endorsed
 					</argLine>
-					<test>org.qualipso.factory.collaboration.client.test.AllTests</test> 
+					<test>org.qualipso.factory.collaboration.client.test.AllTests</test>
+					<!-- <test>org.qualipso.factory.collaboration.client.test.PopulateData</test>  --> 
 				</configuration>
 			</plugin>
 			<plugin>
@@ -73,13 +75,13 @@
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-core</artifactId>
-			<version>0.3.2-SNAPSHOT</version>
+			<version>0.3.3-SNAPSHOT</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-collaboration</artifactId>
-			<version>0.2.4-SNAPSHOT</version>
+			<version>0.2.5-SNAPSHOT</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>

@@ -6,10 +6,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.qualipso.factory.collaboration.calendar.CalendarServiceException;
+import org.qualipso.factory.collaboration.ws.CollaborationWSUtils;
 
-public class CollaborationUtils
-{
-    public static final String DEFAULT_FOLDER_ID = "1170";
+public class CollaborationUtils {
+
+    public static final String SERVICE_NAMESPACE = "http://org.qualipso.factory.ws/service/";
+    public static final String SERVICE_PREFIX = "/factory-service-";
+    public static final String COLLABORATION = "collaboration";
+    public static final String COLLABORATION_SERVICE_PREFIX = SERVICE_PREFIX
+	    + COLLABORATION;
+
+    public static final String DEFAULT_FOLDER_ID = CollaborationWSUtils.DEFAULT_FOLDER_ID;
     // Document Status
     public static final String STATUS_DRAFT = "DRAFT";
     public static final String STATUS_WORKING = "WORKING";
@@ -27,8 +34,10 @@ public class CollaborationUtils
     public static final String FORUM_STATUS_ACTIVE = "active";
     public static final String FORUM_STATUS_CLOSED = "closed";
 
-    public static final DateFormat WS_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-    public static final DateFormat WS_TIME_FORMAT = new SimpleDateFormat("HH:mm");
+    public static final DateFormat WS_DATE_FORMAT = new SimpleDateFormat(
+	    "yyyy-MM-dd");
+    public static final DateFormat WS_TIME_FORMAT = new SimpleDateFormat(
+	    "HH:mm");
     public static final String CALENDAR_MODIFY_SE = "series";
     public static final String CALENDAR_MODIFY_OC = "occurence";
     public static final String CALENDAR_EVENT = "event";
@@ -55,68 +64,57 @@ public class CollaborationUtils
     public static final String STATUS_CODE = "STATUS_CODE";
     public static final String STATUS_MESSAGE = "STATUS_MESSAGE";
 
-    public static void checkCreateEventValues(String name, String location, String date, String startTime,
-	    String endTime, String contactName, String contactEmail, String contactPhone)
-	    throws CalendarServiceException
-    {
-	if (name == null || name == "")
-	{
+    public static void checkCreateEventValues(String name, String location,
+	    String date, String startTime, String endTime, String contactName,
+	    String contactEmail, String contactPhone)
+	    throws CalendarServiceException {
+	if (name == null || name == "") {
 	    throw new CalendarServiceException("Event's name is mandatory.");
 	}
-	if (location == null || location == "")
-	{
+	if (location == null || location == "") {
 	    throw new CalendarServiceException("Event's location is mandatory.");
 	}
-	if (date == null || date == "")
-	{
-	    throw new CalendarServiceException("Event's date is mandatory. Format: " + WS_DATE_FORMAT);
+	if (date == null || date == "") {
+	    throw new CalendarServiceException(
+		    "Event's date is mandatory. Format: " + WS_DATE_FORMAT);
 	}
 
-	if (startTime == null || startTime == "")
-	{
-	    throw new CalendarServiceException("Event's start time is mandatory.");
+	if (startTime == null || startTime == "") {
+	    throw new CalendarServiceException(
+		    "Event's start time is mandatory.");
 	}
-	if (endTime == null || endTime == "")
-	{
+	if (endTime == null || endTime == "") {
 	    throw new CalendarServiceException("Event's end time is mandatory.");
 	}
-	if (contactName == null || contactName == "")
-	{
-	    throw new CalendarServiceException("Contact name for the event is mandatory.");
+	if (contactName == null || contactName == "") {
+	    throw new CalendarServiceException(
+		    "Contact name for the event is mandatory.");
 	}
-	if (contactEmail == null || contactEmail == "")
-	{
+	if (contactEmail == null || contactEmail == "") {
 	    throw new CalendarServiceException("Contact email is mandatory.");
 	}
-	if (contactPhone == null || contactPhone == "")
-	{
+	if (contactPhone == null || contactPhone == "") {
 	    throw new CalendarServiceException("Contact Phone is mandatory.");
 	}
     }
 
-    public static String normalizeForPath(String name)
-    {
+    public static String normalizeForPath(String name) {
 	String formatedText = name;
-	try
-	{
-	    if (name != null && name.length() > 0)
-	    {
+	try {
+	    if (name != null && name.length() > 0) {
 		formatedText = name.toLowerCase().trim().replaceAll(" ", "");
 		formatedText = formatedText.replaceAll("[^a-zA-Z0-9]", "");
 	    }
-	} catch (Exception e)
-	{
+	} catch (Exception e) {
 	    e.printStackTrace();
 	}
 	return formatedText;
     }
 
-    public static String getFirstElement(HashMap valuesMap) throws Exception
-    {
+    public static String getFirstElement(HashMap valuesMap) throws Exception {
 	String id = "";
 	Iterator iterator = valuesMap.keySet().iterator();
-	while (iterator.hasNext())
-	{
+	while (iterator.hasNext()) {
 	    id = (String) valuesMap.get(iterator.next());
 	    break;
 	}

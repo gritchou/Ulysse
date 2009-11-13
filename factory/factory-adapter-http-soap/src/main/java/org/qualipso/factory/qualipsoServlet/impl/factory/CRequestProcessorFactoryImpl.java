@@ -29,7 +29,6 @@ import org.qualipso.factory.qualipsoServlet.api.factory.IRequestProcessorFactory
  */
 public class CRequestProcessorFactoryImpl implements IRequestProcessorFactory 
 {
-
 	/**
 	 * {@literal This method allow to build the nodes for the xml and complex types.
 	 * It uses recursive method...
@@ -53,7 +52,7 @@ public class CRequestProcessorFactoryImpl implements IRequestProcessorFactory
 		// input values in the hashtable (or create children Complex):
 		while(aParamValue != null)
 		{				
-			Vector<String> aTmpVector = new Vector<String>();
+			Vector<String> aTmpVector = new Vector<String>(); // need to instantiate the vector in each round
 			
 			//  recursive method :			
 			if (request.getParameter(aParamName+i+"Value0") != null) // children complex types
@@ -84,11 +83,6 @@ public class CRequestProcessorFactoryImpl implements IRequestProcessorFactory
 		
 		return aReturnObject;
 	}
-	
-	
-	
-
-
 
 	/**
 	 * {@literal This method defines the type of the soap request : simple, complex, array}

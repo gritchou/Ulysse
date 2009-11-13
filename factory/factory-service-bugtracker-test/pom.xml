@@ -15,8 +15,10 @@
 	<packaging>jar</packaging>
 
 	<scm>
-		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-core</connection>
-		<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-core</developerConnection>
+		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-bugtracker-test
+		</connection>
+		<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-bugtracker-test
+		</developerConnection>
 	</scm>
 	<build>
 		<defaultGoal>package</defaultGoal>
@@ -36,6 +38,27 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jaxws-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>wsimport</goal>
+						</goals>
+						<configuration>
+							<wsdlUrls>
+								<!-- TODO externalize server address in settings.xml -->
+								<wsdlUrl>http://localhost:8080/factory-service-bugtracker/bugtracker?wsdl</wsdlUrl>
+								<wsdlUrl>http://localhost:8080/factory-service-project/project?wsdl</wsdlUrl>
+								<wsdlUrl>http://localhost:8080/factory-core/bootstrap?wsdl</wsdlUrl>
+							</wsdlUrls>
+							<packageName>org.qualipso.factory.bugtracker.client.ws</packageName>
+							<sourceDestDir>${basedir}/src/main/java</sourceDestDir>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
 				<configuration>
@@ -45,19 +68,68 @@
 					</outputDirectory>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.codehaus.cargo</groupId>
+				<artifactId>cargo-maven2-plugin</artifactId>
+				<version>1.0</version>
+				<configuration>
+					<wait>false</wait>
+					<container>
+						<containerId>jboss5x</containerId>
+						<zipUrlInstaller>
+							<url>http://downloads.sourceforge.net/project/jboss/JBoss/JBoss-5.0.1.GA/jboss-5.0.1.GA-jdk6.zip?use_mirror=puzzle</url>
+							<installDir>${installDir}</installDir>
+						</zipUrlInstaller>
+					</container>
+					<configuration>
+						<home>${project.build.directory}/jboss5x/container</home>
+					</configuration>
+				</configuration>
+				<executions>
+					<execution>
+						<id>start-container</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>start</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>stop-container</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+					</execution>
+				</executions>
+
+			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-bugtracker</artifactId>
-			<version>0.2.3-SNAPSHOT</version>
+			<version>0.2.4-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-core</artifactId>
-			<version>0.3.2-SNAPSHOT</version>
+			<version>0.3.3-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.jboss.ws.native</groupId>
+			<artifactId>jbossws-native-client</artifactId>
+			<version>3.0.5.GA</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.jbossas</groupId>
+			<artifactId>jboss-as-client</artifactId>
+			<version>5.0.1.GA</version>
+			<type>pom</type>
+			<scope>runtime</scope>
 		</dependency>
 		
 		<dependency>

@@ -2,8 +2,7 @@ package org.qualipso.factory.collaboration.ws.beans;
 
 import java.util.HashMap;
 
-public class MessageDTO
-{
+public class MessageDTO {
     private String id;
     private String name;
     private String parentId;
@@ -11,110 +10,90 @@ public class MessageDTO
     private String author;
     private String messageBody;
     private String datePosted;
-    private String numReplies = "0"; 
-    private HashMap<String,MessageDTO> messageReplies = null;
+    private String numReplies = "0";
+    private HashMap<String, MessageDTO> messageReplies = null;
 
-    public String getId()
-    {
+    public String getId() {
 	return id;
     }
 
-    public void setId(String id)
-    {
+    public void setId(String id) {
 	this.id = id;
     }
 
-    public String getName()
-    {
+    public String getName() {
 	return name;
     }
 
-    public void setName(String value)
-    {
+    public void setName(String value) {
 	this.name = value;
     }
-    public String getAuthor()
-    {
-        return author;
+
+    public String getAuthor() {
+	return author;
     }
 
-    public void setAuthor(String author)
-    {
-        this.author = author;
+    public void setAuthor(String author) {
+	this.author = author;
     }
 
-    public String getParentId()
-    {
+    public String getParentId() {
 	return parentId;
     }
 
-    public void setParentId(String parentId)
-    {
+    public void setParentId(String parentId) {
 	this.parentId = parentId;
     }
 
-    public String getForumId()
-    {
+    public String getForumId() {
 	return forumId;
     }
 
-    public void setForumId(String forumId)
-    {
+    public void setForumId(String forumId) {
 	this.forumId = forumId;
     }
-    
+
     @Override
-    public String toString(){
+    public String toString() {
 	StringBuffer sb = new StringBuffer("Thread.");
-	sb.append("\nID "+this.id);
-	sb.append("\nname "+this.name);
-	sb.append("\ndatePosted "+this.datePosted);
-	sb.append("\nforumId "+this.forumId);
-	sb.append("\nmessageBody "+this.messageBody);
-	sb.append("\nparentId "+this.parentId);
+	sb.append("\nID " + this.id);
+	sb.append("\nname " + this.name);
+	sb.append("\ndatePosted " + this.datePosted);
+	sb.append("\nforumId " + this.forumId);
+	sb.append("\nmessageBody " + this.messageBody);
+	sb.append("\nparentId " + this.parentId);
 	return sb.toString();
     }
-    
-    public String getMessageBody()
-    {
+
+    public String getMessageBody() {
 	return messageBody;
     }
 
-    public void setMessageBody(String messageBody)
-    {
+    public void setMessageBody(String messageBody) {
 	this.messageBody = messageBody;
     }
 
-
-    public String getDatePosted()
-    {
+    public String getDatePosted() {
 	return datePosted;
     }
 
-    public void setDatePosted(String datePosted)
-    {
+    public void setDatePosted(String datePosted) {
 	this.datePosted = datePosted;
     }
-    
-    
-    public String getNumReplies()
-    {
-        return numReplies;
+
+    public String getNumReplies() {
+	return numReplies;
     }
-    
-    public void setNumReplies(String numReplies)
-    {
-        this.numReplies = numReplies;
+
+    public void setNumReplies(String numReplies) {
+	this.numReplies = numReplies;
     }
-    
-    
-    public HashMap<String,MessageDTO> getMessageReplies()
-    {
+
+    public HashMap<String, MessageDTO> getMessageReplies() {
 	return messageReplies;
     }
 
-    public void setMessageReplies(HashMap<String,MessageDTO> messageReplies)
-    {
+    public void setMessageReplies(HashMap<String, MessageDTO> messageReplies) {
 	this.messageReplies = messageReplies;
     }
 }

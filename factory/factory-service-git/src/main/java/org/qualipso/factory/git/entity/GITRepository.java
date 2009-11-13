@@ -8,19 +8,23 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.git.GITService;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 21 september 2009
  */
 @Entity
-@XmlType(name = "GITRepository", namespace = "http://org.qualipso.factory.ws/resource/git-repository", propOrder =  {
+@XmlType(name = GITRepository.RESOURCE_NAME, namespace = FactoryNamingConvention.RESOURCE_NAMESPACE + GITRepository.RESOURCE_NAME, propOrder =  {
     "name", "description"}
 )
 @SuppressWarnings("serial")
 public class GITRepository extends FactoryResource {
+	
+	public static final String RESOURCE_NAME = "git-repository";
 	
 	@Id
 	private String id;
@@ -82,7 +86,7 @@ public class GITRepository extends FactoryResource {
 	@Override
 	@XmlTransient
 	public FactoryResourceIdentifier getFactoryResourceIdentifier() {
-		return new FactoryResourceIdentifier("GITService", "GITRepository", getId());
+		return new FactoryResourceIdentifier(GITService.SERVICE_NAME, GITRepository.RESOURCE_NAME, getId());
 	}
 
 	@Override

@@ -6,26 +6,23 @@ import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
-import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.membership.entity.Group;
 import org.qualipso.factory.membership.entity.Profile;
 import org.qualipso.factory.membership.entity.ProfileInfo;
-import org.qualipso.factory.notification.NotificationService;
-import org.qualipso.factory.security.pap.PAPService;
-import org.qualipso.factory.security.pep.PEPService;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 8 june 2009
  */
 @Remote
-@WebService(name = "MembershipService", targetNamespace = "http://org.qualipso.factory.ws/service/membership")
+@WebService(name = MembershipService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + MembershipService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface MembershipService extends FactoryService {
 	
+	public static final String SERVICE_NAME = "membership";
+	public static final String[] RESOURCE_TYPE_LIST = new String[] {Profile.RESOURCE_NAME, Group.RESOURCE_NAME};
 	public static final String PROFILES_PATH = "/profiles";
 	public static final String UNAUTHENTIFIED_IDENTIFIER = "guest";
 	public static final String SUPERUSER_IDENTIFIER = "root";

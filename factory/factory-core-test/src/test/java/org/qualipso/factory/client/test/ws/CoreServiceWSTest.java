@@ -15,11 +15,11 @@ import org.jboss.ws.core.StubExt;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qualipso.factory.client.test.AllTests;
-import org.qualipso.factory.client.ws.BootstrapService;
+import org.qualipso.factory.client.ws.Bootstrap;
 import org.qualipso.factory.client.ws.BootstrapServiceException_Exception;
-import org.qualipso.factory.client.ws.BootstrapService_Service;
-import org.qualipso.factory.client.ws.CoreService;
-import org.qualipso.factory.client.ws.CoreService_Service;
+import org.qualipso.factory.client.ws.Bootstrap_Service;
+import org.qualipso.factory.client.ws.Core;
+import org.qualipso.factory.client.ws.Core_Service;
 import org.qualipso.factory.client.ws.File;
 import org.qualipso.factory.client.ws.FileData;
 
@@ -31,19 +31,18 @@ public class CoreServiceWSTest {
 	
 	private static Log logger = LogFactory.getLog(CoreServiceWSTest.class);
 	
-	private CoreService port;
+	private Core core;
 	
 	public CoreServiceWSTest() {
-		CoreService_Service service = new CoreService_Service();
-        port = service.getCoreServicePort();
+		core = new Core_Service().getCoreServiceBeanPort();
 	}
 	
 	@BeforeClass
 	public static void init() {
 		try {
-			BootstrapService port = new BootstrapService_Service().getBootstrapServicePort(); 
-			((StubExt) port).setConfigName("Standard WSSecurity Client");
-			port.bootstrap();
+			Bootstrap bootstrap = new Bootstrap_Service().getBootstrapServiceBeanPort(); 
+			((StubExt) bootstrap).setConfigName("Standard WSSecurity Client");
+			bootstrap.bootstrap();
 		} catch (BootstrapServiceException_Exception e) {
 			logger.error("unable to bootstrap factory", e);
 		}
@@ -52,8 +51,8 @@ public class CoreServiceWSTest {
 	@Test
     public void testCRUDFile() {
         try {
-            ((StubExt) port).setConfigName("Standard WSSecurity Client");
-            Map<String, Object> reqContext = ((BindingProvider) port).getRequestContext();
+            ((StubExt) core).setConfigName("Standard WSSecurity Client");
+            Map<String, Object> reqContext = ((BindingProvider) core).getRequestContext();
             reqContext.put(StubExt.PROPERTY_AUTH_TYPE, StubExt.PROPERTY_AUTH_TYPE_WSSE);
             reqContext.put(BindingProvider.USERNAME_PROPERTY, "root");
             reqContext.put(BindingProvider.PASSWORD_PROPERTY, AllTests.ROOT_ACCOUNT_PASS);
@@ -66,17 +65,17 @@ public class CoreServiceWSTest {
             FileData data2 = new FileData();
             data2.setData(new DataHandler(new FileDataSource(f2)));
                         
-            port.createFile("/testfile.txt", "testfile.txt", "text/plain", "a  simple file", data );
+            core.createFile("/testfile.txt", "testfile.txt", "text/plain", "a  simple file", data );
             
-            port.updateFile("/testfile.txt", "testfile.txt", "text/plain", "a  simple file", data2 );
+            core.updateFile("/testfile.txt", "testfile.txt", "text/plain", "a  simple file", data2 );
             
-            File readfile = port.readFile("/testfile.txt");
+            File readfile = core.readFile("/testfile.txt");
             assertTrue(readfile.getSize() == 36d);
             
-            FileData readdata = port.getFileData("/testfile.txt");
+            FileData readdata = core.getFileData("/testfile.txt");
             assertTrue(((String)readdata.getData().getContent()).contains("This is a smaller file."));
             
-            port.deleteFile("/testfile.txt");
+            core.deleteFile("/testfile.txt");
             
         } catch (Exception e) {
             e.printStackTrace();

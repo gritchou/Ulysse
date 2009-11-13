@@ -32,6 +32,7 @@ import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.InvalidPathException;
 import org.qualipso.factory.binding.PathNotFoundException;
+import org.qualipso.factory.core.CoreService;
 import org.qualipso.factory.core.entity.File;
 import org.qualipso.factory.core.entity.Folder;
 import org.qualipso.factory.membership.MembershipService;
@@ -47,16 +48,14 @@ import org.qualipso.factory.ssh.SSHService;
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 4 September 2009
  */
-@Stateless(name = "Bootstrap", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX + "BootstrapService")
-@WebService(endpointInterface = "org.qualipso.factory.bootstrap.BootstrapService", targetNamespace = "http://org.qualipso.factory.ws/service/bootstrap", serviceName = "BootstrapService", portName = "BootstrapServicePort")
-@WebContext(contextRoot = "/factory-core", urlPattern = "/bootstrap")
+@Stateless(name = BootstrapService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + BootstrapService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.bootstrap.BootstrapService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + BootstrapService.SERVICE_NAME, serviceName = BootstrapService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + BootstrapService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class BootstrapServiceBean implements BootstrapService {
 
-	private static final String SERVICE_NAME = "BootstrapService";
-	private static final String[] RESOURCE_TYPE_LIST = new String[] {};
 	private static Log logger = LogFactory.getLog(BootstrapServiceBean.class);
 
 	private static final String BOOTSTRAP_FILE_PATH = "/bootstrap";
@@ -162,12 +161,12 @@ public class BootstrapServiceBean implements BootstrapService {
 				binding.setProperty(MembershipService.PROFILES_PATH, FactoryResourceProperty.AUTHOR, suPath);
 
 				String policyId = UUID.randomUUID().toString();
-				pap.createPolicy(policyId, PAPServiceHelper.addRuleToPolicy(PAPServiceHelper.buildOwnerPolicy(policyId, suPath, MembershipServiceBean.PROFILES_PATH), "/profiles/guest", new String[] {"read", "create", "update"}));
+				pap.createPolicy(policyId, PAPServiceHelper.addRuleToPolicy(PAPServiceHelper.buildOwnerPolicy(policyId, suPath, MembershipServiceBean.PROFILES_PATH), "", new String[] {"create"}));
 
 				binding.setProperty(MembershipService.PROFILES_PATH, FactoryResourceProperty.OWNER, suPath);
 				binding.setProperty(MembershipService.PROFILES_PATH, FactoryResourceProperty.POLICY_ID, policyId);
 
-				notification.throwEvent(new Event(MembershipServiceBean.PROFILES_PATH, suPath, "Folder", "core.folder.create", ""));
+				notification.throwEvent(new Event(MembershipServiceBean.PROFILES_PATH, suPath, Folder.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Folder.RESOURCE_NAME, "create"), ""));
 				
 				logger.debug("creating the root profile");
 				
@@ -191,7 +190,7 @@ public class BootstrapServiceBean implements BootstrapService {
 				binding.setProperty(suPath, FactoryResourceProperty.OWNER, suPath);
 				binding.setProperty(suPath, FactoryResourceProperty.POLICY_ID, policyId);
 
-				notification.throwEvent(new Event(suPath, suPath, "Profile", "membership.profile.create", ""));
+				notification.throwEvent(new Event(suPath, suPath, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "create"), ""));
 				
 				logger.debug("creating the root security rule");
 				
@@ -222,7 +221,7 @@ public class BootstrapServiceBean implements BootstrapService {
 				binding.setProperty(anoPath, FactoryResourceProperty.OWNER, suPath);
 				binding.setProperty(anoPath, FactoryResourceProperty.POLICY_ID, policyId2);
 
-				notification.throwEvent(new Event(anoPath, suPath, "Profile", "membership.profile.create", ""));
+				notification.throwEvent(new Event(anoPath, suPath, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "create"), ""));
 				
 				logger.debug("allowing guest to create resource in the profile folder");
 				
@@ -269,7 +268,7 @@ public class BootstrapServiceBean implements BootstrapService {
 				binding.setProperty(BootstrapServiceBean.BOOTSTRAP_FILE_PATH, FactoryResourceProperty.OWNER, suPath);
 				binding.setProperty(BootstrapServiceBean.BOOTSTRAP_FILE_PATH, FactoryResourceProperty.POLICY_ID, policyId);
 
-				notification.throwEvent(new Event(BootstrapServiceBean.BOOTSTRAP_FILE_PATH, suPath, "File", "core.file.create", ""));
+				notification.throwEvent(new Event(BootstrapServiceBean.BOOTSTRAP_FILE_PATH, suPath, File.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, File.RESOURCE_NAME, "create"), ""));
 				
 			} catch (Exception e) {
 				logger.error("error during bootstrap", e);

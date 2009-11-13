@@ -36,16 +36,14 @@ import org.qualipso.factory.security.pep.PEPService;
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 4 august 2009
  */
-@Stateless(name = "Browser", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX + "BrowserService")
-@WebService(endpointInterface = "org.qualipso.factory.browser.BrowserService", targetNamespace = "http://org.qualipso.factory.ws/service/browser", serviceName = "BrowserService", portName = "BrowserServicePort")
-@WebContext(contextRoot = "/factory-core", urlPattern = "/browser")
+@Stateless(name = BrowserServiceBean.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + BrowserServiceBean.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.browser.BrowserService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + BrowserServiceBean.SERVICE_NAME, serviceName = BrowserServiceBean.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + BrowserServiceBean.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class BrowserServiceBean implements BrowserService {
 	
-	private static final String SERVICE_NAME = "BrowserService";
-	private static final String[] RESOURCE_TYPE_LIST = new String[] {};
 	private static Log logger = LogFactory.getLog(BrowserServiceBean.class);
 	
 	private BindingService binding;
@@ -139,7 +137,7 @@ public class BrowserServiceBean implements BrowserService {
 			InitialContext ctx = new InitialContext();
 			FactoryService service = (FactoryService) ctx.lookup(FactoryNamingConvention.getJNDINameForService(identifier.getService()));
 			
-			notification.throwEvent(new Event(npath, caller, "Resource", "browser.resource.find", ""));
+			notification.throwEvent(new Event(npath, caller, FactoryResource.RESOURCE_NAME, Event.buildEventType(BrowserService.SERVICE_NAME, FactoryResource.RESOURCE_NAME, "find"), ""));
 			
 			return service.findResource(npath);			
 		} catch ( Exception e ) {
@@ -163,7 +161,7 @@ public class BrowserServiceBean implements BrowserService {
 
 			String[] children = binding.list(npath);
 			
-			notification.throwEvent(new Event(npath, caller, "Resource", "browser.resource.has-children", ""));
+			notification.throwEvent(new Event(npath, caller, FactoryResource.RESOURCE_NAME, Event.buildEventType(BrowserService.SERVICE_NAME, FactoryResource.RESOURCE_NAME, "has-children"), ""));
 			
 			if ( children.length > 0 ) {
 				return true;
@@ -191,7 +189,7 @@ public class BrowserServiceBean implements BrowserService {
 
 			String[] children = binding.list(npath);
 			
-			notification.throwEvent(new Event(npath, caller, "Resource", "browser.resource.list-children", ""));
+			notification.throwEvent(new Event(npath, caller, FactoryResource.RESOURCE_NAME, Event.buildEventType(BrowserService.SERVICE_NAME, FactoryResource.RESOURCE_NAME, "list-children"), ""));
 			
 			return children;
 		} catch ( Exception e ) {
@@ -224,7 +222,7 @@ public class BrowserServiceBean implements BrowserService {
 				}
 			}
 			
-			notification.throwEvent(new Event(npath, caller, "Resource", "browser.resource.list-children-of-type", "type-pattern:" + typePattern));
+			notification.throwEvent(new Event(npath, caller, FactoryResource.RESOURCE_NAME, Event.buildEventType(BrowserService.SERVICE_NAME, FactoryResource.RESOURCE_NAME, "list-children-of-type"), "type-pattern:" + typePattern));
 			
 			return matchingChilds.toArray(new String[matchingChilds.size()]);
 		} catch ( Exception e ) {

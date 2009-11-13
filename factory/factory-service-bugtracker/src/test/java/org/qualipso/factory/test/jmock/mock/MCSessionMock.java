@@ -1,5 +1,7 @@
 package org.qualipso.factory.test.jmock.mock;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -30,6 +32,26 @@ import org.mantisbt.connect.model.Project;
  */
 public class MCSessionMock implements IMCSession {
 
+	/**
+	 * Date last updated for the issue mocked
+	 */
+	private static Date dateLastUpdated = null;
+	
+	/**
+	 * Date submitted of the issue mocked
+	 */
+	private static Date dateSubmitted = null;
+	
+	static {
+		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+		try {
+			dateSubmitted = sdf.parse("10/11/2008");
+			dateLastUpdated = sdf.parse("12/11/2008");
+		} 
+		catch (ParseException e) {
+		}
+	}
+	
 	//******* MOCK ********
 	
 	@Override
@@ -74,7 +96,6 @@ public class MCSessionMock implements IMCSession {
 	
 	@Override
 	public long addProject(IProject arg0) throws MCException {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
@@ -108,10 +129,18 @@ public class MCSessionMock implements IMCSession {
 			 */
 			@Override
 			public Date getDateLastUpdated() {
-				Calendar cal = Calendar.getInstance();
-				cal.setTimeInMillis(111);
-				return cal.getTime();
+				return getDateLastUpdatedMocked(id);
 			}
+
+			/* (non-Javadoc)
+			 * @see org.mantisbt.connect.model.Issue#getDateSubmitted()
+			 */
+			@Override
+			public Date getDateSubmitted() {
+				return getDateSubmittedMocked(id);
+			}
+			
+			
 		};
 		issue.setSummary("summary" + id);
 		issue.setDescription("description" + id);
@@ -125,7 +154,16 @@ public class MCSessionMock implements IMCSession {
 
 	@Override
 	public IProject getProject(String arg0) throws MCException {
-		IProject project = new Project();
+		IProject project = new Project(){
+
+			/* (non-Javadoc)
+			 * @see org.mantisbt.connect.model.Project#getId()
+			 */
+			@Override
+			public long getId() {
+				return 1;
+			}
+		};
 		project.setName(arg0);
 		return project;
 	}
@@ -134,7 +172,7 @@ public class MCSessionMock implements IMCSession {
 	public IIssue[] getProjectIssues(long arg0) throws MCException {
 		IIssue[] issues = new IIssue[5];
 		for (int i = 0; i < 5; i++) {
-			issues[i] = createDefaultIssue(i);
+			issues[i] = createDefaultIssue(i + 1);
 		}
 		
 		return issues;
@@ -405,4 +443,28 @@ public class MCSessionMock implements IMCSession {
 		throw new MCException("Mock Not Implemented");
 	}
 
+	
+	/**
+	 * get Date submitted for the issue mocked
+	 * @param idIssue of the mocked issue
+	 * @return date
+	 */
+	public static Date getDateSubmittedMocked(long idIssue) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(dateSubmitted);
+		cal.add(Calendar.MINUTE, (int)idIssue);
+		return cal.getTime();
+	}
+	
+	/**
+	 * get Date submitted for the issue mocked
+	 * @param idIssue of the mocked issue
+	 * @return date
+	 */
+	public static Date getDateLastUpdatedMocked(long idIssue) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(dateLastUpdated);
+		cal.add(Calendar.MINUTE, (int)idIssue + 10);
+		return cal.getTime();
+	}
 }

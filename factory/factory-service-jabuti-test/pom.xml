@@ -22,6 +22,10 @@ Date
 		<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-jabuti-test
 		</developerConnection>
 	</scm>
+	<properties>
+		<ws.core.uri>http://localhost:8080/factory-core</ws.core.uri>
+		<ws.root.uri>http://localhost:8080/factory-service</ws.root.uri>
+	</properties>
 	<build>
 		<plugins>
 			<plugin>
@@ -34,9 +38,9 @@ Date
 						</goals>
 						<configuration>
 							<wsdlUrls>
-								<!-- TODO externalize server address in settings.xml -->
-								<wsdlUrl>http://localhost:8080/factory-service-jabuti/jabuti?wsdl</wsdlUrl>
-							</wsdlUrls>
+	                            <wsdlUrl>${ws.root.uri}-jabuti/jabuti?wsdl</wsdlUrl>
+                                <wsdlUrl>${ws.core.uri}/bootstrap?wsdl</wsdlUrl>
+                            </wsdlUrls>
 							<packageName>org.qualipso.factory.jabuti.client.ws</packageName>
 							<sourceDestDir>${basedir}/src/main/java</sourceDestDir>
 						</configuration>

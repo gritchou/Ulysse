@@ -25,6 +25,17 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 
 /**
+ * This class represent a unique identifier for a resource instance.<br/>
+ * <br/>
+ * This identifier contains :
+ * <ul>
+ * <li> the name of the service which is able to manage this type of resource,
+ * <li> the type of the resource,
+ * <li> the external id of this resource.
+ * </ul>
+ * The external id is used to be able for a service to recover the real resource data in 
+ * the external storage subsysteme.  
+ * 
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 20 May 2009
  */
@@ -36,27 +47,50 @@ public class FactoryResourceIdentifier implements Serializable {
     private String type;
     private String id;
 
+    /**
+     * Class constructor
+     */
     public FactoryResourceIdentifier() {
     }
 
+    /**
+     * Class constructor specifying the service name, the resource type and the resource id
+     * 
+     * @param service the name of service which manage this resource
+     * @param type the type of this resource
+     * @param id the external id of this resource
+     */
     public FactoryResourceIdentifier(String service, String type, String id) {
         this.service = service;
         this.type = type;
         this.id = id;
     }
 
+    /**
+     * @return the external id of this resource
+     */
     public String getId() {
         return id;
     }
 
+    /**
+     * @return the type of this resource
+     */
     public String getType() {
         return type;
     }
 
+    /**
+     * @return the service name which manage this resource
+     */
     public String getService() {
         return service;
     }
 
+    /**
+     * @param serializedResourceId a serialized representation of a FactoryResourceIndentifier
+     * @return The parsed FactoryResourceIdentifier
+     */
     public static FactoryResourceIdentifier deserialize(String serializedResourceId) {
         if (serializedResourceId == null) {
             return null;
@@ -67,10 +101,14 @@ public class FactoryResourceIdentifier implements Serializable {
         return new FactoryResourceIdentifier(tokenizer.nextToken(), tokenizer.nextToken(), tokenizer.nextToken());
     }
 
+    /**
+     * @return a serialized representation of this FactoryResourceIdentifier
+     */
     public String serialize() {
         return this.getService() + "/" + this.getType() + "/" + this.getId();
     }
 
+    @Override
     public String toString() {
         return "Service:" + getService() + "; Type:" + getType() + "; Id:" + getId();
     }

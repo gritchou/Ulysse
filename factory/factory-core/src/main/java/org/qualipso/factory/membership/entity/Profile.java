@@ -27,8 +27,10 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.membership.MembershipService;
 
 
 /**
@@ -37,11 +39,13 @@ import org.qualipso.factory.FactoryResourceIdentifier;
  */
 
 @Entity
-@XmlType(name = "Profile", namespace = "http://org.qualipso.factory.ws/resource/profile", propOrder =  {
+@XmlType(name = Profile.RESOURCE_NAME, namespace = FactoryNamingConvention.RESOURCE_NAMESPACE + Profile.RESOURCE_NAME, propOrder =  {
     "fullname", "email", "accountStatus", "onlineStatus", "lastLoginDate"}
 )
 @SuppressWarnings("serial")
 public class Profile extends FactoryResource {
+	
+	public static final String RESOURCE_NAME = "profile";
 	
 	public static final int OFFLINE = 0;
 	public static final int ONLINE = 1;
@@ -149,7 +153,7 @@ public class Profile extends FactoryResource {
 	@Override
 	@XmlTransient
 	public FactoryResourceIdentifier getFactoryResourceIdentifier() {
-		return new FactoryResourceIdentifier("MembershipService", "Profile", getId());
+		return new FactoryResourceIdentifier(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, getId());
 	}
 
 	@Override

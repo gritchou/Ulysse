@@ -13,6 +13,7 @@
 package org.qualipso.factory.bugtracker.dto;
 
 import org.mantisbt.connect.model.IMCAttribute;
+import org.qualipso.factory.bugtracker.core.ConfDataExternal;
 
 /**
  * ConfDataDto builder
@@ -31,6 +32,22 @@ public class ConfDataDtoBuilder {
 		if (attribute != null) {
 			dto = new ConfDataDto();
 			dto.setId(String.valueOf(attribute.getId()));
+			dto.setName(attribute.getName());
+		}
+		return dto;
+	}
+	
+	/**
+	 * Create a ConfDataDto with ConfDataExternal
+	 * @param attribute IMCAttribute
+	 * @return ConfDataDto
+	 */
+	public static ConfDataDto create(ConfDataExternal attribute) {
+		ConfDataDto dto = null;
+		
+		if (attribute != null) {
+			dto = new ConfDataDto();
+			dto.setId(attribute.getId());
 			dto.setName(attribute.getName());
 		}
 		return dto;

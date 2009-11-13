@@ -158,4 +158,9 @@ public class Event implements Serializable {
                 + "resource type : " + resourceType + "\r\n" + "args          : " + args + "\r\n" + "date          : " + date;
         return event;
     }
+    
+    public static String buildEventType(String service, String resource, String name) {
+    	return service + "." + resource + "." + name;
+    }
+    
 }

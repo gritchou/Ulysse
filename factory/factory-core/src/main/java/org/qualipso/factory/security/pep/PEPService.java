@@ -9,6 +9,8 @@ import javax.ejb.Local;
 @Local
 public interface PEPService {
 
+	public static final String SERVICE_NAME = "pep";
+	
 	public void checkSecurity(String subject, String object, String action) throws PEPServiceException;
 
 }

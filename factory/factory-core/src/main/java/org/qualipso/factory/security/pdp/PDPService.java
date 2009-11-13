@@ -24,6 +24,9 @@ import javax.ejb.Local;
  */
 @Local
 public interface PDPService {
+	
+	public static final String SERVICE_NAME = "pdp";
+	
 	public String query(String request) throws PDPServiceException;
 	
 }

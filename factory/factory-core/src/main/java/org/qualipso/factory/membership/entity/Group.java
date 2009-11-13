@@ -25,8 +25,10 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.membership.MembershipService;
 
 
 /**
@@ -35,12 +37,14 @@ import org.qualipso.factory.FactoryResourceIdentifier;
  */
 
 @Entity
-@XmlType(name = "Group", namespace = "http://org.qualipso.factory.ws/resource/group", propOrder =  {
+@XmlType(name = Group.RESOURCE_NAME, namespace = FactoryNamingConvention.RESOURCE_NAMESPACE + Group.RESOURCE_NAME, propOrder =  {
     "name", "description", "membersList"}
 )
 @Table(name = "`GROUP`")
 @SuppressWarnings("serial")
 public class Group extends FactoryResource {
+	
+	public static final String RESOURCE_NAME = "group";
 	
 	@Id
 	private String id;
@@ -131,7 +135,7 @@ public class Group extends FactoryResource {
 	@Override
 	@XmlTransient
 	public FactoryResourceIdentifier getFactoryResourceIdentifier() {
-		return new FactoryResourceIdentifier("MembershipService", "Group", getId());
+		return new FactoryResourceIdentifier(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, getId());
 	}
 	
 	@Override

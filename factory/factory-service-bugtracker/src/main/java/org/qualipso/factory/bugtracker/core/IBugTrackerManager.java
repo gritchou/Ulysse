@@ -13,10 +13,12 @@ package org.qualipso.factory.bugtracker.core;
  *
  */
 
+import java.util.Date;
+import java.util.List;
+
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.bugtracker.dto.IssueAttributesDto;
 import org.qualipso.factory.bugtracker.dto.IssueDto;
-import org.qualipso.factory.bugtracker.dto.ProjectDto;
 import org.qualipso.factory.bugtracker.exception.BugTrackerServiceException;
 
 /**
@@ -27,13 +29,19 @@ import org.qualipso.factory.bugtracker.exception.BugTrackerServiceException;
 public interface IBugTrackerManager {
 
 	/**
-	 * Return all issues for a project
-	 * @param idProjectFactory id of the project in the factory
+	 * Return issues for a project
+	 * @param identifier of the project in the factory
 	 * @param projectPath path of the project
+	 * @param dateCreationMin of issues
+	 * @param dateModificationMin of issues
 	 * @return all issues for a project
 	 * @throws BugTrackerServiceException if an error occurred
 	 */
-	IssueDto[] getAllIssues(FactoryResourceIdentifier identifier, String projectPath) throws BugTrackerServiceException;
+	List<IssueExternal> getIssues(
+			FactoryResourceIdentifier identifier, 
+			String projectPath, 
+			Date dateCreationMin, 
+			Date dateModificationMin) throws BugTrackerServiceException;
 	
 	/**
 	 * Return an issue
@@ -41,31 +49,17 @@ public interface IBugTrackerManager {
 	 * @return issue
 	 * @throws BugTrackerServiceException if an error occurred
 	 */
-	IssueDto getIssue(String issuePath) throws BugTrackerServiceException;
-	
-	/**
-	 * Create a project
-	 * @param project to create
-	 * @return id of the created project
-	 * @throws BugTrackerServiceException if an error occurred
-	 */
-	long createProject(ProjectDto project) throws BugTrackerServiceException;
-	
-	/**
-	 * find a project by name
-	 * @param name of the project
-	 * @return ProjectDto
-	 * @throws BugTrackerServiceException if an error occurred
-	 */
-	ProjectDto findProjectByName(String name) throws BugTrackerServiceException;
+	IssueExternal getIssue(String issuePath) throws BugTrackerServiceException;
 	
 	/**
 	 * Create a bug
 	 * @param issue to create
+	 * @param identifier of the project
+	 * @param projectPath where issue is created
 	 * @return id of the created issue
 	 * @throws BugTrackerServiceException if an error occurred
 	 */
-	long createIssue(IssueDto issue, long projectId) throws BugTrackerServiceException;
+	String createIssue(IssueDto issue, FactoryResourceIdentifier identifier, String projectPath) throws BugTrackerServiceException;
 	
 	/**
 	 * Update an issue

@@ -14,6 +14,7 @@ import javax.ejb.Stateless;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.SecurityDomain;
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.security.pdp.finder.PolicyRepositoryFinderModule;
 import org.qualipso.factory.security.repository.PolicyRepositoryService;
 
@@ -34,7 +35,7 @@ import com.sun.xacml.finder.impl.SelectorModule;
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 16 june 2009
  */
-@Stateless(name = "PDP", mappedName = "PDPService")
+@Stateless(name = PDPService.SERVICE_NAME, mappedName = FactoryNamingConvention.LOCAL_SERVICE_PREFIX + PDPService.SERVICE_NAME)
 @SecurityDomain(value = "JBossWSDigest")
 public class PDPServiceBean implements PDPService {
 

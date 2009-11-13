@@ -89,11 +89,15 @@ public class PathHelperTest {
     			fail("path [" + path + "] should be valid AFTER normalization");
     		}
         }
-        assertEquals("/test", PathHelper.normalize("/././././test/./"));
-        assertEquals("/", PathHelper.normalize("/test/../../../bidi/../../.."));
-        assertEquals("/bidi", PathHelper.normalize("/test/../../../bidi"));
-        assertEquals("/bidi/budu", PathHelper.normalize("/test/../bidi/bada/../budu"));
-        assertEquals("/bidi/budu", PathHelper.normalize("/test/../bidi/bada/byby/.././../budu"));
+        try {
+	        assertEquals("/test", PathHelper.normalize("/././././test/./"));
+	        assertEquals("/", PathHelper.normalize("/test/../../../bidi/../../.."));
+	        assertEquals("/bidi", PathHelper.normalize("/test/../../../bidi"));
+	        assertEquals("/bidi/budu", PathHelper.normalize("/test/../bidi/bada/../budu"));
+	        assertEquals("/bidi/budu", PathHelper.normalize("/test/../bidi/bada/byby/.././../budu"));
+        } catch ( Exception e ) {
+        	fail(e.getMessage());
+        }
     }
 
     

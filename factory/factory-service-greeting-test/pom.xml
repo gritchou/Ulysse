@@ -33,7 +33,7 @@ Date 20 May 2009
 						<configuration>
 							<wsdlUrls>
 								<!-- TODO externalize server address in settings.xml -->
-								<wsdlUrl>http://localhost:8080/factory-service-greeting/greeting?wsdl</wsdlUrl>
+								<wsdlUrl>http://localhost:8080/factory-greeting/greeting?wsdl</wsdlUrl>
 							</wsdlUrls>
 							<packageName>org.qualipso.factory.greeting.client.ws</packageName>
 							<sourceDestDir>${basedir}/src/main/java</sourceDestDir>

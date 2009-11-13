@@ -16,8 +16,11 @@ package org.qualipso.factory.qualipsoServlet.auth.soapHandler;
 
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Set;
+import java.util.TimeZone;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPElement;
@@ -112,9 +115,6 @@ public class QualipsoHandlerHeader implements SOAPHandler<SOAPMessageContext>
 			theHeader = env.getHeader();
 		}
 		
-		System.out.println("Header = " + theHeader);
-		System.out.println("Header attributs = " + theHeader.getChildElements().toString());
-		
     	SOAPElement security = theHeader.addChildElement("Security", "wsse", 
 				"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd");
     	security.setAttribute(env.getPrefix()+":mustUnderstand", "1");
@@ -124,14 +124,16 @@ public class QualipsoHandlerHeader implements SOAPHandler<SOAPMessageContext>
     	timestamp.setAttribute("wsu:Id", "timestamp");
     	
     	SOAPElement createdDate = timestamp.addChildElement("Created", "wsu");    	
-    	Date todayDate = new Date();
-    	createdDate.addTextNode(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(todayDate));
+    	Date todayDate = Calendar.getInstance().getTime(); 
+    	todayDate.setTime(todayDate.getTime() - 7200000); // - less 2 hours - 7200000
+    	
+    	createdDate.addTextNode(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss'Z'").format(todayDate));
     	
     	Date expireDate = (Date)todayDate.clone();
     	expireDate.setTime(todayDate.getTime() + 300000);
     	
     	SOAPElement expiredDate = timestamp.addChildElement("Expired", "wsu");
-    	expiredDate.addTextNode(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(expireDate));
+    	expiredDate.addTextNode(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss'Z'").format(expireDate));
     	
     	SOAPElement usernameToken = security.addChildElement("UsernameToken", "wsse");
     	usernameToken.setAttribute("xmlns:wsu", "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd");
@@ -146,12 +148,11 @@ public class QualipsoHandlerHeader implements SOAPHandler<SOAPMessageContext>
     	SOAPElement nonce = usernameToken.addChildElement("Nonce", "wsse");
     	nonce.addTextNode(new DefaultNonceFactory().getGenerator().generateNonce());
     	
-    	Date creatDate = new Date();
+    	Date creatDate = (Date)todayDate.clone();
+    	creatDate.setTime(todayDate.getTime() + 1000);
     	SOAPElement myDate = usernameToken.addChildElement("Created", "wsu");
-    	myDate.addTextNode(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:sss'Z'").format(creatDate));
     	
-    	// timestamp.addTextNode("300");
-    	System.out.println("Header final = " + theHeader);
+    	myDate.addTextNode(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss'Z'").format(creatDate));
 	}
 	
 	/**

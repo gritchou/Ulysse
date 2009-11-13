@@ -11,6 +11,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.sshd.server.CommandFactory.ExitCallback;
 import org.qualipso.factory.FactoryNamingConvention;
+import org.qualipso.factory.git.GITService;
 import org.qualipso.factory.git.GITServiceLocal;
 import org.qualipso.factory.ssh.command.SSHCommand;
 
@@ -63,7 +64,7 @@ public class ReceivePackSSHCommand extends SSHCommand {
 				
 				String path = getArg(0).replaceAll("'", "");
 				Context ctx = new InitialContext();
-				GITServiceLocal service = (GITServiceLocal) ctx.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX + "GITService-local");
+				GITServiceLocal service = (GITServiceLocal) ctx.lookup(FactoryNamingConvention.getLocalJNDINameForService(GITService.SERVICE_NAME));
 				service.pushToGITRepository(path, in, out, err);
 				
 				logger.info("Completing Receive Pack");

@@ -10,6 +10,7 @@ import javax.ejb.TransactionAttributeType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.SecurityDomain;
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.security.repository.PolicyRepositoryException;
 import org.qualipso.factory.security.repository.PolicyRepositoryService;
 
@@ -17,7 +18,7 @@ import org.qualipso.factory.security.repository.PolicyRepositoryService;
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 16 june 2009
  */
-@Stateless(name = "PAP", mappedName = "PAPService")
+@Stateless(name = PAPService.SERVICE_NAME, mappedName = FactoryNamingConvention.LOCAL_SERVICE_PREFIX + PAPService.SERVICE_NAME)
 @SecurityDomain(value = "JBossWSDigest")
 public class PAPServiceBean implements PAPService {
 	

@@ -13,6 +13,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.sshd.SshServer;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.jboss.ejb3.annotation.SecurityDomain;
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.ssh.authenticator.JaasPasswordAuthenticator;
 import org.qualipso.factory.ssh.command.SSHCommandFactory;
 import org.qualipso.factory.ssh.session.SSHSessionFactory;
@@ -22,7 +23,7 @@ import org.qualipso.factory.ssh.shell.SSHShellFactory;
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 21 September 2009
  */
-@Stateless(name = "SSH", mappedName = "SSHService")
+@Stateless(name = SSHService.SERVICE_NAME, mappedName = FactoryNamingConvention.LOCAL_SERVICE_PREFIX + SSHService.SERVICE_NAME)
 @SecurityDomain(value = "JBossWSDigest")
 public class SSHServiceBean implements SSHService {
 	

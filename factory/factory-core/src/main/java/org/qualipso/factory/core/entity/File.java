@@ -16,18 +16,22 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.core.CoreService;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 19 august 2009
  */
 @Entity
-@XmlType(name = "File", namespace = "http://org.qualipso.factory.ws/resource/file", propOrder =  {
+@XmlType(name = File.RESOURCE_NAME, namespace = FactoryNamingConvention.RESOURCE_NAMESPACE + File.RESOURCE_NAME, propOrder =  {
     "name", "description", "size", "contentType", "nbReads"})
 @SuppressWarnings("serial")
 public class File extends FactoryResource {
+	
+	public static final String RESOURCE_NAME = "file";
 	
 	private static Log logger = LogFactory.getLog(File.class);
 	
@@ -125,7 +129,7 @@ public class File extends FactoryResource {
 	@Override
 	@XmlTransient
 	public FactoryResourceIdentifier getFactoryResourceIdentifier() {
-		return new FactoryResourceIdentifier("CoreService", "File", getId());
+		return new FactoryResourceIdentifier(CoreService.SERVICE_NAME, File.RESOURCE_NAME, getId());
 	}
 
 	@Override

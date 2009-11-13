@@ -6,12 +6,14 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import org.qualipso.factory.FactoryNamingConvention;
+
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 19 august 2009
  */
 @XmlRootElement(name="file-data")
-@XmlType(name = "FileData", namespace = "http://org.qualipso.factory.ws/resource/file-data", propOrder =  {
+@XmlType(name = "file-data", namespace = FactoryNamingConvention.RESOURCE_NAMESPACE + "file-data", propOrder =  {
     "data"})
 public class FileData {
 	

@@ -20,19 +20,39 @@ import org.qualipso.factory.FactoryException;
 
 
 /**
- * @author Jerome Blanchard (jayblanc@gmail.com)
+ * Binding Service exceptions.<br/>
+ * All binding service exceptions should extend this one.
+ * 
+ *  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 18 June 2009
  */
 @SuppressWarnings("serial")
 public class BindingServiceException extends FactoryException {
+	
+    /**
+     * Class constructor specifying message and root cause.
+     * 
+     * @param message
+     * @param rootCause
+     */
     public BindingServiceException(String message, Exception rootCause) {
         super(message, rootCause);
     }
 
+    /**
+     * Class constructor specifying message.
+     * 
+     * @param message
+     */
     public BindingServiceException(String message) {
         super(message);
     }
 
+    /**
+     * Class constructor specifying root cause
+     * 
+     * @param rootCause
+     */
     public BindingServiceException(Exception rootCause) {
         super(rootCause);
     }

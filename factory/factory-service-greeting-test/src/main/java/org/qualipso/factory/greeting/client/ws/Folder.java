@@ -9,12 +9,12 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for Folder complex type.
+ * <p>Java class for folder complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="Folder">
+ * &lt;complexType name="folder">
  *   &lt;complexContent>
  *     &lt;extension base="{http://org.qualipso.factory.ws/service/greeting}factoryResource">
  *       &lt;sequence>
@@ -31,7 +31,7 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Folder", namespace = "http://org.qualipso.factory.ws/resource/folder", propOrder = {
+@XmlType(name = "folder", namespace = "http://org.qualipso.factory.ws/resource/folder", propOrder = {
     "name",
     "description"
 })

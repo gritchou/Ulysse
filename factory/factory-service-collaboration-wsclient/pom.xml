@@ -1,19 +1,21 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
 		<artifactId>factory</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.4</version>
+		<version>0.5-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-collaboration-wsclient</artifactId>
 	<name>Qualipso Factory Collaboration Tools - WebService Client</name>
-	<version>0.2.4</version>
+	<version>0.2.5-SNAPSHOT</version>
 	<packaging>ejb</packaging>
 	<scm>
-		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/tags/factory-service-collaboration-wsclient-0.2.4</connection>
-		<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/tags/factory-service-collaboration-wsclient-0.2.4</developerConnection>
-		<url>https://gforge.inria.fr/plugins/scmsvn/viewcvs.php/tags/factory-service-collaboration-wsclient-0.2.4?root=qualipso</url>
+		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-collaboration-wsclient</connection>
+		<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-collaboration-wsclient</developerConnection>
+		<url>https://gforge.inria.fr/plugins/scmsvn/viewcvs.php/trunk/factory/factory-service-collaboration-wsclient/?root=qualipso</url>
 	</scm>
 	<description>Document, Calendar and Forum services powered by MERMIG Communication and Collaboration platform</description>
 	<organization>
@@ -87,23 +89,6 @@
 			<version>1.5</version>
 			<scope>provided</scope>
 		</dependency>
-		<!-- 
-		<dependency>
-    		<groupId>org.apache.ws.commons.axiom</groupId>
-    		<artifactId>axiom-api</artifactId>
-    		<version>1.2.8</version>
-		</dependency>
-		<dependency>
-    		<groupId>org.apache.ws.commons.axiom</groupId>
-    		<artifactId>axiom-impl</artifactId>
-    		<version>1.2.8</version>
-		</dependency>
-		<dependency>
-    		<groupId>org.apache.ws.commons.axiom</groupId>
-    		<artifactId>axiom-dom</artifactId>
-    		<version>1.2.8</version>
-		</dependency> 
-		 -->   
 	</dependencies>
 
 </project>

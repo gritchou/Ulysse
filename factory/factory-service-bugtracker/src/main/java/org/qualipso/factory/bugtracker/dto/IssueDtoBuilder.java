@@ -19,7 +19,8 @@ import org.mantisbt.connect.model.IMCAttribute;
 import org.mantisbt.connect.model.Issue;
 import org.mantisbt.connect.model.MCAttribute;
 import org.qualipso.factory.binding.InvalidPathException;
-import org.qualipso.factory.bugtracker.utils.Utils;
+import org.qualipso.factory.bugtracker.core.IssueComplexe;
+import org.qualipso.factory.bugtracker.core.IssueExternal;
 
 /**
  * IssueDto builder
@@ -28,27 +29,24 @@ import org.qualipso.factory.bugtracker.utils.Utils;
 public class IssueDtoBuilder {
 
 	/**
-	 * Create a IssueDto with IIssue
-	 * @param issue IIssue
+	 * Create a IssueDto with issueComplexe
+	 * @param issueComplexe IssueComplexe
 	 * @param projectPath project path factory
 	 * @return IssueDto
 	 * @throws InvalidPathException if path is not valid
 	 */
-	public static IssueDto create(IIssue issue, String projectPath) throws InvalidPathException {
+	public static IssueDto create(IssueComplexe issueComplexe) throws InvalidPathException {
 		IssueDto dto = null;
 		
-		if (issue != null) {
+		if (issueComplexe != null && issueComplexe.getIssue() != null) {
+			IssueExternal issue = issueComplexe.getIssue();
 			dto = new IssueDto();
-			//Transformation of the id bugtracker in path factory
-			String path = Utils.generatePathIssueFactory(projectPath, issue.getId());
-			dto.setPath(path);
-			if (issue.getHandler() != null) {
-				dto.setAssignee(issue.getHandler().getName());
-			}
+			dto.setProjectPath(issueComplexe.getProjectPath());
+			dto.setNum(issue.getId());
+			dto.setIssuePath(issueComplexe.getIssuePath());
+			dto.setAssignee(issueComplexe.getAssignedFullName());
 			
-			if (issue.getReporter() != null) {
-				dto.setReporter(issue.getReporter().getName());
-			}
+			dto.setReporter(issueComplexe.getReporterFullName());
 			dto.setPriority(ConfDataDtoBuilder.create(issue.getPriority()));
 			dto.setResolution(ConfDataDtoBuilder.create(issue.getResolution()));
 			dto.setSeverity(ConfDataDtoBuilder.create(issue.getSeverity()));
@@ -56,9 +54,12 @@ public class IssueDtoBuilder {
 			dto.setSummary(issue.getSummary());
 			dto.setDescription(issue.getDescription());
 			
-			if (issue.getDateLastUpdated() != null) {
-				dto.setDateLastUpdate(issue.getDateLastUpdated().getTime());
+			if (issue.getDateLastUpdate() != null) {
+				dto.setDateLastUpdate(issue.getDateLastUpdate().getTime());
 			}
+			
+			dto.setDateCreation(issue.getDateCreation());
+			dto.setDateModification(issue.getDateLastUpdate());
 			
 		}
 		return dto;
@@ -165,14 +166,14 @@ public class IssueDtoBuilder {
 	 * @return IssueDto[]
 	 * @throws InvalidPathException if path is not valid
 	 */
-	public static IssueDto[] create(IIssue[] issues, String projectPath) throws InvalidPathException {
+	public static IssueDto[] create(IssueComplexe[] issues) throws InvalidPathException {
 		IssueDto[] dtos = new IssueDto[0];
 		
 		if (issues != null) {
 			dtos = new IssueDto[issues.length];
 			int i = 0;
-			for (IIssue issue : issues) {
-				dtos[i] = create(issue, projectPath);
+			for (IssueComplexe issue : issues) {
+				dtos[i] = create(issue);
 				i++;
 			}
 		}

@@ -2,14 +2,13 @@ package org.qualipso.factory.collaboration.ws.beans;
 
 import org.qualipso.factory.collaboration.ws.CollaborationWSUtils;
 
-public class DocumentDTO
-{
+public class DocumentDTO {
 
     private String id;
     private String name;
     private String parentFolderID = CollaborationWSUtils.DEFAULT_FOLDER_ID;
     private String author;
-    private String date = "";//yyyy-mm-dd
+    private String date = "";// yyyy-mm-dd
     private String type = CollaborationWSUtils.TYPE_8;
     private String keywords = "qualipso,factory";
     private String version = "1.0";
@@ -19,156 +18,129 @@ public class DocumentDTO
     private byte[] binaryContent = null;
     private String size = "";
 
-    public String getId()
-    {
+    public String getId() {
 	return id;
     }
 
-    public void setId(String id)
-    {
+    public void setId(String id) {
 	this.id = id;
     }
 
-    public String getName()
-    {
+    public String getName() {
 	return name;
     }
 
-    public void setName(String value)
-    {
+    public void setName(String value) {
 	this.name = value;
     }
-    
-    public String getParentFolderID()
-    {
-        return parentFolderID;
+
+    public String getParentFolderID() {
+	return parentFolderID;
     }
 
-    public void setParentFolderID(String parentFolderID)
-    {
-        this.parentFolderID = parentFolderID;
+    public void setParentFolderID(String parentFolderID) {
+	this.parentFolderID = parentFolderID;
     }
 
-    public String getAuthor()
-    {
+    public String getAuthor() {
 	return author;
     }
 
-    public void setAuthor(String author)
-    {
+    public void setAuthor(String author) {
 	this.author = author;
     }
 
-    
     @Override
-    public String toString(){
+    public String toString() {
 	StringBuffer sb = new StringBuffer("Document");
-	sb.append("\nID "+this.id);
-	sb.append("\nname "+this.name);
-	sb.append("\nauthor "+this.author);
-	sb.append("\ndate "+this.date);
-	sb.append("\nkeywords "+this.keywords);
-	sb.append("\ntype "+this.type);
-	sb.append("\nparentFolderID "+this.parentFolderID);
-	sb.append("\nstatus "+this.status);
+	sb.append("\nID " + this.id);
+	sb.append("\nname " + this.name);
+	sb.append("\nauthor " + this.author);
+	sb.append("\ndate " + this.date);
+	sb.append("\nkeywords " + this.keywords);
+	sb.append("\ntype " + this.type);
+	sb.append("\nparentFolderID " + this.parentFolderID);
+	sb.append("\nstatus " + this.status);
 	//
-	sb.append("\n fileName "+this.fileName);
-	sb.append(" mimeType "+this.mimeType);
-	sb.append(" size "+this.size);
-	if(this.binaryContent!=null){
-	    sb.append( "bc size"+this.binaryContent.length);
+	sb.append("\n fileName " + this.fileName);
+	sb.append(" mimeType " + this.mimeType);
+	sb.append(" size " + this.size);
+	if (this.binaryContent != null) {
+	    sb.append("bc size" + this.binaryContent.length);
 	}
 	return sb.toString();
     }
-    
-    public String getDate()
-    {
-        return date;
+
+    public String getDate() {
+	return date;
     }
 
-    public void setDate(String date)
-    {
-        this.date = date;
-    }
-    
-    public String getType()
-    {
-        return type;
+    public void setDate(String date) {
+	this.date = date;
     }
 
-    public void setType(String type)
-    {
-        this.type = type;
-    }
-    
-    public String getKeywords()
-    {
-        return keywords;
+    public String getType() {
+	return type;
     }
 
-    public void setKeywords(String keywords)
-    {
-        this.keywords = keywords;
-    }
-    
-    public String getVersion()
-    {
-        return version;
+    public void setType(String type) {
+	this.type = type;
     }
 
-    public void setVersion(String version)
-    {
-        this.version = version;
-    }
-    
-    public String getStatus()
-    {
-        return status;
+    public String getKeywords() {
+	return keywords;
     }
 
-    public void setStatus(String status)
-    {
-        this.status = status;
-    }
-    
-    public String getFileName()
-    {
-        return fileName;
+    public void setKeywords(String keywords) {
+	this.keywords = keywords;
     }
 
-    public void setFileName(String fileName)
-    {
-        this.fileName = fileName;
-    }
-    
-    public String getMimeType()
-    {
-        return mimeType;
+    public String getVersion() {
+	return version;
     }
 
-    public void setMimeType(String mimeType)
-    {
-        this.mimeType = mimeType;
+    public void setVersion(String version) {
+	this.version = version;
     }
-    
-    public byte[] getBinaryContent()
-    {
+
+    public String getStatus() {
+	return status;
+    }
+
+    public void setStatus(String status) {
+	this.status = status;
+    }
+
+    public String getFileName() {
+	return fileName;
+    }
+
+    public void setFileName(String fileName) {
+	this.fileName = fileName;
+    }
+
+    public String getMimeType() {
+	return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+	this.mimeType = mimeType;
+    }
+
+    public byte[] getBinaryContent() {
 	return binaryContent;
     }
 
-    public void setBinaryContent(byte[] binaryContent)
-    {
+    public void setBinaryContent(byte[] binaryContent) {
 	this.binaryContent = binaryContent;
     }
-    
-    public String getSize()
-    {
-        return size;
+
+    public String getSize() {
+	return size;
     }
 
-    public void setSize(String size)
-    {
-        this.size = size;
+    public void setSize(String size) {
+	this.size = size;
     }
-    
+
 }

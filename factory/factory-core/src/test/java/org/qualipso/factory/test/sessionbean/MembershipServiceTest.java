@@ -343,25 +343,25 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
 					oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/profiles/jayblanc")), with(equal("update"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/profiles/jayblanc"))); will(returnValue(params.get(0))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/profiles/jayblanc")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
-					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.info.set"))); inSequence(sequence1);
+					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.set-info"))); inSequence(sequence1);
 					
 					oneOf(authentication).getConnectedIdentifier(); will(returnValue("jayblanc")); inSequence(sequence1);
 					oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/profiles/jayblanc")), with(equal("update"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/profiles/jayblanc"))); will(returnValue(params.get(0))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/profiles/jayblanc")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
-					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.info.set"))); inSequence(sequence1);
+					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.set-info"))); inSequence(sequence1);
 					
 					oneOf(authentication).getConnectedIdentifier(); will(returnValue("jayblanc")); inSequence(sequence1);
 					oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/profiles/jayblanc")), with(equal("update"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/profiles/jayblanc"))); will(returnValue(params.get(0))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/profiles/jayblanc")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
-					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.info.set"))); inSequence(sequence1);
+					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.set-info"))); inSequence(sequence1);
 					
 					oneOf(authentication).getConnectedIdentifier(); will(returnValue("jayblanc")); inSequence(sequence1);
 					oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/profiles/jayblanc")), with(equal("update"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/profiles/jayblanc"))); will(returnValue(params.get(0))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/profiles/jayblanc")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
-					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.info.set"))); inSequence(sequence1);
+					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.set-info"))); inSequence(sequence1);
 				}
 			});
 			getBeanToTest().getEntityManager().getTransaction().begin();
@@ -379,12 +379,12 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
 					oneOf(authentication).getConnectedIdentifier(); will(returnValue("jayblanc")); inSequence(sequence1);
 					oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/profiles/jayblanc")), with(equal("read"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/profiles/jayblanc"))); will(returnValue(params.get(0))); inSequence(sequence1);
-					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.info.get"))); inSequence(sequence1);
+					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.get-info"))); inSequence(sequence1);
 					
 					oneOf(authentication).getConnectedIdentifier(); will(returnValue("jayblanc")); inSequence(sequence1);
 					oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/profiles/jayblanc")), with(equal("read"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/profiles/jayblanc"))); will(returnValue(params.get(0))); inSequence(sequence1);
-					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.info.list"))); inSequence(sequence1);
+					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.list-info"))); inSequence(sequence1);
 				}
 			});
 			getBeanToTest().getEntityManager().getTransaction().begin();

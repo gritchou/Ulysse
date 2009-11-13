@@ -6,9 +6,9 @@ Date 20 May 2009
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
-		<artifactId>factory</artifactId>
+		<artifactId>factory-parent</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.4</version>
+		<version>0.5-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
@@ -79,12 +79,12 @@ Date 20 May 2009
 			<version>0.3.3-SNAPSHOT</version>
 			<type>ejb</type>
 		</dependency>
-<!--		<dependency>-->
-<!--			<groupId>org.qualipso</groupId>-->
-<!--			<artifactId>factory-service-helloworld</artifactId>-->
-<!--			<version>0.2.3-SNAPSHOT</version>-->
-<!--			<type>ejb</type>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-service-helloworld</artifactId>
+			<version>0.2.3-SNAPSHOT</version>
+			<type>ejb</type>
+		</dependency>
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-greeting</artifactId>
@@ -97,13 +97,13 @@ Date 20 May 2009
 			<version>0.2.3-SNAPSHOT</version>
 			<type>ejb</type>
 		</dependency>
-<!--		
+		<!-- REMOVED DUE TO DEPLOYMENT PROBLEM FOR GIT SERVICE...
 		<dependency>
 			<groupId>org.qualipso</groupId>
-			<artifactId>factory-service-voip-conferences</artifactId>
-			<version>0.0.3-SNAPSHOT</version>
+			<artifactId>factory-service-git</artifactId>
+			<version>0.1.2-SNAPSHOT</version>
 			<type>ejb</type>
 		</dependency>
--->
+		 -->
 	</dependencies>
 </project>

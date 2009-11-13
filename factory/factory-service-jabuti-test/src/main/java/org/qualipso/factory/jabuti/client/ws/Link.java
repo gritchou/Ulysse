@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlType;
  * <pre>
  * &lt;complexType name="Link">
  *   &lt;complexContent>
- *     &lt;extension base="{http://org.qualipso.factory.ws/service/jabuti}factoryResource">
+ *     &lt;extension base="{http://org.qualipso.factory.ws/service/bootstrap}factoryResource">
  *       &lt;sequence>
  *         &lt;element name="link" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *       &lt;/sequence>

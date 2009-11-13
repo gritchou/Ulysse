@@ -29,6 +29,7 @@ import org.qualipso.factory.collaboration.ws.beans.DocumentDTO;
 import org.qualipso.factory.core.CoreService;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.entity.Profile;
+import org.qualipso.factory.notification.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
@@ -96,15 +97,17 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 	    final String tempText = "Lorem Ipsum "+System.currentTimeMillis();
 	    String randomFolder = "F"+ System.currentTimeMillis();
 	    final String randomFolderNorm = CollaborationUtils.normalizeForPath(randomFolder);
-	    String randomDocument = "D"+ System.currentTimeMillis();
-	    String randomDocumentNorm = CollaborationUtils.normalizeForPath(randomDocument);
-	    final String docPath = "/documents/"+randomFolderNorm+"/"+randomDocumentNorm;
+//	    String randomDocument = "D"+ System.currentTimeMillis();
+//	    String randomDocumentNorm = CollaborationUtils.normalizeForPath(randomDocument);
+//	    final String docPath = "/documents/"+randomFolderNorm+"/"+randomDocumentNorm;
 	    //
 	    final String fileName = "D_" + System.currentTimeMillis() + ".txt";
 	    final String fileNameUpd= "UP" + System.currentTimeMillis() + ".txt";
 	    final String folderId = CollaborationUtils.normalizeForPath(UUID.randomUUID().toString());
 	    final String docFolderId = CollaborationUtils.normalizeForPath(UUID.randomUUID().toString());
 	    final String docId = CollaborationUtils.normalizeForPath(UUID.randomUUID().toString());
+	    final String docPath = "/documents/"+randomFolderNorm+"/"+docId;
+	    final String docParentPath = "/documents/"+randomFolderNorm;
 	    //
 	    DocumentService service = getBeanToTest();
 	    // TEST Create Folder
@@ -128,11 +131,11 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 		    oneOf(pap).createPolicy(with(any(String.class)),with(containsString("/documents")));inSequence(sequence1);
 		    oneOf(binding).setProperty(with(equal("/documents")),with(equal(FactoryResourceProperty.OWNER)),with(equal("/profiles/jayblanc")));inSequence(sequence1);
 		    oneOf(binding).setProperty(with(equal("/documents")),with(equal(FactoryResourceProperty.POLICY_ID)),with(any(String.class)));inSequence(sequence1);
-		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.folder.create")));inSequence(sequence1);
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(DocumentService.SERVICE_NAME,CollaborationFolder.RESOURCE_NAME,"create"))));inSequence(sequence1);
 		}
 	    });
 	    //
-	    String fPath = service.createFolder("/documents", "documents", tempText);
+	    String fPath = service.createFolder("/", "documents", tempText);
 	    assertNotNull(fPath);
 	    
 	    
@@ -156,7 +159,7 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 		    resultMap.put("dateCreated", "2009-09-28");
 		    oneOf(documentWS).readFolder(folderId);will(returnValue(resultMap));inSequence(sequence1);
 		    //
-		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.folder.read")));inSequence(sequence1);
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(DocumentService.SERVICE_NAME,CollaborationFolder.RESOURCE_NAME,"read"))));inSequence(sequence1);
 		    // mock WS
 		    resultMap.put("folderID",docFolderId);
 		    oneOf(documentWS).createFolder(with(any(String.class)), with(any(String.class)), with(any(String.class)));will(returnValue(resultMap));inSequence(sequence1);
@@ -168,11 +171,11 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 		    oneOf(pap).createPolicy(with(any(String.class)),with(containsString("/documents/"+randomFolderNorm)));inSequence(sequence1);
 		    oneOf(binding).setProperty(with(equal("/documents/"+randomFolderNorm)),with(equal(FactoryResourceProperty.OWNER)),with(equal("/profiles/jayblanc")));inSequence(sequence1);
 		    oneOf(binding).setProperty(with(equal("/documents/"+randomFolderNorm)),with(equal(FactoryResourceProperty.POLICY_ID)),with(any(String.class)));inSequence(sequence1);
-		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.folder.create")));inSequence(sequence1);
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(DocumentService.SERVICE_NAME,CollaborationFolder.RESOURCE_NAME,"create"))));inSequence(sequence1);
 		}
 	    });
 	    //
-	    fPath = service.createFolder("/documents/"+randomFolderNorm, randomFolder, tempText);
+	    fPath = service.createFolder("/documents", randomFolder, tempText);
 	    assertNotNull(fPath);
 	    // TEST Read Folder
 	    mockery.checking(new Expectations()
@@ -190,7 +193,7 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 		    resultMap.put("dateCreated", "2009-09-28");
 		    oneOf(documentWS).readFolder(docFolderId);will(returnValue(resultMap));inSequence(sequence1);
 		    //
-		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.folder.read")));inSequence(sequence1);
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(DocumentService.SERVICE_NAME,CollaborationFolder.RESOURCE_NAME,"read"))));inSequence(sequence1);
 		}
 	    });
 	    CollaborationFolder folder = service.readFolder("/documents/"+randomFolderNorm);
@@ -207,11 +210,11 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 		    	//Profile check in create document
 		    	oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
 		    	// Security check in create document
-		    	oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/documents/"+randomFolderNorm)), with(equal("create"))); inSequence(sequence1);
+		    	oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal(docParentPath)), with(equal("create"))); inSequence(sequence1);
 		    	//Read parent folder
 		    	oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
-		    	oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),with(equal("/documents/"+randomFolderNorm)), with(equal("read")));inSequence(sequence1);
-		    	oneOf(binding).lookup(with(equal("/documents/"+randomFolderNorm)));will(returnValue(paramsFolderChild.get(0)));inSequence(sequence1);
+		    	oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),with(equal(docParentPath)), with(equal("read")));inSequence(sequence1);
+		    	oneOf(binding).lookup(with(equal(docParentPath)));will(returnValue(paramsFolderChild.get(0)));inSequence(sequence1);
 		    	 // mock WS
 			HashMap<String, Object> resultMap = new HashMap<String, Object>();
 			resultMap.put("statusCode", "SUCCESS");
@@ -220,7 +223,7 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 			resultMap.put("dateCreated", "2009-09-28");
 			oneOf(documentWS).readFolder(docFolderId);will(returnValue(resultMap));inSequence(sequence1);
 		    	//
-		    	oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.folder.read")));inSequence(sequence1);
+		    	oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(DocumentService.SERVICE_NAME,CollaborationFolder.RESOURCE_NAME,"read"))));inSequence(sequence1);
 		    	// mock WS
 		    	resultMap.put("documentId",docId);
 		    	oneOf(documentWS).createDocument(docFolderId, "My Doc 1.1", "2009-08-27",CollaborationUtils.TYPE_8, "qualipso,factory", "1.0",
@@ -234,11 +237,11 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 			oneOf(pap).createPolicy(with(any(String.class)), with(containsString(docPath))); inSequence(sequence1);
 			oneOf(binding).setProperty(with(equal(docPath)), with(equal(FactoryResourceProperty.OWNER)), with(equal("/profiles/jayblanc"))); inSequence(sequence1);
 			oneOf(binding).setProperty(with(equal(docPath)), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class))); inSequence(sequence1);
-			oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.document.create"))); inSequence(sequence1);
+			oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(DocumentService.SERVICE_NAME,Document.RESOURCE_NAME,"create")))); inSequence(sequence1);
 		}
 	    });
 	    
-	    service.createDocument(docPath, "My Doc 1.1", "2009-08-27",
+	    service.createDocumentSimple(docParentPath, "My Doc 1.1", "2009-08-27",
 		    CollaborationUtils.TYPE_8, "qualipso,factory", "1.0",
 		    CollaborationUtils.STATUS_DRAFT, fileName, "text/plain", "TG9yZW0gaXBzdW0=".getBytes());
 	    //TEST Read Document
@@ -272,7 +275,7 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 		    resultMap.put("documentContent", doc);
 		    oneOf(documentWS).readDocument(docId);will(returnValue(resultMap));inSequence(sequence1);
 		    //
-		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.document.read"))); inSequence(sequence1);
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(DocumentService.SERVICE_NAME,Document.RESOURCE_NAME,"read")))); inSequence(sequence1);
 		}
 	    });
 	    
@@ -296,7 +299,7 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 			    "TG9yZW0gaXBzdW0=".getBytes());will(returnValue(resultMap));inSequence(sequence1);
 		    //
 		    oneOf(binding).setProperty(with(equal(docPath)), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
-		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.document.update"))); inSequence(sequence1);
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(DocumentService.SERVICE_NAME,Document.RESOURCE_NAME,"update")))); inSequence(sequence1);
 		}
 	    });
 	    
@@ -319,7 +322,7 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 		    oneOf(binding).getProperty(with(equal(docPath)), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); inSequence(sequence1);
 		    oneOf(pap).deletePolicy(with(any(String.class))); inSequence(sequence1);
 		    oneOf(binding).unbind(with(equal(docPath)));inSequence(sequence1);
-		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.document.delete")));inSequence(sequence1);
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(DocumentService.SERVICE_NAME,Document.RESOURCE_NAME,"delete"))));inSequence(sequence1);
 		}
 	    });
 	    service.deleteDocument(docPath);
@@ -331,6 +334,8 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 		    oneOf(membership).getProfilePathForConnectedIdentifier();will(returnValue("/profiles/jayblanc"));inSequence(sequence1);
 		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),with(equal("/documents/"+randomFolderNorm)), with(equal("delete")));inSequence(sequence1);
 		    oneOf(binding).lookup(with(equal("/documents/"+randomFolderNorm)));will(returnValue(paramsFolderChild.get(0)));inSequence(sequence1);
+		    // mock broswer.hasChildren(()
+		    oneOf(browser).hasChildren(with(any(String.class)));will(returnValue(false));inSequence(sequence1);
 		    // mock WS
 		    HashMap<String, Object> resultMap = new HashMap<String, Object>();
 		    resultMap.put("statusCode", "SUCCESS");
@@ -340,7 +345,7 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 		    oneOf(binding).getProperty(with(equal("/documents/"+randomFolderNorm)), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); inSequence(sequence1);
 		    oneOf(pap).deletePolicy(with(any(String.class))); inSequence(sequence1);
 		    oneOf(binding).unbind(with(equal("/documents/"+randomFolderNorm)));inSequence(sequence1);
-		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.folder.delete")));inSequence(sequence1);
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(DocumentService.SERVICE_NAME,CollaborationFolder.RESOURCE_NAME,"delete"))));inSequence(sequence1);
 		}
 	    });
 
@@ -353,6 +358,8 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 		    oneOf(membership).getProfilePathForConnectedIdentifier();will(returnValue("/profiles/jayblanc"));inSequence(sequence1);
 		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),with(equal("/documents")), with(equal("delete")));inSequence(sequence1);
 		    oneOf(binding).lookup(with(equal("/documents")));will(returnValue(paramsFolder.get(0)));inSequence(sequence1);
+		    // mock broswer.hasChildren(()
+		    oneOf(browser).hasChildren(with(any(String.class)));will(returnValue(false));inSequence(sequence1);
 		    // mock WS
 		    HashMap<String, Object> resultMap = new HashMap<String, Object>();
 		    resultMap.put("statusCode", "SUCCESS");
@@ -362,7 +369,7 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 		    oneOf(binding).getProperty(with(equal("/documents")), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); inSequence(sequence1);
 		    oneOf(pap).deletePolicy(with(any(String.class))); inSequence(sequence1);
 		    oneOf(binding).unbind(with(equal("/documents")));inSequence(sequence1);
-		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("collaboration.folder.delete")));inSequence(sequence1);
+		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(DocumentService.SERVICE_NAME,CollaborationFolder.RESOURCE_NAME,"delete"))));inSequence(sequence1);
 		}
 	    });
 

@@ -9,6 +9,13 @@ import javax.naming.NamingEnumeration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+/**
+ * This is a global class for Factory framework. <br/>
+ * This class gives convenient static methods for global framework operations. 
+ *  
+ * @author Jerome Blanchard (jayblanc@gmail.com) 
+ * @date 20 May 2009
+ */
 public class Factory {
 	
 	private static Log logger = LogFactory.getLog(Factory.class);
@@ -25,6 +32,11 @@ public class Factory {
 		}
     }
 	
+	/**
+	 * 
+	 * @return A string array with all available factory services names.
+	 * @throws FactoryException 
+	 */
 	public static String[] listServices() throws FactoryException {
 		try {
 			NamingEnumeration<NameClassPair> enumeration = getJndiContext().list("");
@@ -32,7 +44,7 @@ public class Factory {
 			
 			while ( enumeration.hasMoreElements() ) {
 				String name = ((NameClassPair)enumeration.next()).getName();
-				if ( name.startsWith(FactoryNamingConvention.JNDI_SERVICE_PREFIX) ) {
+				if ( name.startsWith(FactoryNamingConvention.SERVICE_PREFIX) ) {
 					logger.debug("jndi service name found : " + name);
 					result.add(FactoryNamingConvention.getServiceNameFromJNDI(name));
 				}

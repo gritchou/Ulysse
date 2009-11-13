@@ -9,8 +9,10 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.core.CoreService;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -18,11 +20,13 @@ import org.qualipso.factory.FactoryResourceIdentifier;
  */
 @Entity
 @XmlRootElement
-@XmlType(name = "Folder", namespace = "http://org.qualipso.factory.ws/resource/folder", propOrder =  {
+@XmlType(name = Folder.RESOURCE_NAME, namespace = FactoryNamingConvention.RESOURCE_NAMESPACE + Folder.RESOURCE_NAME, propOrder =  {
     "name", "description"}
 )
 @SuppressWarnings("serial")
 public class Folder extends FactoryResource {
+	
+	public static final String RESOURCE_NAME = "folder";
 	
 	@Id
 	private String id;
@@ -74,7 +78,7 @@ public class Folder extends FactoryResource {
 	@Override
 	@XmlTransient
 	public FactoryResourceIdentifier getFactoryResourceIdentifier() {
-		return new FactoryResourceIdentifier("CoreService", "Folder", getId());
+		return new FactoryResourceIdentifier(CoreService.SERVICE_NAME, Folder.RESOURCE_NAME, getId());
 	}
 
 	@Override

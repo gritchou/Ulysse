@@ -73,7 +73,7 @@ public class FakeCommand implements Command {
 		
 		try {
 			Context ctx = new InitialContext();
-			membership = (MembershipService) ctx.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX + "MembershipService");
+			membership = (MembershipService) ctx.lookup(FactoryNamingConvention.getJNDINameForService("membership"));
 			
 			logger.debug("connected as : " + membership.getProfilePathForConnectedIdentifier());
 			err.write(("connected as : " + membership.getProfilePathForConnectedIdentifier() + "\r\n").getBytes());

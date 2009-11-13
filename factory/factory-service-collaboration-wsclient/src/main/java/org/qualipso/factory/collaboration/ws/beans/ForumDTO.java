@@ -4,37 +4,32 @@ import java.util.HashMap;
 
 import org.qualipso.factory.collaboration.ws.CollaborationWSUtils;
 
-public class ForumDTO
-{
+public class ForumDTO {
     private String id;
     private String path;
     private String name;
     // We don't perist the following
     private String date;
     private String status = CollaborationWSUtils.FORUM_STATUS_ACTIVE;
-    private HashMap<String,MessageDTO> messages;
+    private HashMap<String, MessageDTO> messages;
 
-
-    public String getId()
-    {
+    public String getId() {
 	return id;
     }
-    public void setId(String id)
-    {
+
+    public void setId(String id) {
 	this.id = id;
     }
-    public String getName()
-    {
+
+    public String getName() {
 	return name;
     }
 
-    public void setName(String value)
-    {
+    public void setName(String value) {
 	this.name = value;
     }
 
-    public String toString()
-    {
+    public String toString() {
 	StringBuffer sb = new StringBuffer("Forum. Path " + this.path);
 	sb.append("\nID " + this.id);
 	sb.append("\nname " + this.name);
@@ -43,33 +38,27 @@ public class ForumDTO
 	return sb.toString();
     }
 
-    public String getStatus()
-    {
+    public String getStatus() {
 	return status;
     }
 
-    public void setStatus(String status)
-    {
+    public void setStatus(String status) {
 	this.status = status;
     }
 
-    public String getDate()
-    {
+    public String getDate() {
 	return date;
     }
 
-    public void setDate(String date)
-    {
+    public void setDate(String date) {
 	this.date = date;
     }
-    
-    public HashMap<String,MessageDTO> getMessages()
-    {
+
+    public HashMap<String, MessageDTO> getMessages() {
 	return messages;
     }
 
-    public void setMessages(HashMap<String,MessageDTO> messages)
-    {
+    public void setMessages(HashMap<String, MessageDTO> messages) {
 	this.messages = messages;
     }
 }

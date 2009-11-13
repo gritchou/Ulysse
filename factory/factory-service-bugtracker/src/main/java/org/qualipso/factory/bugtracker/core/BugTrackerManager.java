@@ -1,5 +1,3 @@
-package org.qualipso.factory.bugtracker.core;
-
 /**
  * 
  * Copyright (C) 2006-2010 THALES
@@ -12,13 +10,19 @@ package org.qualipso.factory.bugtracker.core;
  * Gregory Cunha from Thales Service, THERESIS Competence Center Open Source Software
  *
  */
+package org.qualipso.factory.bugtracker.core;
+
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.mantisbt.connect.AccessLevel;
 import org.mantisbt.connect.Enumeration;
 import org.mantisbt.connect.IMCSession;
 import org.mantisbt.connect.MCException;
@@ -26,22 +30,24 @@ import org.mantisbt.connect.axis.MCSession;
 import org.mantisbt.connect.model.IIssue;
 import org.mantisbt.connect.model.IMCAttribute;
 import org.mantisbt.connect.model.IProject;
+import org.mantisbt.connect.model.Project;
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.binding.InvalidPathException;
-import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.bugtracker.dto.ConfDataDto;
 import org.qualipso.factory.bugtracker.dto.ConfDataDtoBuilder;
 import org.qualipso.factory.bugtracker.dto.IssueAttributesDto;
 import org.qualipso.factory.bugtracker.dto.IssueAttributesDtoBuilder;
 import org.qualipso.factory.bugtracker.dto.IssueDto;
 import org.qualipso.factory.bugtracker.dto.IssueDtoBuilder;
-import org.qualipso.factory.bugtracker.dto.ProjectDto;
-import org.qualipso.factory.bugtracker.dto.ProjectDtoBuilder;
 import org.qualipso.factory.bugtracker.exception.BugTrackerServiceException;
 import org.qualipso.factory.bugtracker.utils.Utils;
 
 /**
  * BugTrackerManager
+ */
+/**
+ * @author T0090864
+ *
  */
 public class BugTrackerManager implements IBugTrackerManager{
 
@@ -109,36 +115,78 @@ public class BugTrackerManager implements IBugTrackerManager{
 	}
 	
 	
+	
 	/* (non-Javadoc)
-	 * @see org.qualipso.factory.bugtracker.core.IBugTrackerManager#getAllIssues(org.qualipso.factory.FactoryResourceIdentifier, java.lang.String)
+	 * @see org.qualipso.factory.bugtracker.core.IBugTrackerManager#getIssues(org.qualipso.factory.FactoryResourceIdentifier, java.lang.String, java.util.Date, java.util.Date)
 	 */
 	@Override
-	public IssueDto[] getAllIssues(FactoryResourceIdentifier identifier, String projectPath) throws BugTrackerServiceException {
+	public List<IssueExternal> getIssues(FactoryResourceIdentifier identifier,
+			String projectPath, Date dateCreationMin, Date dateModificationMin)
+			throws BugTrackerServiceException {
 		try {
-			long idProjectBugTracker = 0;
-			IssueDto[] dtos = new IssueDto[0];
-			
-			ProjectDto project = findProjectByName(identifier.getId());
-			if (project != null) {
-				idProjectBugTracker = project.getId();
+			long idProjectBugTracker = findIdProjectByName(identifier.getId());
+			List<IssueExternal> issuesToReturn = new ArrayList<IssueExternal>();
+			if (idProjectBugTracker != 0) {
 				IMCSession session = createWSSession();
-				IIssue[] iIssues = session.getProjectIssues(idProjectBugTracker);
-				dtos = IssueDtoBuilder.create(iIssues, projectPath);
+				IIssue[] iAllIssues = session.getProjectIssues(idProjectBugTracker);
+				
+				List<IIssue> allIssues = new ArrayList<IIssue>();
+				
+				if (iAllIssues != null) {
+					allIssues = Utils.copyToList(iAllIssues);
+					logger.debug("getIssues: size allIssues=" + allIssues.size());
+				}
+				
+				//Filter with creation date
+				if (dateCreationMin != null) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("dateCreationMin=" + dateCreationMin);
+					}
+					List<IIssue> issueToRemove = new ArrayList<IIssue>();
+					for (IIssue issue : allIssues) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("issue, id=" + issue.getId() + ", dateCreation=" + issue.getDateSubmitted());
+						}
+						if (issue.getDateSubmitted().before(dateCreationMin)) {
+							logger.debug("issue, id=" + issue.getId() + " excluded");
+							issueToRemove.add(issue);
+						}
+					}
+					allIssues.removeAll(issueToRemove);
+					logger.debug("getIssues: size Issues after filtering creation date=" + allIssues.size());
+				}
+				
+				//Filter with modification date
+				if (dateModificationMin != null) {
+					if (logger.isDebugEnabled()) {
+						logger.debug("dateModificationMin=" + dateModificationMin);
+					}
+					List<IIssue> issueToRemove = new ArrayList<IIssue>();
+					for (IIssue issue : allIssues) {
+						if (logger.isDebugEnabled()) {
+							logger.debug("issue, id=" + issue.getId() + ", dateModification=" + issue.getDateLastUpdated());
+						}
+						if (issue.getDateLastUpdated().before(dateModificationMin)) {
+							logger.debug("issue, id=" + issue.getId() + " excluded");
+							issueToRemove.add(issue);
+						}
+					}
+					allIssues.removeAll(issueToRemove);
+					logger.debug("getIssues: size Issues after filtering modification date=" + allIssues.size());
+				}
+				
+				for (IIssue issue : allIssues) {
+					issuesToReturn.add(convert(issue));
+				}
 			}
 			
-			return dtos;
+			return issuesToReturn;
 		} 
 		catch (MCException e) {
-			logger.error("unable to getAllIssues " + projectPath, e);
+			logger.error("unable to getIssues " + projectPath + ", dateCreationMin " + dateCreationMin + ", dateModificationMin " + dateModificationMin, e);
 			throw new BugTrackerServiceException(
-					"unable to getAllIssues " + projectPath, e);
+					"unable to getIssues " + projectPath + ", dateCreationMin " + dateCreationMin + ", dateModificationMin " + dateModificationMin, e);
 		} 
-		catch (InvalidPathException e) {
-			logger.error("unable to getAllIssues " + projectPath, e);
-			throw new BugTrackerServiceException(
-					"unable to getAllIssues " + projectPath, e);
-		}
-		
 	}
 	
 	
@@ -146,14 +194,11 @@ public class BugTrackerManager implements IBugTrackerManager{
 	 * @see org.qualipso.factory.bugtracker.core.IBugTrackerManager#getIssue(java.lang.String)
 	 */
 	@Override
-	public IssueDto getIssue(String issuePath) throws BugTrackerServiceException {
+	public IssueExternal getIssue(String issuePath) throws BugTrackerServiceException {
 		try {
 			IMCSession session = createWSSession();
 			IIssue iIssue = session.getIssue(Utils.getIdBugTracker(issuePath));
-
-			
-			IssueDto dto = IssueDtoBuilder.create(iIssue, PathHelper.getParentPath(issuePath));
-			return dto;
+			return convert(iIssue);
 		} 
 		catch (MCException e) {
 			logger.error("unable to getIssue " + issuePath, e);
@@ -167,36 +212,44 @@ public class BugTrackerManager implements IBugTrackerManager{
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.qualipso.factory.bugtracker.core.IBugTrackerManager#createProject(org.qualipso.factory.bugtracker.dto.ProjectDto)
+	/**
+	 * Create an external project
+	 * @param name of the project
+	 * @param description of the project
+	 * @return
+	 * @throws BugTrackerServiceException
 	 */
-	@Override
-	public long createProject(ProjectDto project) throws BugTrackerServiceException {
+	private long createExternalProject(String name, String description) throws BugTrackerServiceException {
 		try {
 			IMCSession session = createWSSession();
 			
-			IProject iProject = ProjectDtoBuilder.create(project);
+			IProject iProject = create(name, description);
 			long projectId = session.addProject(iProject);
 			return projectId;
 		} 
 		catch (MCException e) {
-			logger.error("unable to create the project " + project.toString(), e);
+			logger.error("unable to create the project [" + name + ", " + description + "]", e);
 			throw new BugTrackerServiceException(
-					"unable to create the project " + project.toString(), e);
+					"unable to create the project [" + name + ", " + description + "]", e);
 		} 
 	}
 	
-	
-	/* (non-Javadoc)
-	 * @see org.qualipso.factory.bugtracker.core.IBugTrackerManager#findProjectByName(java.lang.String)
+	/**
+	 * Find id project by name
+	 * @param name
+	 * @return
+	 * @throws BugTrackerServiceException
 	 */
-	@Override
-	public ProjectDto findProjectByName(String name) throws BugTrackerServiceException {
+	public long findIdProjectByName(String name) throws BugTrackerServiceException {
 		try {
 			IMCSession session = createWSSession();
 			IProject iproject = session.getProject(name);
-
-			return ProjectDtoBuilder.create(iproject);
+			long idProject = 0;
+			
+			if (iproject != null) {
+				idProject = iproject.getId();
+			}
+			return idProject;
 		} 
 		catch (MCException e) {
 			logger.error("unable to find project to the name " + name, e);
@@ -206,23 +259,32 @@ public class BugTrackerManager implements IBugTrackerManager{
 	}
 	
 	
+	
+	
 	/* (non-Javadoc)
-	 * @see org.qualipso.factory.bugtracker.core.IBugTrackerManager#createIssue(org.qualipso.factory.bugtracker.dto.IssueDto, long)
+	 * @see org.qualipso.factory.bugtracker.core.IBugTrackerManager#createIssue(org.qualipso.factory.bugtracker.dto.IssueDto, org.qualipso.factory.FactoryResourceIdentifier, java.lang.String)
 	 */
 	@Override
-	public long createIssue(IssueDto issue, long projectId) throws BugTrackerServiceException {
+	public String createIssue(IssueDto issue, FactoryResourceIdentifier identifier, String projectPath) throws BugTrackerServiceException {
 		try {
+			//check for project
+			long idProject = findIdProjectByName(identifier.getId());
+			if (idProject == 0) {
+				idProject = createExternalProject(identifier.getId(), projectPath);
+			}
+
+			
 			IMCSession session = createWSSession();
 			
 			IIssue iIssue = IssueDtoBuilder.create(issue, 
-					projectId,
+					idProject,
 					priorities, 
 					resolutions,
 					severities,
 					status
 					);
 			long issueId = session.addIssue(iIssue);
-			return issueId;
+			return String.valueOf(issueId);
 		} 
 		catch (MCException e) {
 			logger.error("unable to create the issue " + issue.toString(), e);
@@ -246,7 +308,7 @@ public class BugTrackerManager implements IBugTrackerManager{
 			if (iIssue.getDateLastUpdated() != null
 					&& iIssue.getDateLastUpdated().getTime() != issue.getDateLastUpdate()) {
 				logger.error("unable to update the issue. " +
-						"Issue is not up to date [" + iIssue.getDateLastUpdated().getTime() + " != " + issue.getDateLastUpdate() + "]");
+						"Issue is not up to date [" + iIssue.getDateLastUpdated() + "] != [" + new Date(issue.getDateLastUpdate()) + "]");
 				throw new BugTrackerServiceException(
 						"unable to update the issue. Issue is not up to date");
 			}
@@ -385,5 +447,69 @@ public class BugTrackerManager implements IBugTrackerManager{
 			}
 		}
 		return map;
+	}
+	
+	/**
+	 * Convert an IIssue to IssueExternal
+	 * @param iIssue
+	 * @return
+	 */
+	private IssueExternal convert(IIssue iIssue) {
+		IssueExternal issue = null;
+		
+		if (iIssue != null) {
+			issue = new IssueExternal();
+			issue.setId(String.valueOf(iIssue.getId()));
+			issue.setSummary(iIssue.getSummary());
+			issue.setDescription(iIssue.getDescription());
+			issue.setDateLastUpdate(iIssue.getDateLastUpdated());
+			issue.setDateCreation(iIssue.getDateSubmitted());
+			issue.setDateLastUpdate(iIssue.getDateLastUpdated());
+			if (iIssue.getPriority() != null) {
+				issue.setPriority(convert(iIssue.getPriority()));
+			}
+			if (iIssue.getResolution() != null) {
+				issue.setResolution(convert(iIssue.getResolution()));
+			}
+			if (iIssue.getSeverity() != null) {
+				issue.setSeverity(convert(iIssue.getSeverity()));
+			}
+			if (iIssue.getStatus() != null) {
+				issue.setStatus(convert(iIssue.getStatus()));
+			}
+		}
+		
+		return issue;
+	}
+	
+	/**
+	 * Create a IProject
+	 * @param dto ProjectDto
+	 * @return IProject
+	 */
+	public IProject create(String name, String description) {
+		final IProject project = new Project();
+		project.setAccessLevelMin(AccessLevel.ANYBODY);
+		project.setDesription(description);
+		project.setName(name);
+		project.setEnabled(true);
+		project.setPrivate(false);
+		return project;
+	}
+	
+	/**
+	 * Create a ConfDataExternal with an IMCAttribute
+	 * @param attribute IMCAttribute
+	 * @return ConfDataExternal
+	 */
+	public ConfDataExternal convert(IMCAttribute attribute) {
+		ConfDataExternal confDataExternal = null;
+		
+		if (attribute != null) {
+			confDataExternal = new ConfDataExternal();
+			confDataExternal.setId(String.valueOf(attribute.getId()));
+			confDataExternal.setName(attribute.getName());
+		}
+		return confDataExternal;
 	}
 }

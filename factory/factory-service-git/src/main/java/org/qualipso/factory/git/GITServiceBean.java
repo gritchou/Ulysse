@@ -49,21 +49,15 @@ import com.healthmarketscience.rmiio.RemoteInputStreamClient;
 import com.healthmarketscience.rmiio.RemoteOutputStream;
 import com.healthmarketscience.rmiio.RemoteOutputStreamClient;
 
-/**
- * @author Jerome Blanchard (jayblanc@gmail.com)
- * @date 22 september 2009
- */
-@Stateless(name = "GIT", mappedName = FactoryNamingConvention.JNDI_SERVICE_PREFIX + "GITService")
-@LocalBinding(jndiBinding=FactoryNamingConvention.JNDI_SERVICE_PREFIX + "GITService-local")
-@WebService(endpointInterface = "org.qualipso.factory.git.GITService", targetNamespace = "http://org.qualipso.factory.ws/service/git", serviceName = "GITService", portName = "GITServicePort")
-@WebContext(contextRoot = "/factory-service-git", urlPattern = "/git")
+@Stateless(name = GITService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + GITService.SERVICE_NAME, description = "descr")
+@LocalBinding(jndiBinding = FactoryNamingConvention.LOCAL_SERVICE_PREFIX + GITService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.git.GITService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + GITService.SERVICE_NAME, serviceName = GITService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_ROOT_MODULE_CONTEXT + "-" + GITService.SERVICE_NAME, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + GITService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class GITServiceBean implements GITService, GITServiceLocal {
 	
-	private static final String SERVICE_NAME = "GITService";
-	private static final String[] RESOURCE_TYPE_LIST = new String[] {"GITRepository"};
 	private static final String REPOSITORIES_FOLDER = "data/git-repositories";
 	private static Log logger = LogFactory.getLog(GITServiceBean.class);
 	
@@ -203,7 +197,7 @@ public class GITServiceBean implements GITService, GITServiceLocal {
 			binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
 			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
 			
-			notification.throwEvent(new Event(path, caller, "GITRepository", "git.git-repository.create", ""));
+			notification.throwEvent(new Event(path, caller, GITRepository.RESOURCE_NAME, Event.buildEventType(GITService.SERVICE_NAME, GITRepository.RESOURCE_NAME, "create"), ""));
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			logger.error("unable to create the git-repository at path " + path, e);
@@ -226,7 +220,7 @@ public class GITServiceBean implements GITService, GITServiceLocal {
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			
-			checkResourceType(identifier, "GITRepository");
+			checkResourceType(identifier, GITRepository.RESOURCE_NAME);
 		
 			GITRepository repository = em.find(GITRepository.class, identifier.getId());
 			if ( repository == null ) {
@@ -234,7 +228,7 @@ public class GITServiceBean implements GITService, GITServiceLocal {
 			}
 			repository.setResourcePath(path);
 			
-			notification.throwEvent(new Event(path, caller, "GITRepository", "git.git-repository.read", ""));
+			notification.throwEvent(new Event(path, caller, GITRepository.RESOURCE_NAME, Event.buildEventType(GITService.SERVICE_NAME, GITRepository.RESOURCE_NAME, "read"), ""));
 			
 			return repository;
 		} catch ( Exception e ) {
@@ -255,7 +249,7 @@ public class GITServiceBean implements GITService, GITServiceLocal {
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			
-			checkResourceType(identifier, "GITRepository");
+			checkResourceType(identifier, GITRepository.RESOURCE_NAME);
 		
 			GITRepository repository = em.find(GITRepository.class, identifier.getId());
 			if ( repository == null ) {
@@ -267,7 +261,7 @@ public class GITServiceBean implements GITService, GITServiceLocal {
 			
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
 			
-			notification.throwEvent(new Event(path, caller, "GITRepository", "git.git-repository.update", ""));
+			notification.throwEvent(new Event(path, caller, GITRepository.RESOURCE_NAME, Event.buildEventType(GITService.SERVICE_NAME, GITRepository.RESOURCE_NAME, "update"), ""));
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			logger.error("unable to update the git repository at path " + path, e);
@@ -287,7 +281,7 @@ public class GITServiceBean implements GITService, GITServiceLocal {
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			
-			checkResourceType(identifier, "GITRepository");
+			checkResourceType(identifier, GITRepository.RESOURCE_NAME);
 		
 			GITRepository repository = em.find(GITRepository.class, identifier.getId());
 			if ( repository == null ) {
@@ -301,7 +295,7 @@ public class GITServiceBean implements GITService, GITServiceLocal {
 
 			binding.unbind(path);
 			
-			notification.throwEvent(new Event(path, caller, "GITRepository", "git.git-repository.delete", ""));
+			notification.throwEvent(new Event(path, caller, GITRepository.RESOURCE_NAME, Event.buildEventType(GITService.SERVICE_NAME, GITRepository.RESOURCE_NAME, "delete"), ""));
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			logger.error("unable to delete the git repository at path " + path, e);
@@ -341,7 +335,7 @@ public class GITServiceBean implements GITService, GITServiceLocal {
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			
-			checkResourceType(identifier, "GITRepository");
+			checkResourceType(identifier, GITRepository.RESOURCE_NAME);
 		
 			GITRepository gitRepository = em.find(GITRepository.class, identifier.getId());
 			if ( gitRepository == null ) {
@@ -353,7 +347,7 @@ public class GITServiceBean implements GITService, GITServiceLocal {
 			uploadPack.upload(in, out, messages);
 			repository.close();
 			
-			notification.throwEvent(new Event(path, caller, "GITRepository", "git.git-repository.pull", ""));
+			notification.throwEvent(new Event(path, caller, GITRepository.RESOURCE_NAME, Event.buildEventType(GITService.SERVICE_NAME, GITRepository.RESOURCE_NAME, "pull"), ""));
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			logger.error("unable to pull from the git repository at path " + path, e);
@@ -373,7 +367,7 @@ public class GITServiceBean implements GITService, GITServiceLocal {
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			
-			checkResourceType(identifier, "GITRepository");
+			checkResourceType(identifier, GITRepository.RESOURCE_NAME);
 		
 			GITRepository gitRepository = em.find(GITRepository.class, identifier.getId());
 			if ( gitRepository == null ) {
@@ -385,7 +379,7 @@ public class GITServiceBean implements GITService, GITServiceLocal {
 			receivePack.receive(in, out, messages);
 			repository.close();
 		
-			notification.throwEvent(new Event(path, caller, "GITRepository", "git.git-repository.push", ""));
+			notification.throwEvent(new Event(path, caller, GITRepository.RESOURCE_NAME, Event.buildEventType(GITService.SERVICE_NAME, GITRepository.RESOURCE_NAME, "push"), ""));
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			logger.error("unable to push to the git repository at path " + path, e);
@@ -402,11 +396,11 @@ public class GITServiceBean implements GITService, GITServiceLocal {
 		try {
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			
-			if ( !identifier.getService().equals(SERVICE_NAME) ) {
+			if ( !identifier.getService().equals(GITService.SERVICE_NAME) ) {
 				throw new GITServiceException("Resource " + identifier + " is not managed by " + SERVICE_NAME);
 			}
 			
-			if ( identifier.getType().equals("GITRepository") ) {
+			if ( identifier.getType().equals(GITRepository.RESOURCE_NAME) ) {
 				return readGITRepository(path);
 			} 
 			
@@ -420,17 +414,17 @@ public class GITServiceBean implements GITService, GITServiceLocal {
 
 	@Override
 	public String[] getResourceTypeList() {
-		return RESOURCE_TYPE_LIST;
+		return GITService.RESOURCE_TYPE_LIST;
 	}
 
 	@Override
 	public String getServiceName() {
-		return SERVICE_NAME;
+		return GITService.SERVICE_NAME;
 	}
 	
 	private void checkResourceType(FactoryResourceIdentifier identifier, String resourceType) throws MembershipServiceException {
-		if ( !identifier.getService().equals(getServiceName()) ) {
-			throw new MembershipServiceException("resource identifier " + identifier + " does not refer to service " + getServiceName());
+		if ( !identifier.getService().equals(GITService.SERVICE_NAME) ) {
+			throw new MembershipServiceException("resource identifier " + identifier + " does not refer to service " + GITService.SERVICE_NAME);
 		}
 		if ( !identifier.getType().equals(resourceType) ) {
 			throw new MembershipServiceException("resource identifier " + identifier + " does not refer to a resource of type " + resourceType);

@@ -8,15 +8,17 @@ import org.qualipso.factory.FactoryException;
  * @date 24 july 2009
  */
 
+
 @WebFault
 @SuppressWarnings("serial")
-public class SkillServiceException extends FactoryException{
+
+public class SkillServiceException extends FactoryException {
 	
 	public SkillServiceException(String message, Exception rootCause){
 		super(message,rootCause);
 	}
 	
-	public SkillServiceException(String message) {
+	public SkillServiceException(String message) {		
         super(message);
     }
 
@@ -24,5 +26,4 @@ public class SkillServiceException extends FactoryException{
         super(rootCause);
     }
 
-	
 }

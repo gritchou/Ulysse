@@ -3,6 +3,7 @@ package org.qualipso.factory.test.qualipsoServlet.api;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -20,19 +21,16 @@ public class CTableTest{
 	
 	private static Log logger = LogFactory.getLog(CTableTest.class);
 	
-	public CTableTest()
-	{
-		
-	}
+	public CTableTest(){}
 	
 	/*
 	 * JUnit for different arguments
 	 * ArrayList arguments, message skeleton of the SOAPElement:
-	 * <arg0>
-	 * 	<item>1</item>
-	 *	<item>toto</item>
-	 * 	<item>titi</item>
-	 * </arg0>
+	 * 	<arg0>
+	 * 		<item>1</item>
+	 *		<item>toto</item>
+	 * 		<item>titi</item>
+	 *	 </arg0>
 	 */
 	@Test
 	public void testCTableRequest()
@@ -50,18 +48,17 @@ public class CTableTest{
 
 		try{
 			SOAPElement aTestSoap = message.generateSOAP();
-			System.out.println("test : "+aTestSoap.toString());
-			// read value and attributes
-			//assertNotNull(aTestSoap);
-			//assertNotNull(aTestSoap.getChildNodes());
+			
+			assertNotNull(aTestSoap);
 			assertEquals(3 , aTestSoap.getChildNodes().getLength());
-			//assertNotNull(aTestSoap.getChildNodes().item(1));
-			assertEquals("item",aTestSoap.getChildNodes().item(1).getNodeName());
-			//assertEquals("1",aTestSoap.getChildNodes().item(1).getNodeValue());
-			//assertEquals("item",aTestSoap.getChildNodes().item(2).getNodeName());
-			//assertEquals("toto",aTestSoap.getChildNodes().item(2).getNodeValue());
-			//assertEquals("item",aTestSoap.getChildNodes().item(3).getNodeName());
-			//assertEquals("titi",aTestSoap.getChildNodes().item(3).getNodeValue());
+			
+			assertNotNull(aTestSoap.getElementsByTagName("item"));
+			assertNotNull(aTestSoap.getElementsByTagName("arg0"));
+			
+			assertEquals("item",aTestSoap.getChildNodes().item(0).getNodeName());
+			assertEquals("1",aTestSoap.getChildNodes().item(0).getFirstChild().getNodeValue());
+			assertEquals("toto",aTestSoap.getChildNodes().item(1).getFirstChild().getNodeValue());
+			assertEquals("titi",aTestSoap.getChildNodes().item(2).getFirstChild().getNodeValue());
 		}
 		catch (SOAPException exception)
 		{

@@ -5,9 +5,9 @@ Date 20 May 2009
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
-		<artifactId>factory</artifactId>
+		<artifactId>factory-parent</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.4</version>
+		<version>0.5-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
@@ -53,16 +53,17 @@ Date 20 May 2009
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
 				<version>2.0-beta-7</version>
-				<configuration>
-					<templateFile>${project.parent.basedir}/src/site/resources/qualipso-factory-template.vm
-					</templateFile>
-					<outputDirectory>${project.parent.reporting.outputDirectory}/${name}
-					</outputDirectory>
-				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 	<dependencies>
+		<dependency>
+			<groupId>org.apache.sshd</groupId>
+			<artifactId>sshd-core</artifactId>
+			<version>0.2.0</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
 			<groupId>sun-xacml</groupId>
 			<artifactId>sun-xacml</artifactId>
@@ -103,10 +104,10 @@ Date 20 May 2009
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		<groupId>javax.jms</groupId>
-		<artifactId>jms</artifactId>
-		<version>1.1</version>
-		<scope>provided</scope>
+			<groupId>javax.jms</groupId>
+			<artifactId>jms</artifactId>
+			<version>1.1</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.ws.native</groupId>
@@ -138,11 +139,6 @@ Date 20 May 2009
 			<version>4.5</version>
 			<type>jar</type>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.sshd</groupId>
-			<artifactId>sshd-core</artifactId>
-			<version>0.2.0</version>
 		</dependency>
 	</dependencies>
 </project>

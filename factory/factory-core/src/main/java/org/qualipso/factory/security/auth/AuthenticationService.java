@@ -26,7 +26,9 @@ import javax.ejb.Local;
 @Local
 public interface AuthenticationService {
 	
-    public String getConnectedIdentifier() throws AuthenticationServiceException;
+	public static final String SERVICE_NAME = "authentication";
+	
+	public String getConnectedIdentifier() throws AuthenticationServiceException;
 
     public String[] listConnectedIdentifiers() throws AuthenticationServiceException;
 }
