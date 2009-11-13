@@ -18,33 +18,49 @@ package org.qualipso.factory.indexing;
 
 
 /**
- * @author Jerome Blanchard (jayblanc@gmail.com)
- * @date 20 May 2009
+ * @see IndexableDocumentI
+ * @author Benjamin DREUX
+ * @author cynthia FLORENTIN
  */
-public class IndexableDocument {
+public class IndexableDocument implements IndexableDocumentI{
     public String resourceURI;
     public String resourceService;
     public String resourceType;
     public String resourceShortName;
     public IndexableContent indexableContent;
-
+    
+    /**
+     * @see IndexableDocumentI#getResourceURI()
+     */
     public String getResourceURI() throws IndexingServiceException {
         return resourceURI;
     }
-
+    
+    /**
+     * @see IndexableDocumentI#getResourceService()
+     */
     public String getResourceService() throws IndexingServiceException {
         return resourceService;
     }
-
+    
+    /**
+     * @see IndexableDocumentI#getResourceType()
+     */
     public String getResourceType() throws IndexingServiceException {
         return resourceType;
     }
-
+    
+    /**
+     * @see IndexableDocumentI#getResourceShortName()
+     */
     public String getResourceShortName() throws IndexingServiceException {
         return resourceShortName;
     }
-
-    public IndexableContent getIndexableContent() throws IndexingServiceException {
+    
+    /**
+     * @see IndexableDocumentI#getIndexableContent()
+     */
+    public IndexableContentI getIndexableContent() throws IndexingServiceException {
         return indexableContent;
     }
 }
