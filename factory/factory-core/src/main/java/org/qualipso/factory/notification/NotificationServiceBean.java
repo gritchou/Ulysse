@@ -22,6 +22,7 @@
  */
 package org.qualipso.factory.notification;
 
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Resource;
@@ -174,17 +175,15 @@ public class NotificationServiceBean implements NotificationService {
 
     @Override
     public void register(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException {
-        if(subjectre == null) {
-        	throw new NotificationServiceException("subjectre can't be null");
-        }
-        if(objectre == null) {
-        	throw new NotificationServiceException("objectre can't be null");
-        }
-        if(targetre == null) {
-        	throw new NotificationServiceException("targetre can't be null");
-        }
-        if(queuePath == null) {
-        	throw new NotificationServiceException("queuePath can't be null");
+        if ((subjectre == null) || (objectre == null) || (targetre == null) || (queuePath == null)) 
+            throw new NotificationServiceException("Il existe un paramètre incorrect");
+        Rule[] tmp = list();
+        if (tmp.length != 0) {
+            for (int i = 0; i < tmp.length; i++) {
+                if ((tmp[i].getObjectre().equals(objectre)) && (tmp[i].getQueuePath().equals(queuePath)) && (tmp[i].getSubjectre().equals(subjectre))
+                        && (tmp[i].getTargetre().equals(targetre)))
+                    throw new NotificationServiceException("La ressource existe déja dans la base");
+            }
         }
         Rule r = new Rule();
         r.setSubjectre(subjectre);
@@ -197,19 +196,9 @@ public class NotificationServiceBean implements NotificationService {
 
     @Override
     public void unregister(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException {
-        if(subjectre == null) {
-        	throw new NotificationServiceException("subjectre can't be null");
-        }
-        if(objectre == null) {
-        	throw new NotificationServiceException("objectre can't be null");
-        }
-        if(targetre == null) {
-        	throw new NotificationServiceException("targetre can't be null");
-        }
-        if(queuePath == null) {
-        	throw new NotificationServiceException("queuePath can't be null");
-        }
-        Query q = em.createQuery("select * from Rule where subjectre=:subjectre and objectre=:objectre and targetre=:targetre and queuePath=:queuePath");
+        if ((subjectre == null) || (objectre == null) || (targetre == null) || (queuePath == null))
+            throw new NotificationServiceException("Il existe un paramètre incorrect");
+        Query q = em.createQuery("delete from Rule where subjectre=:subjectre and objectre=:objectre and targetre=:targetre and queuePath=:queuePath");
         q.setParameter("subjectre", subjectre);
         q.setParameter("objectre", objectre);
         q.setParameter("targetre", targetre);
@@ -218,6 +207,16 @@ public class NotificationServiceBean implements NotificationService {
         if (n != 1) {
             logger.warn("can't unregister " + subjectre + "/" + objectre + "/" + queuePath);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Rule[] list() throws NotificationServiceException {
+        Query q = em.createQuery("select * from Rule");
+        List<Rule> l = q.getResultList();
+        Rule[] tab = new Rule[l.size()];
+        tab = l.toArray(tab);
+        return tab;
     }
 
     @Override

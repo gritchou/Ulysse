@@ -29,6 +29,7 @@ import javax.jws.soap.SOAPBinding;
 
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.notification.entity.Rule;
 
 @Remote
 @WebService(name = "NotificationService", targetNamespace = "http://org.qualipso.factory.ws/service/notification")
@@ -43,5 +44,8 @@ public interface NotificationService extends FactoryService {
     
     @WebMethod
     public void throwEvent(Event e) throws NotificationServiceException;
+    
+    @WebMethod
+    public Rule[] list() throws NotificationServiceException;
 
 }
