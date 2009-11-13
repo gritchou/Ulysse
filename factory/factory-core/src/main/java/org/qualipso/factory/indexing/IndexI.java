@@ -6,9 +6,9 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 
 @Local
 public interface IndexI {
-	public void index(FactoryResourceIdentifier fri) throws IndexingServiceException;
+	public void index(IndexableDocument doc ) throws IndexingServiceException;
 
-    public void reindex(FactoryResourceIdentifier fri) throws IndexingServiceException;
+    public void reindex(FactoryResourceIdentifier fri, IndexableDocument doc) throws IndexingServiceException;
 
     public void remove(FactoryResourceIdentifier fri) throws IndexingServiceException;
 
