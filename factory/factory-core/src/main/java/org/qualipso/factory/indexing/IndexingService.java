@@ -29,11 +29,36 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 @Local
 
 public interface IndexingService {
+	/**
+	 * Index the resource identified by the given factoryResourceIdentifier, or
+	 * throws an IndexingServiceException if an error occurs.
+	 * @param fri The identifier of the resource.
+	 * @throws IndexingServiceException if the message can't be send to the JMS queue.
+	 */
 	public void index(FactoryResourceIdentifier fri) throws IndexingServiceException;
 
+	/**
+	 * Update the indexed data of the resource identified by the given
+	 * FactoryResourceIdentfier, or throws an IndexingServiceExcpetion if an
+	 * error occurs.
+	 * @param fri the identifier of the resource.
+	 * @throws IndexingServiceExcpetion if the message can't be send to the JMS queue.
+	 */
     public void reindex(FactoryResourceIdentifier fri) throws IndexingServiceException;
 
+    /**
+     * Remove the resource's indexing data from the index, or throws 
+     * an IndexingServiceExcpetion if an error occurs.
+     * @param fri the identifier of the resource.
+     * @throws IndexingServiceException if the message can't be send to the queue.
+     */
     public void remove(FactoryResourceIdentifier fri) throws IndexingServiceException;
-
+    
+    /**
+     * Search in the index a match to the query.
+     * @param query the query to run the index against. This query use the Lucene syntax.
+     * @return A list of SearchResult. Each result match to the query.
+     * @throws IndexingServiceException
+     */
     public ArrayList<SearchResult> search(String query) throws IndexingServiceException;
 }
