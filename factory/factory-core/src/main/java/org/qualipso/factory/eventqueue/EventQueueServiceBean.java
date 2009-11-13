@@ -286,9 +286,9 @@ public class EventQueueServiceBean implements EventQueueService {
         logger.debug("params : name=" + name);
         String path = getEventQueuePathFromName(name);
         try {
-            String caller = membership.getProfilePathForConnectedIdentifier();
-            pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
-
+            
+        	String caller = membership.getProfilePathForConnectedIdentifier();
+        	pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
             EventQueue evq = new EventQueue();
             evq.setEvents(new ArrayList<Event>());
             evq.setName(name);

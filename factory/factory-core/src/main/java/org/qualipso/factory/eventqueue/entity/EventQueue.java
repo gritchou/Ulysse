@@ -17,7 +17,7 @@ import org.qualipso.factory.eventqueue.entity.Event;
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 11 june 2009
  */
-// @Entity
+//@Entity
 // @XmlType(name = "EventQueue", namespace =
 // "http://org.qualipso.factory.ws/resource/eventqueue", propOrder = {"events"}
 // )
