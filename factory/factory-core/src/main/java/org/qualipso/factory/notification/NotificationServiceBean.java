@@ -52,23 +52,19 @@ import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.binding.BindingService;
-import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.notification.entity.Rule;
 import org.qualipso.factory.security.auth.AuthenticationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
 
-@Stateless(name = "Notification", mappedName = FactoryNamingConvention.SERVICE_PREFIX + "NotificationService")
-@WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace = "http://org.qualipso.factory.ws/service/notification", serviceName = "NotificationService", portName = "NotificationServicePort")
-@WebContext(contextRoot = "/factory-core", urlPattern = "/notification")
+@Stateless(name = NotificationService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + NotificationService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace =  FactoryNamingConvention.SERVICE_NAMESPACE + NotificationService.SERVICE_NAME, serviceName = NotificationService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + NotificationService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class NotificationServiceBean implements NotificationService {
-
-    private static final String SERVICE_NAME = "NotificationService";
-    private static final String[] RESOURCE_TYPE_LIST = new String[] {};
 
     private static Log logger = LogFactory.getLog(NotificationServiceBean.class);
 
@@ -78,10 +74,9 @@ public class NotificationServiceBean implements NotificationService {
     private AuthenticationService authentication;
     private SessionContext ctx;
     private EntityManager em;
-    private EventQueueService eventQueue;
-    @Resource(mappedName = "jms/ConnectionFactory")
+    @Resource(mappedName = "ConnectionFactory")
     private static ConnectionFactory connectionFactory;
-    @Resource(mappedName = "jms/EventMessageQueue")
+    @Resource(mappedName = "queue/EventMessageQueue")
     private static Queue queue;
 
     public NotificationServiceBean() {
@@ -141,7 +136,6 @@ public class NotificationServiceBean implements NotificationService {
         return this.authentication;
     }
 
-
     public static void setConnectionFactory(ConnectionFactory c) {
         connectionFactory = c;
     }
@@ -149,7 +143,7 @@ public class NotificationServiceBean implements NotificationService {
     public static ConnectionFactory getConnectionFactory() {
         return connectionFactory;
     }
-    
+
     public static void setQueue(Queue q) {
         queue = q;
     }
@@ -175,7 +169,7 @@ public class NotificationServiceBean implements NotificationService {
 
     @Override
     public void register(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException {
-        if ((subjectre == null) || (objectre == null) || (targetre == null) || (queuePath == null)) 
+        if ((subjectre == null) || (objectre == null) || (targetre == null) || (queuePath == null))
             throw new NotificationServiceException("Il existe un paramètre incorrect");
         Rule[] tmp = list();
         if (tmp.length != 0) {

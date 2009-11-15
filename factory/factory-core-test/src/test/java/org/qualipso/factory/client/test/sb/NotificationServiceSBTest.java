@@ -11,12 +11,16 @@ import javax.naming.InitialContext;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jboss.security.auth.callback.UsernamePasswordHandler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qualipso.factory.FactoryNamingConvention;
+import org.qualipso.factory.bootstrap.BootstrapService;
+import org.qualipso.factory.bootstrap.BootstrapServiceException;
 import org.qualipso.factory.client.test.AllTests;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
@@ -33,6 +37,7 @@ import org.qualipso.factory.notification.NotificationServiceException;
  * @date 7 october 2009
  */
 public class NotificationServiceSBTest {
+    private static Log logger = LogFactory.getLog(NotificationServiceSBTest.class);
     private static Context context;
     private static NotificationService notification;
     private static GreetingService greeting;
@@ -56,15 +61,22 @@ public class NotificationServiceSBTest {
         properties.put("java.naming.provider.url", "localhost:1099");
         System.setProperty("java.security.auth.login.config", ClassLoader.getSystemResource("jaas.config").getPath());
         context = new InitialContext(properties);
+        
+        BootstrapService bootstrap = (BootstrapService) context.lookup(FactoryNamingConvention.getJNDINameForService("bootstrap"));
+        try {
+            bootstrap.bootstrap();
+        } catch (BootstrapServiceException e) {
+            logger.error(e);
+        }
 
         UsernamePasswordHandler uph = new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS);
         LoginContext loginContext = new LoginContext("qualipso", uph);
         loginContext.login();
 
-        notification = (NotificationService) context.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX + "NotificationService");
-        eqs = (EventQueueService) context.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX + "EventQueueService");
+        notification = (NotificationService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + NotificationService.SERVICE_NAME);
+        eqs = (EventQueueService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + EventQueueService.SERVICE_NAME);
         greeting = (GreetingService) context.lookup("GreetingService");
-        membership = (MembershipService) context.lookup(FactoryNamingConvention.JNDI_SERVICE_PREFIX + "MembershipService");
+        membership = (MembershipService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + MembershipService.SERVICE_NAME);
     }
 
     @Before

@@ -106,6 +106,12 @@ Date 20 May 2009
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-service-greeting</artifactId>
+			<version>0.2.3-SNAPSHOT</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.jboss.ws.native</groupId>
 			<artifactId>jbossws-native-client</artifactId>
 			<version>3.0.5.GA</version>

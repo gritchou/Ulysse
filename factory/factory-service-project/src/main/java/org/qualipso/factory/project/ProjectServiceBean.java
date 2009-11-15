@@ -41,7 +41,7 @@ import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.membership.MembershipService;
-import org.qualipso.factory.notification.Event;
+import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.project.entity.Project;
 import org.qualipso.factory.security.pap.PAPService;

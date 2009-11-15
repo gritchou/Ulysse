@@ -29,23 +29,19 @@ import javax.jws.WebMethod;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.eventqueue.entity.*;
 
-/**
- * Provides a time service for the factory.
- * 
- * @author <a href="mailto:christophe.bouthier@loria.fr">Christophe Bouthier</a>
- * @date 27 July 2009
- */
-
 @Remote
-@WebService(name = "EventQueueService", targetNamespace = "http://org.qualipso.factory.ws/service/eventqueue")
+@WebService(name = EventQueueService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + EventQueueService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface EventQueueService extends FactoryService {
-
-    public static final String PROFILES_PATH = "/eventqueues";
-
+    
+    public static final String SERVICE_NAME = "eventqueue";
+    public static final String[] RESOURCE_TYPE_LIST = new String[] { "EventQueue" };
+    
+    public static final String QUEUES_PATH = "/queues";
     
     /**
      * 
