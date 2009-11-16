@@ -8,6 +8,7 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import org.jboss.ejb3.annotation.SecurityDomain;
 import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.FactoryService;
 
 
 @MessageDriven(
@@ -26,7 +27,7 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 public class IndexingMessageBean implements MessageListener{
 	
 	@Resource
-    private MessageDrivenContext msgDrivCtx;
+    private MessageDrivenContext ctx;
 	
 	private Index index;
 	
@@ -49,12 +50,12 @@ public class IndexingMessageBean implements MessageListener{
 
 	
 	private void index(FactoryResourceIdentifier fri) throws IndexingServiceException {
-		index.index(fri);
+		index.index(toIndexableDocument(fri));
 		
 	}
 
 	private void reindex(FactoryResourceIdentifier fri) throws IndexingServiceException {
-		index.reindex(fri);
+		index.reindex(fri, toIndexableDocument(fri));
 		
 	}
 
@@ -62,7 +63,40 @@ public class IndexingMessageBean implements MessageListener{
 		index.remove(fri);	
 		
 	}
-
+	private FactoryService getService(FactoryResourceIdentifier fri) throws IndexingServiceException{
+		FactoryService fs = (FactoryService)ctx.lookup(fri.getService());
+		if (fs == null)
+			throw new IndexingServiceException("Unable to locate Service "+fri.getService());
+		else
+			return fs;
+	}
+	private IndexableDocument toIndexableDocument(FactoryResourceIdentifier fri) throws IndexingServiceException{
+		FactoryService fs = this.getService(fri);
+		String resourceFRI = fri.toString();
+		String resourceService = fri.getService();
+		String resourceType  = fri.getType();
+		String resourceShortName = fri.getId();
+		
+		
+		//TODO
+		//	this implem need to be replace by the following
+		
+		//real
+		//this one mean that toIndexableContent must be in the interface
+		//FactoryService
+		//IndexableContent indexableContent = fs.toIndexableContent(fri);
+		
+		
+		//dummy implem
+		IndexableContent indexableContent = new IndexableContent();
+		IndexableDocument doc = new IndexableDocument();
+		doc.setIndexableContent(indexableContent);
+		doc.setResourceService(resourceService);
+		doc.setResourceShortName(resourceShortName);
+		doc.setResourceType(resourceType);
+		doc.setResourceFRI(resourceFRI);
+		return doc;
+	}
 
 
 }

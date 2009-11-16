@@ -22,6 +22,7 @@
  */
 package org.qualipso.factory.notification;
 
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Resource;
@@ -51,23 +52,19 @@ import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.binding.BindingService;
-import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.notification.entity.Rule;
 import org.qualipso.factory.security.auth.AuthenticationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
 
-@Stateless(name = "Notification", mappedName = FactoryNamingConvention.SERVICE_PREFIX + "NotificationService")
-@WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace = "http://org.qualipso.factory.ws/service/notification", serviceName = "NotificationService", portName = "NotificationServicePort")
-@WebContext(contextRoot = "/factory-core", urlPattern = "/notification")
+@Stateless(name = NotificationService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + NotificationService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace =  FactoryNamingConvention.SERVICE_NAMESPACE + NotificationService.SERVICE_NAME, serviceName = NotificationService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + NotificationService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class NotificationServiceBean implements NotificationService {
-
-    private static final String SERVICE_NAME = "NotificationService";
-    private static final String[] RESOURCE_TYPE_LIST = new String[] {};
 
     private static Log logger = LogFactory.getLog(NotificationServiceBean.class);
 
@@ -77,10 +74,9 @@ public class NotificationServiceBean implements NotificationService {
     private AuthenticationService authentication;
     private SessionContext ctx;
     private EntityManager em;
-    private EventQueueService eventQueue;
-    @Resource(mappedName = "jms/ConnectionFactory")
+    @Resource(mappedName = "ConnectionFactory")
     private static ConnectionFactory connectionFactory;
-    @Resource(mappedName = "jms/EventMessageQueue")
+    @Resource(mappedName = "queue/EventMessageQueue")
     private static Queue queue;
 
     public NotificationServiceBean() {
@@ -140,7 +136,6 @@ public class NotificationServiceBean implements NotificationService {
         return this.authentication;
     }
 
-
     public static void setConnectionFactory(ConnectionFactory c) {
         connectionFactory = c;
     }
@@ -148,7 +143,7 @@ public class NotificationServiceBean implements NotificationService {
     public static ConnectionFactory getConnectionFactory() {
         return connectionFactory;
     }
-    
+
     public static void setQueue(Queue q) {
         queue = q;
     }
@@ -174,17 +169,15 @@ public class NotificationServiceBean implements NotificationService {
 
     @Override
     public void register(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException {
-        if(subjectre == null) {
-        	throw new NotificationServiceException("subjectre can't be null");
-        }
-        if(objectre == null) {
-        	throw new NotificationServiceException("objectre can't be null");
-        }
-        if(targetre == null) {
-        	throw new NotificationServiceException("targetre can't be null");
-        }
-        if(queuePath == null) {
-        	throw new NotificationServiceException("queuePath can't be null");
+        if ((subjectre == null) || (objectre == null) || (targetre == null) || (queuePath == null))
+            throw new NotificationServiceException("Il existe un paramètre incorrect");
+        Rule[] tmp = list();
+        if (tmp.length != 0) {
+            for (int i = 0; i < tmp.length; i++) {
+                if ((tmp[i].getObjectre().equals(objectre)) && (tmp[i].getQueuePath().equals(queuePath)) && (tmp[i].getSubjectre().equals(subjectre))
+                        && (tmp[i].getTargetre().equals(targetre)))
+                    throw new NotificationServiceException("La ressource existe déja dans la base");
+            }
         }
         Rule r = new Rule();
         r.setSubjectre(subjectre);
@@ -197,19 +190,9 @@ public class NotificationServiceBean implements NotificationService {
 
     @Override
     public void unregister(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException {
-        if(subjectre == null) {
-        	throw new NotificationServiceException("subjectre can't be null");
-        }
-        if(objectre == null) {
-        	throw new NotificationServiceException("objectre can't be null");
-        }
-        if(targetre == null) {
-        	throw new NotificationServiceException("targetre can't be null");
-        }
-        if(queuePath == null) {
-        	throw new NotificationServiceException("queuePath can't be null");
-        }
-        Query q = em.createQuery("select * from Rule where subjectre=:subjectre and objectre=:objectre and targetre=:targetre and queuePath=:queuePath");
+        if ((subjectre == null) || (objectre == null) || (targetre == null) || (queuePath == null))
+            throw new NotificationServiceException("Il existe un paramètre incorrect");
+        Query q = em.createQuery("delete from Rule where subjectre=:subjectre and objectre=:objectre and targetre=:targetre and queuePath=:queuePath");
         q.setParameter("subjectre", subjectre);
         q.setParameter("objectre", objectre);
         q.setParameter("targetre", targetre);
@@ -218,6 +201,16 @@ public class NotificationServiceBean implements NotificationService {
         if (n != 1) {
             logger.warn("can't unregister " + subjectre + "/" + objectre + "/" + queuePath);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Rule[] list() throws NotificationServiceException {
+        Query q = em.createQuery("select * from Rule");
+        List<Rule> l = q.getResultList();
+        Rule[] tab = new Rule[l.size()];
+        tab = l.toArray(tab);
+        return tab;
     }
 
     @Override

@@ -286,7 +286,7 @@ public class IndexingServiceSBTest{
 		ArrayList<SearchResult> result = indexing.search("forge");
 		for(int i =0; i<result.size();i++){
 			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friB));
-			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friFB));			}
+			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friFB));
 		}
 		
 	}

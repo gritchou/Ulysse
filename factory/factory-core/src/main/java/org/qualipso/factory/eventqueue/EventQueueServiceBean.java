@@ -23,7 +23,6 @@ package org.qualipso.factory.eventqueue;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Resource;
@@ -49,13 +48,13 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.core.CoreServiceException;
+import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.eventqueue.entity.EventQueue;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
-import org.qualipso.factory.eventqueue.entity.Event;
-import org.qualipso.factory.eventqueue.entity.EventQueue;
 
 /**
  * Implementation of the ClockService. Provides a time service for the factory.
@@ -63,16 +62,15 @@ import org.qualipso.factory.eventqueue.entity.EventQueue;
  * @author <a href="mailto:christophe.bouthier@loria.fr">Christophe Bouthier</a>
  * @date 27 July 2009
  */
-@Stateless(name = "EventQueue", mappedName = FactoryNamingConvention.SERVICE_PREFIX + "EventQueueService")
-@WebService(endpointInterface = "org.qualipso.factory.eventqueue.EventQueueService", targetNamespace = "http://org.qualipso.factory.ws/service/eventqueue", serviceName = "EventQueueService", portName = "EventQueueServicePort")
-@WebContext(contextRoot = "/factory-core", urlPattern = "/eventqueue")
+@Stateless(name = EventQueueService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + EventQueueService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.eventqueue.EventQueueService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE
+        + EventQueueService.SERVICE_NAME, serviceName = EventQueueService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX
+        + EventQueueService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class EventQueueServiceBean implements EventQueueService {
-
-    private static final String SERVICE_NAME = "EventQueueService";
-    private static final String[] RESOURCE_TYPE_LIST = new String[] { "EventQueue" };
 
     private static Log logger = LogFactory.getLog(EventQueueServiceBean.class);
 
@@ -243,18 +241,16 @@ public class EventQueueServiceBean implements EventQueueService {
      */
     @Override
     public Event[] getEvents(String path) throws EventQueueServiceException {
-        
-        
+
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "read");
 
                 EventQueue eventqueue = em.find(EventQueue.class, identifier.getId());
-                if (eventqueue == null)
-                {
+                if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
 
@@ -317,7 +313,7 @@ public class EventQueueServiceBean implements EventQueueService {
      * @return le path de l event queue associé au nom name
      */
     private String getEventQueuePathFromName(String name) {
-        return PROFILES_PATH + "/" + name;
+        return QUEUES_PATH + "/" + name;
     }
 
     /**
@@ -337,7 +333,7 @@ public class EventQueueServiceBean implements EventQueueService {
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "update");
 
@@ -374,7 +370,7 @@ public class EventQueueServiceBean implements EventQueueService {
 
         FactoryResourceIdentifier identifier = binding.lookup(path);
 
-        if (identifier.getType().equals("EventQueue")) {
+        if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
             String caller = membership.getProfilePathForConnectedIdentifier();
             pep.checkSecurity(caller, path, "read");
 
@@ -388,19 +384,14 @@ public class EventQueueServiceBean implements EventQueueService {
 
         throw new EventQueueServiceException("Resource " + identifier + " is not managed by Event Queue Service");
     }
-    
-    
-    
-    
-    
-    
+
     @Override
     public Event getLastEvent(String path) throws EventQueueServiceException {
-       
+
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "read");
 
@@ -408,24 +399,22 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
-                int size=eventqueue.getEvents().size();
-                Event[] evq=new Event[size];
+
+                int size = eventqueue.getEvents().size();
+                Event[] evq = new Event[size];
                 evq = eventqueue.getEvents().toArray(evq);
-                Event result = evq[size-1];
+                Event result = evq[size - 1];
                 return result;
-                
-                
-            }else{
+
+            } else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to get Last Event", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to get Last Event", e);
         }
-        
-     
+
     }
 
     /**
@@ -450,12 +439,12 @@ public class EventQueueServiceBean implements EventQueueService {
 
     @Override
     public void deleteEvent(String path, Event e) throws EventQueueServiceException {
-        
+
         FactoryResourceIdentifier identifier;
-        
+
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "update");
 
@@ -463,47 +452,43 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
-                int size=eventqueue.getEvents().size();
-                Event[] evq=new Event[size];
+
+                int size = eventqueue.getEvents().size();
+                Event[] evq = new Event[size];
                 evq = eventqueue.getEvents().toArray(evq);
-              
-                
-                
-            }else{
+
+            } else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception ex ) {
+        } catch (Exception ex) {
             logger.error("unable to delete Event", ex);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to delete Event", ex);
         }
-        
+
     }
 
-
-    
-    
-    
-    
-    
-    
     /**
      * 
      * return an array of event that have or contains the same ressourceType
-     * @param path  path of the EventQueue
-     * @param ressourceType  the type of resource event 
-     * @param substring  true if typeRssource contains parameter typeRessource, false if typeRssource contains exactly the parameter typeRessource
-     * @return  array of event
+     * 
+     * @param path
+     *            path of the EventQueue
+     * @param ressourceType
+     *            the type of resource event
+     * @param substring
+     *            true if typeRssource contains parameter typeRessource, false
+     *            if typeRssource contains exactly the parameter typeRessource
+     * @return array of event
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByRessourceType(String path, String ressourceType,boolean substring) throws EventQueueServiceException{
-        
+    public Event[] findEventByRessourceType(String path, String ressourceType, boolean substring) throws EventQueueServiceException {
+
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "read");
 
@@ -511,64 +496,65 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
-                
+
                 ArrayList<Event> resultContains = new ArrayList<Event>();
                 ArrayList<Event> resultEquals = new ArrayList<Event>();
-                
-                ArrayList<Event> listEvent= eventqueue.getEvents();
-                Iterator it = listEvent.iterator();
-               
-                while (it.hasNext()){    
-                    Event ev = (Event) it.next();
-                    
-                    if(substring == true && ev.getResourceType().contains(ressourceType) ){
+
+                ArrayList<Event> listEvent = eventqueue.getEvents();
+                Iterator<Event> it = listEvent.iterator();
+
+                while (it.hasNext()) {
+                    Event ev = it.next();
+
+                    if (substring == true && ev.getResourceType().contains(ressourceType)) {
                         resultContains.add(ev);
-                        
+
                     }
-                    
-                    if(substring == false && ev.getResourceType().equals(ressourceType) ){
+
+                    if (substring == false && ev.getResourceType().equals(ressourceType)) {
                         resultEquals.add(ev);
-                    }    
-               }
-               
-                
-                if(substring==true){
-                return (Event[]) (resultContains.toArray());
-                } 
-                else{
+                    }
+                }
+
+                if (substring == true) {
+                    return (Event[]) (resultContains.toArray());
+                } else {
                     return (Event[]) (resultEquals.toArray());
                 }
             }
-                
-                
-   
-            else{
+
+            else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to  find Event By Ressource Type", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to  find Event By Ressource Type", e);
         }
-        
+
     }
 
     /**
-        return an array of event that have or contains the same thrower
-     * @param path  path of the EventQueue
-     * @param thrower thrower of event 
-     * @param substring  true if thrower contains the string parameter thrower , false if thrower contains exactly the parameter thrower.
-     * @return  array of event (return an array of event that have or contains the same thrower)
+     * return an array of event that have or contains the same thrower
+     * 
+     * @param path
+     *            path of the EventQueue
+     * @param thrower
+     *            thrower of event
+     * @param substring
+     *            true if thrower contains the string parameter thrower , false
+     *            if thrower contains exactly the parameter thrower.
+     * @return array of event (return an array of event that have or contains
+     *         the same thrower)
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventBythrower(String path, String thrower,boolean substring) throws EventQueueServiceException{
-        
+    public Event[] findEventBythrower(String path, String thrower, boolean substring) throws EventQueueServiceException {
+
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "read");
 
@@ -576,41 +562,36 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
-                
+
                 ArrayList<Event> resultContains = new ArrayList<Event>();
                 ArrayList<Event> resultFalse = new ArrayList<Event>();
-                
-                ArrayList<Event> listEvent= eventqueue.getEvents();
-                Iterator it = listEvent.iterator();
-               
-                while (it.hasNext()){    
-                    Event ev = (Event) it.next();
-                    
-                    if(substring == true && ev.getThrowedBy().contains(thrower) ){
+
+                ArrayList<Event> listEvent = eventqueue.getEvents();
+                Iterator<Event> it = listEvent.iterator();
+
+                while (it.hasNext()) {
+                    Event ev = it.next();
+
+                    if (substring == true && ev.getThrowedBy().contains(thrower)) {
                         resultContains.add(ev);
                     }
-                    
-                    if(substring == false && ev.getThrowedBy().equals(thrower) ){
+
+                    if (substring == false && ev.getThrowedBy().equals(thrower)) {
                         resultFalse.add(ev);
-                    }    
-               }
-               
-                
-                if(substring == true){
-                return (Event[]) (resultContains.toArray());
-                } 
-                else{
+                    }
+                }
+
+                if (substring == true) {
+                    return (Event[]) (resultContains.toArray());
+                } else {
                     return (Event[]) (resultFalse.toArray());
                 }
             }
-                
-                
-   
-            else{
+
+            else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to find Event By thrower", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to find Event By thrower", e);
@@ -619,18 +600,24 @@ public class EventQueueServiceBean implements EventQueueService {
 
     /**
      * 
-     * @param path path of the EventQueue
-     * @param fromRessource fromRessource of event
-     * @param substring true if fromRessource contains the string parameter fromRessource , false if thrower contains exactly the parameter fromRessource.
-     * @return array of event (  return an array of event that have or contains the same fromRessource )
+     * @param path
+     *            path of the EventQueue
+     * @param fromRessource
+     *            fromRessource of event
+     * @param substring
+     *            true if fromRessource contains the string parameter
+     *            fromRessource , false if thrower contains exactly the
+     *            parameter fromRessource.
+     * @return array of event ( return an array of event that have or contains
+     *         the same fromRessource )
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByfromRessource(String path, String fromRessource,boolean substring) throws EventQueueServiceException{
+    public Event[] findEventByfromRessource(String path, String fromRessource, boolean substring) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "read");
 
@@ -638,60 +625,57 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
-                
+
                 ArrayList<Event> resultContains = new ArrayList<Event>();
                 ArrayList<Event> resultFalse = new ArrayList<Event>();
-                
-                ArrayList<Event> listEvent= eventqueue.getEvents();
-                Iterator it = listEvent.iterator();
-               
-                while (it.hasNext()){    
-                    Event ev = (Event) it.next();
-                    
-                    if(substring == true && ev.getFromResource().contains(fromRessource) ){
+
+                ArrayList<Event> listEvent = eventqueue.getEvents();
+                Iterator<Event> it = listEvent.iterator();
+
+                while (it.hasNext()) {
+                    Event ev = it.next();
+
+                    if (substring == true && ev.getFromResource().contains(fromRessource)) {
                         resultContains.add(ev);
                     }
-                    
-                    if(substring == false && ev.getFromResource().equals(fromRessource) ){
+
+                    if (substring == false && ev.getFromResource().equals(fromRessource)) {
                         resultFalse.add(ev);
-                    }    
-               }
-               
-                
-                if(substring == true){
-                return (Event[]) (resultContains.toArray());
-                } 
-                else{
+                    }
+                }
+
+                if (substring == true) {
+                    return (Event[]) (resultContains.toArray());
+                } else {
                     return (Event[]) (resultFalse.toArray());
                 }
             }
-                
-                
-   
-            else{
+
+            else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to find Event By from Ressource", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to find Event By from Ressource", e);
         }
     }
 
-   /**
-    * 
-    * @param path path of the EventQueue 
-    * @param date date of the event
-    * @return array of event (  return an array of event having the same date )
-    * @throws EventQueueServiceException
-    */
+    /**
+     * 
+     * @param path
+     *            path of the EventQueue
+     * @param date
+     *            date of the event
+     * @return array of event ( return an array of event having the same date )
+     * @throws EventQueueServiceException
+     */
     @WebMethod
-    public Event[] findEventByDate(String path, Date date ) throws EventQueueServiceException{
+    public Event[] findEventByDate(String path, Date date) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "read");
 
@@ -699,51 +683,51 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
-                
+
                 ArrayList<Event> result = new ArrayList<Event>();
-               
-                
-                ArrayList<Event> listEvent= eventqueue.getEvents();
-                Iterator it = listEvent.iterator();
-               
-                while (it.hasNext()){    
-                    Event ev = (Event) it.next();
-                    if(ev.getDate().equals(date)){
+
+                ArrayList<Event> listEvent = eventqueue.getEvents();
+                Iterator<Event> it = listEvent.iterator();
+
+                while (it.hasNext()) {
+                    Event ev = it.next();
+                    if (ev.getDate().equals(date)) {
                         result.add(ev);
                     }
-                    
-                    
-               }
 
-                    return (Event[]) (result.toArray());  
+                }
+
+                return (Event[]) (result.toArray());
             }
 
-            else{
+            else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to find Event By Date", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to find Event By Date", e);
         }
-        
+
     }
 
     /**
      * 
-     * @param path path of the EventQueue 
-     * @param date date of the event
-     * @return array of event (return an array of event having date superior or equal of the parameter date )
+     * @param path
+     *            path of the EventQueue
+     * @param date
+     *            date of the event
+     * @return array of event (return an array of event having date superior or
+     *         equal of the parameter date )
      * @throws EventQueueServiceException
      */
-    
+
     @WebMethod
-    public Event[] findEventByDateSup(String path, Date date ) throws EventQueueServiceException{
+    public Event[] findEventByDateSup(String path, Date date) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "read");
 
@@ -751,49 +735,49 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
-                
+
                 ArrayList<Event> result = new ArrayList<Event>();
-               
-                
-                ArrayList<Event> listEvent= eventqueue.getEvents();
-                Iterator it = listEvent.iterator();
-               
-                while (it.hasNext()){    
+
+                ArrayList<Event> listEvent = eventqueue.getEvents();
+                Iterator<Event> it = listEvent.iterator();
+
+                while (it.hasNext()) {
                     Event ev = (Event) it.next();
-                    if(ev.getDate().before(date) || ev.getDate().equals(date)){
+                    if (ev.getDate().before(date) || ev.getDate().equals(date)) {
                         result.add(ev);
                     }
-                    
-                    
-               }//while
 
-                    return (Event[]) (result.toArray());  
+                }// while
+
+                return (Event[]) (result.toArray());
             }
 
-            else{
+            else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to find Event By DateSup", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to find Event By DateSup", e);
         }
     }
 
-   /**
-    * 
-    * @param path path of the EventQueue 
-    * @param date date date of the event
-    * @return array of event (return an array of event having date lesser or equal of the parameter date )
-    * @throws EventQueueServiceException
-    */
+    /**
+     * 
+     * @param path
+     *            path of the EventQueue
+     * @param date
+     *            date date of the event
+     * @return array of event (return an array of event having date lesser or
+     *         equal of the parameter date )
+     * @throws EventQueueServiceException
+     */
     @WebMethod
-    public Event[] findEventByDateInf(String path, Date date ) throws EventQueueServiceException{
+    public Event[] findEventByDateInf(String path, Date date) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "read");
 
@@ -801,30 +785,27 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
-                
+
                 ArrayList<Event> result = new ArrayList<Event>();
-               
-                
-                ArrayList<Event> listEvent= eventqueue.getEvents();
-                Iterator it = listEvent.iterator();
-               
-                while (it.hasNext()){    
-                    Event ev = (Event) it.next();
-                    if(ev.getDate().after(date) || ev.getDate().equals(date)){
+
+                ArrayList<Event> listEvent = eventqueue.getEvents();
+                Iterator<Event> it = listEvent.iterator();
+
+                while (it.hasNext()) {
+                    Event ev = it.next();
+                    if (ev.getDate().after(date) || ev.getDate().equals(date)) {
                         result.add(ev);
                     }
-                    
-                    
-               }//while
 
-                    return (Event[]) (result.toArray());  
+                }// while
+
+                return (Event[]) (result.toArray());
             }
 
-            else{
+            else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to find Event By DateInf", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to find Event By DateInf", e);
@@ -833,18 +814,22 @@ public class EventQueueServiceBean implements EventQueueService {
 
     /**
      * 
-     * @param path path of the EventQueue 
-     * @param date1 date of the event
-     * @param date2 date of the event
-     * @return array of event (return an array of event having date between date1 and date2 where date1<= date2)
+     * @param path
+     *            path of the EventQueue
+     * @param date1
+     *            date of the event
+     * @param date2
+     *            date of the event
+     * @return array of event (return an array of event having date between
+     *         date1 and date2 where date1<= date2)
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByDateBetween(String path, Date date1,Date date2 ) throws EventQueueServiceException{
+    public Event[] findEventByDateBetween(String path, Date date1, Date date2) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "read");
 
@@ -852,37 +837,33 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
-                
+
                 ArrayList<Event> result = new ArrayList<Event>();
-               
-                
-                ArrayList<Event> listEvent= eventqueue.getEvents();
-                Iterator it = listEvent.iterator();
-               
-                while (it.hasNext()){    
-                    Event ev = (Event) it.next();
-                    if((ev.getDate().before(date1) ||ev.getDate().equals(date1)) && (ev.getDate().after(date2)||ev.getDate().equals(date2)) ){
+
+                ArrayList<Event> listEvent = eventqueue.getEvents();
+                Iterator<Event> it = listEvent.iterator();
+
+                while (it.hasNext()) {
+                    Event ev = it.next();
+                    if ((ev.getDate().before(date1) || ev.getDate().equals(date1)) && (ev.getDate().after(date2) || ev.getDate().equals(date2))) {
                         result.add(ev);
                     }
-                    
-                    
-               }//while
 
-                    return (Event[]) (result.toArray());  
+                }// while
+
+                return (Event[]) (result.toArray());
             }
 
-            else{
+            else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to find Event By Date Between", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to find Event By Date Between", e);
         }
     }
 
-   
     /**
      * 
      * @param path
@@ -892,11 +873,11 @@ public class EventQueueServiceBean implements EventQueueService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByEventType(String path,String eventType,boolean substring ) throws EventQueueServiceException{
+    public Event[] findEventByEventType(String path, String eventType, boolean substring) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "read");
 
@@ -904,55 +885,49 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
-                
+
                 ArrayList<Event> resultContains = new ArrayList<Event>();
                 ArrayList<Event> resultEquals = new ArrayList<Event>();
-                
-                ArrayList<Event> listEvent= eventqueue.getEvents();
-                Iterator it = listEvent.iterator();
-               
-                while (it.hasNext()){    
-                    Event ev = (Event) it.next();
-                    
-                    if(substring == true && ev.getEventType().contains(eventType) ){
+
+                ArrayList<Event> listEvent = eventqueue.getEvents();
+                Iterator<Event> it = listEvent.iterator();
+
+                while (it.hasNext()) {
+                    Event ev = it.next();
+
+                    if (substring == true && ev.getEventType().contains(eventType)) {
                         resultContains.add(ev);
                     }
-                    
-                    if(substring == false && ev.getEventType().equals(eventType) ){
+
+                    if (substring == false && ev.getEventType().equals(eventType)) {
                         resultEquals.add(ev);
-                    }    
-               }//while
-               
-                
-                if(substring == true){
-                return (Event[]) (resultContains.toArray());
-                } 
-                else{
+                    }
+                }// while
+
+                if (substring == true) {
+                    return (Event[]) (resultContains.toArray());
+                } else {
                     return (Event[]) (resultEquals.toArray());
                 }
             }
-                
-                
-   
-            else{
+
+            else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to find Event By EventType", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to find Event By EventType", e);
         }
     }
 
+    public Event[] findObjectEvent(String path, Event event) throws EventQueueServiceException {
 
-public Event []  findObjectEvent(String path, Event event) throws EventQueueServiceException {
-       
         FactoryResourceIdentifier identifier;
-        
+
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "read");
 
@@ -960,32 +935,30 @@ public Event []  findObjectEvent(String path, Event event) throws EventQueueServ
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
+
                 ArrayList<Event> result = new ArrayList<Event>();
-                ArrayList<Event> listEvent= eventqueue.getEvents();
-                Iterator it = listEvent.iterator();
-               
-                while (it.hasNext()){    
-                    Event ev = (Event) it.next();
-                    if(ev.equals(event)){
-                    result.add(ev);
+                ArrayList<Event> listEvent = eventqueue.getEvents();
+                Iterator<Event> it = listEvent.iterator();
+
+                while (it.hasNext()) {
+                    Event ev = it.next();
+                    if (ev.equals(event)) {
+                        result.add(ev);
                     }
                 }
-                
+
                 return (Event[]) (result.toArray());
-            } 
-   
-            else{
+            }
+
+            else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to find Object Event", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to find Object Event", e);
         }
-}
-     
-
+    }
 
     @Override
     public void removeQueue(String path) throws EventQueueServiceException {
@@ -993,7 +966,7 @@ public Event []  findObjectEvent(String path, Event event) throws EventQueueServ
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
-            if (identifier.getType().equals("EventQueue")) {
+            if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "update");
 
@@ -1001,38 +974,30 @@ public Event []  findObjectEvent(String path, Event event) throws EventQueueServ
                 if (eventqueue == null) {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
-                
- 
-                
+
                 em.remove(eventqueue);
-              
-            }else{
+
+            } else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to remove  event queue", e);
             ctx.setRollbackOnly();
             throw new EventQueueServiceException("unable to create an event queue", e);
         }
-        
+
     }
-    
-    
-    
+
     @WebMethod
-    public Event[] findEventBySimpleParameter(String path,String eventType,String thrower, String resourceType, String fromRessource, Date date, boolean dateSup,boolean dateInf ) throws EventQueueServiceException{
+    public Event[] findEventBySimpleParameter(String path, String eventType, String thrower, String resourceType, String fromRessource, Date date,
+            boolean dateSup, boolean dateInf) throws EventQueueServiceException {
         return null;
     }
 
     @WebMethod
-    public Event[] findEventByComposedParameter(String path,String eventType,String thrower, String resourceType, String fromRessource, Date date1, Date date2 ) throws EventQueueServiceException{
+    public Event[] findEventByComposedParameter(String path, String eventType, String thrower, String resourceType, String fromRessource, Date date1, Date date2)
+            throws EventQueueServiceException {
         return null;
     }
-
-    
-    
-    
-    
-    
 
 }

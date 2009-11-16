@@ -22,7 +22,7 @@ import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.notification.entity.Rule;
 
-@MessageDriven(mappedName = "jms/EventMessageQueue", activationConfig = {
+@MessageDriven(mappedName = "queue/EventMessageQueue", activationConfig = {
     @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
     @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/EventMessageQueue"),
     @ActivationConfigProperty(propertyName = "messagingType", propertyValue = "javax.jms.MessageListener") })
