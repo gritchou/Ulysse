@@ -12,17 +12,11 @@
  * License along with this software; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
- *
- * Initial authors :
- *
- * Jérôme Blanchard / INRIA
- * Christophe Bouthier / INRIA
- * Pascal Molli / Nancy Université
- * Gérald Oster / Nancy Université
+ * 
  */
 package org.qualipso.factory.client.test.sb;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -44,6 +38,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qualipso.factory.FactoryException;
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
@@ -58,30 +53,39 @@ import org.qualipso.factory.indexing.IndexingServiceException;
 import org.qualipso.factory.indexing.SearchResult;
 import org.qualipso.factory.greeting.GreetingService;
 import org.qualipso.factory.greeting.GreetingServiceException;
+import org.qualipso.factory.bootstrap.BootstrapService;
+import org.qualipso.factory.bootstrap.BootstrapServiceException;
 
-
+/**
+ * 
+ * Functionnal tests for the indexing service bean
+ * 
+ * @author Benjamin Dreux / Nancy UHP
+ * @author Anthony Claudot / Nancy UHP
+ * @author Philippe Schmucker / Nancy UHP
+ * 
+ */
 public class IndexingServiceSBTest{
+
 	private static Log logger = LogFactory.getLog(IndexingServiceSBTest.class);
 	private static Context context;
 	private static LoginContext loginContext;
 	private static IndexingService indexing;
 	private static MembershipService membership;
 	private static GreetingService greeting; 
-	private static PAPServiceHelper paph;
 	private static BindingService binding;
-	private FactoryResourceIdentifier friB, friF, friT, friFB;
-
-	static String id;
-	private FactoryResourceIdentifier fri;
+	private FactoryResourceIdentifier friB, friF, friFB;
 
 
 	/**
-	 * Set up service for all tests.
-	 * @throws MembershipServiceException 
-	 * @throws GreetingServiceException 
+	 * Set up service for all tests and log in as kermit thefrog.
+	 * 
+	 * @throws NamingException exception thrown when a naming problem occurs
+	 * @throws LoginException exception thrown when the login fails
+	 * @throws MembershipServiceException When the creation of profile toto fails, a MembershipServiceException will be thrown
 	 */
 	@BeforeClass
-	public static void before() throws NamingException, LoginException, MembershipServiceException, GreetingServiceException {
+	public static void before() throws NamingException, LoginException, MembershipServiceException {
 		Properties properties = new Properties();
 		properties.put("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
 		properties.put("java.naming.factory.url.pkgs", "org.jboss.naming:org.jnp.interfaces");
@@ -89,20 +93,32 @@ public class IndexingServiceSBTest{
 		System.setProperty("java.security.auth.login.config", ClassLoader.getSystemResource("jaas.config").getPath());
 		context = new InitialContext(properties);
 
+		BootstrapService bootstrap = (BootstrapService) context.lookup(FactoryNamingConvention.getJNDINameForService("bootstrap"));
+		try {
+			bootstrap.bootstrap();
+		} catch (BootstrapServiceException e) {
+			logger.error(e);
+		}
+
 		UsernamePasswordHandler uph = new UsernamePasswordHandler("kermit", "thefrog"); 
 		loginContext = new LoginContext("tests", uph);
 		loginContext.login();
 
 		indexing = (IndexingService) context.lookup("IndexingService");
 		binding = (BindingService) context.lookup("BindingService");
-		paph = (PAPServiceHelper) context.lookup("PAPServiceHelper");
 		greeting=(GreetingService) context.lookup("GreetingService");
 		membership = (MembershipService) context.lookup("MembershipService");
 		membership.createProfile("toto", "toto titi", "toto@gmail.com", 0);
 
 	}
 
-
+	/**
+	 * Delete the profile toto, log out, and close the context
+	 * 
+	 * @throws NamingException
+	 * @throws LoginException exception thrown when the logout fails
+	 * @throws MembershipServiceException When the deletion of profile toto fails, a MembershipServiceException will be thrown
+	 */
 	@AfterClass
 	public static void after() throws LoginException, NamingException, MembershipServiceException {
 		membership.deleteProfile("toto");
@@ -111,213 +127,213 @@ public class IndexingServiceSBTest{
 		context.close();
 	}
 
+	/**
+	 * Set up the context before each test. We create 4 resources Name and get their FactoryResourceIdentifier
+	 * 
+	 * @throws NamingException
+	 * @throws FactoryException
+	 * @throws InterruptedException
+	 */
 	@Before
-	public void setUp() throws NamingException, FactoryException {
+	public void setUp() throws NamingException, FactoryException, InterruptedException {
 		greeting.createName("/profiles/kermit/bug", "bug");
 		greeting.createName("/profiles/kermit/forge", "forge");
 		greeting.createName("/profiles/kermit/tm", "tm");
 		greeting.createName("/profiles/kermit/forge_bug", "forge_bug");
+		
+		// Waiting 1 second for the asynchronous call of the indexation
+		Thread.sleep(1000);
+		
 		friB =  binding.lookup("/profiles/kermit/bug");
 		friF =  binding.lookup("/profiles/kermit/forge");
-		friT =  binding.lookup("/profiles/kermit/tm");
 		friFB = binding.lookup("/profiles/kermit/forge_bug");
-
-
 	}
+	
+	/**
+	 * After each test, we delete these 4 resources
+	 * 
+	 * @throws MembershipServiceException
+	 * @throws GreetingServiceException
+	 */
 	@After
 	public void tearDown() throws MembershipServiceException, GreetingServiceException{
-		greeting.deleteName("/profiles/kermit/bug")   ;
-		greeting.deleteName("/profiles/kermit/forge")   ;
+		greeting.deleteName("/profiles/kermit/bug");
+		greeting.deleteName("/profiles/kermit/forge");
 		greeting.deleteName("/profiles/kermit/tm");
 		greeting.deleteName("/profiles/kermit/forge_bug");   
 	}
 
-
+/* ****************************** TESTS ****************************** */
 	
 	/**
 	 * Test if a resource can be found by the resource owner
-	 * @throws IndexingServiceException
 	 * 
+	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
 	public void testIndexingSearchOwnedResource() throws IndexingServiceException{
-		logger.debug("testing indexing search a owned resource(...)");
+		logger.debug("Testing search of an owned resource");
 		ArrayList<SearchResult> result = indexing.search("bug AND forge");
-		for(int i =0; i<result.size();i++){
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friB));
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friF));
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friT));
-			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friFB));
-
-		}
 		
+		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
+		assertEquals("The expected result should be the resource BUG and FORGE", friFB, result.get(0).getResourceIdentifier());
 	}
 	
 	/**
 	 * Test if a client who doesn't have the right to read the resource can't find it
-	 * @throws InvalidPathException, PathNotFoundException, BindingServiceException, IndexingServiceException
-	 * */
+	 * 
+	 * @throws InvalidPathException
+	 * @throws PathNotFoundException
+	 * @throws BindingServiceException
+	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
+	 */
 	@Test
-	public void testIndexingSearchNotOwnedResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, IndexingServiceException{
-		logger.debug("testing indexing search a not owned resource(...)");
-		String policy = PAPServiceHelper.buildPolicy("1", "/profiles/kermit", "/profiles/kermit/friF", new String[]{""});
-		binding.setProperty("/profiles/resource",FactoryResourceProperty.POLICY_ID, policy);
+	public void testIndexingSearchReadNotAllowedResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, IndexingServiceException{
+		logger.debug("Testing search of a resource on which we don't have the right to read");
+		String policy = PAPServiceHelper.buildPolicy("1", "/profiles/kermit", "/profiles/kermit/friFB", new String[]{""});
+		binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
 		ArrayList<SearchResult> result = indexing.search("bug AND forge");
-		for(int i =0; i<result.size();i++){
-			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friB));
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friF));
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friT));
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friFB));
-		}
+		
+		assertEquals("The ArrayList should be empty", 0, result.size());
+		
 		binding.setProperty("/profiles/resource",FactoryResourceProperty.OWNER, "/profiles/kermit");
 	}
 	
 	/**
 	 * Test if a client who has the right to read the resource can find it. This method give the ownership to user toto,
-	 *  and keep the read right for kermit.
-	 * @throws InvalidPathException, PathNotFoundException, BindingServiceException, IndexingServiceException
+	 * and keep the read right for kermit.
+	 * 
+	 * @throws InvalidPathException
+	 * @throws PathNotFoundException
+	 * @throws BindingServiceException
+	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
 	public void testIndexingSearchReadableResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, IndexingServiceException{
-		logger.debug("testing indexing search a readable resource(...)");
-		String policy = PAPServiceHelper.buildPolicy("1", "/profiles/kermit", "/profiles/kermit/friF", new String[]{"read"});
-		binding.setProperty("/profiles/kermit/friF",FactoryResourceProperty.POLICY_ID, policy);
-		binding.setProperty("/profiles/kermit/friF",FactoryResourceProperty.OWNER, "/profiles/toto");
-		ArrayList<SearchResult> result;
-		result = indexing.search("bug AND forge");
-
-		for(int i =0; i<result.size();i++){
-			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friB));
-			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friF));
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friT));
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friFB));
-		}
+		logger.debug("Testing search of a readable resource");
+		String policy = PAPServiceHelper.buildPolicy("1", "/profiles/kermit", "/profiles/kermit/friFB", new String[]{"read"});
+		binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.OWNER, "/profiles/toto");
+		binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
+		ArrayList<SearchResult> result = indexing.search("bug AND forge");
+		
+		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
+		assertEquals("The expected result should be the resource BUG and FORGE", friFB, result.get(0).getResourceIdentifier());
 	}
-
 	
 	/**
 	 * test if an inexistent resource can't be found by the caller
-	 * @throws IndexingServiceException
+	 * 
+	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
 	public void testIndexingSearchInexistantResource() throws IndexingServiceException {
-		logger.debug("testing indexing search an inexistant resource(...)");
+		logger.debug("Testing search of an inexistant resource");
 		ArrayList<SearchResult> result = indexing.search("titi");
-		assertEquals(result.size(),0);
+		
+		assertEquals("The ArrayList should be empty", 0, result.size());
 	}
 	
 	/**
 	 * Test if resource can be found with just a part of the content
-	 * @throws IndexingServiceException
+	 * 
+	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
 	public void testIndexingSearchHalfContent() throws IndexingServiceException {
-		logger.debug("testing indexing search a resource(...)");
+		logger.debug("Testing search of a resource with one keyword");
 		ArrayList<SearchResult> result = indexing.search("bug");
-		
-		for(int i =0; i<result.size();i++){
-			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friB));
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friF));
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friT));
-			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friFB));
+		// build the list of FactoryResourceIdentifier from the SearchResult list
+		ArrayList<FactoryResourceIdentifier> resources = new ArrayList<FactoryResourceIdentifier>();
+		for (SearchResult res : result){
+			resources.add(res.getResourceIdentifier());
 		}
 		
+		assertEquals("The ArrayList should contain exactly two results", 2, resources.size());
+		assertTrue("The ArrayList should contain the resource BUG", resources.contains(friB));
+		assertTrue("The ArrayList should contain the resource BUG and FORGE", resources.contains(friFB));
 	}
 
-	
 	/**
 	 * Test if resource can be found with just a part or an other of the content
-	 * @throws IndexingServiceException
+	 * 
+	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
 	public void testIndexingSearchOr() throws IndexingServiceException {
-		logger.debug("testing indexing search with OR");
+		logger.debug("Testing search with operator OR");
 		ArrayList<SearchResult> result = indexing.search("bug OR forge");
-		for(int i =0; i<result.size();i++){
-			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friB));
-			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friF));
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friT));
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friFB));
+		// build the list of FactoryResourceIdentifier from the SearchResult list
+		ArrayList<FactoryResourceIdentifier> resources = new ArrayList<FactoryResourceIdentifier>();
+		for (SearchResult res : result){
+			resources.add(res.getResourceIdentifier());
 		}
+		
+		assertEquals("The ArrayList should contains exactly three results", 3, resources.size());
+		assertTrue("The ArrayList should contain the resource BUG", resources.contains(friB));
+		assertTrue("The ArrayList should contain the resource FORGE", resources.contains(friF));
+		assertTrue("The ArrayList should contain the resource BUG and FORGE", resources.contains(friFB));
 	}
 
-	
 	/**
 	 * Test if resource can't be found with negation of the content
-	 * @throws IndexingServiceException
+	 * 
+	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
 	public void testIndexingNotContent() throws IndexingServiceException{
-		logger.debug("testing indexing search an inexistant resource(...)");
+		logger.debug("Testing search with operator NOT");
 		ArrayList<SearchResult> result = indexing.search("NOT bug");
-		
-		for(int i =0; i<result.size();i++){
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friB));
-			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friF));
-			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friT));
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friFB));
+		// build the list of FactoryResourceIdentifier from the SearchResult list
+		ArrayList<FactoryResourceIdentifier> resources = new ArrayList<FactoryResourceIdentifier>();
+		for (SearchResult res : result){
+			resources.add(res.getResourceIdentifier());
 		}
+		
+		assertEquals("The ArrayList should contains exactly three results", 2, resources.size());
+		assertFalse("The ArrayList should not contain the resource BUG", resources.contains(friB));
+		assertFalse("The ArrayList should not contain the resource BUG and FORGE", resources.contains(friFB));
 	}
 	
-	
 	/**
-	 * Test update of index when update of resource occur
-	 * @throws GreetingServiceException, IndexingServiceException
+	 * Test update of index when update of the resource occurs
+	 * 
+	 * @throws GreetingServiceException
+	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
+	 * @throws InterruptedException
 	 */
 	@Test
-	public void testUpdateindex() throws GreetingServiceException, IndexingServiceException{
+	public void testUpdateIndex() throws GreetingServiceException, IndexingServiceException, InterruptedException {
 		logger.debug("Testing update index");
 		greeting.updateName("/profiles/kermit/forge", "egrof");
+		// Waiting 1 second for the asynchronous call of the reindexation
+		Thread.sleep(1000);
 		ArrayList<SearchResult> result = indexing.search("egrof");
-		for(int i =0; i<result.size();i++){
-			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friF));
-		}
+		
+		assertEquals("The ArrayList should contains exactly one result", 1, result.size());
+		assertEquals("The expected result should be the resource FORGE", friF, result.get(0).getResourceIdentifier());
 	}
 	
-	
 	/**
-	 * Test search deleted resource
-	 * @throws GreetingServiceException, IndexingServiceException
+	 * Test search of deleted resource
+	 * 
+	 * @throws GreetingServiceException
+	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
+	 * @throws InterruptedException
 	 */
 	@Test
-	public void testDeletedSearch() throws GreetingServiceException, IndexingServiceException{
-		logger.debug("Testing update index");
+	public void testDeletedSearch() throws GreetingServiceException, IndexingServiceException, InterruptedException {
+		logger.debug("Testing delete index");
 		greeting.deleteName("/profiles/kermit/forge");
+		// Waiting 1 second for the asynchronous call of the deletion in index
+		Thread.sleep(1000);
 		ArrayList<SearchResult> result = indexing.search("forge");
-		for(int i =0; i<result.size();i++){
-			assertFalse(result.get(i).getResourceIdentifier().toString().equals(friB));
-			assertTrue(result.get(i).getResourceIdentifier().toString().equals(friFB));
-		}
+        ArrayList<FactoryResourceIdentifier> resources = new ArrayList<FactoryResourceIdentifier>();
+        for (SearchResult res : result){
+            resources.add(res.getResourceIdentifier());
+        }
 		
-	}
-	
-	/**
-	 * Test update an not indexed resource. Here we use a greetingService.createNameE
-	 *  which act normal but use a reIndex operation instead of an index operation.
-	 * @ throws IndexingServiceException, GreetingServiceException
-	 */
-	@Test(expected=IndexingServiceException.class)
-	public void testupdateNotIndexedResource() throws IndexingServiceException, GreetingServiceException{
-		logger.debug("Testing update index");
-		greeting.deleteName("/profiles/kermit/forge");
-		greeting.createName("/profiles/kermit/frogeR", "forgeR");
-		
-	}
-	
-	/**
-	 * Test a full disk issue. This test use  a specific greetingService.createNamei. 
-	 * This operation act like it might but don't add the new name to the entity manager
-	 * @ throws GreetingServiceException, IndexingServiceException
-	 */
-	@Test(expected=IndexingServiceException.class)
-	public void testFullDisk() throws GreetingServiceException, IndexingServiceException{
-		
-		int i = 0;
-		while(true){
-			
-			greeting.createName("/profiles/kermit/bug"+i, "bug"+i);
-			i++;
-		}
+		assertEquals("The ArrayList should contain exactly one result", 1, resources.size());
+		assertFalse("The ArrayList should not contain the resource FORGE", resources.contains(friF));
 	}
 	
 }
