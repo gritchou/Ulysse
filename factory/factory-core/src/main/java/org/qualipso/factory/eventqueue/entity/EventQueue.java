@@ -20,24 +20,14 @@ import org.qualipso.factory.eventqueue.entity.Event;
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 11 june 2009
  */
-//<<<<<<< HEAD
-//@Entity
-// @XmlType(name = "EventQueue", namespace =
-// "http://org.qualipso.factory.ws/resource/eventqueue", propOrder = {"events"}
-// )
-// @SuppressWarnings("serial")
-//=======
 @Entity
-@XmlType(name = EventQueue.RESOURCE_NAME, namespace =
-    FactoryNamingConvention.RESOURCE_NAMESPACE + EventQueue.RESOURCE_NAME, propOrder = {"events"}
- )
-//>>>>>>> 3b6d2a530ae356f4a66594e8d806041e31b792b7
+@XmlType(name = EventQueue.RESOURCE_NAME, namespace = FactoryNamingConvention.RESOURCE_NAMESPACE + EventQueue.RESOURCE_NAME, propOrder = { "events" })
 public class EventQueue extends FactoryResource {
-    
+
     public static final String RESOURCE_NAME = "eventqueue";
 
     private static final long serialVersionUID = 8866543643223847878L;
-    
+
     @Id
     private String name;
     private String path;

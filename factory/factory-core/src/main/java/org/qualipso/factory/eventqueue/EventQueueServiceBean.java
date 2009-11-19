@@ -282,9 +282,9 @@ public class EventQueueServiceBean implements EventQueueService {
         logger.debug("params : name=" + name);
         String path = getEventQueuePathFromName(name);
         try {
-            
-        	String caller = membership.getProfilePathForConnectedIdentifier();
-        	pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
+
+            String caller = membership.getProfilePathForConnectedIdentifier();
+            pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
             EventQueue evq = new EventQueue();
             evq.setEvents(new ArrayList<Event>());
             evq.setName(name);
@@ -696,8 +696,16 @@ public class EventQueueServiceBean implements EventQueueService {
                     }
 
                 }
-
-                return (Event[]) (result.toArray());
+                System.out.println(result.toString());
+                
+                Event[] tab = new Event[result.size()];
+                int i =0;
+                while(i<result.size()){
+                    tab[i] = result.get(i);
+                    i++;
+                }
+                //return (Event[]) (result.toArray());
+                return tab;
             }
 
             else {
@@ -749,7 +757,15 @@ public class EventQueueServiceBean implements EventQueueService {
 
                 }// while
 
-                return (Event[]) (result.toArray());
+                //return (Event[]) (result.toArray());
+                
+                Event[] tab = new Event[result.size()];
+                int i =0;
+                while(i<result.size()){
+                    tab[i] = result.get(i);
+                    i++;
+                }
+                return tab;
             }
 
             else {
@@ -799,7 +815,13 @@ public class EventQueueServiceBean implements EventQueueService {
 
                 }// while
 
-                return (Event[]) (result.toArray());
+                Event[] tab = new Event[result.size()];
+                int i =0;
+                while(i<result.size()){
+                    tab[i] = result.get(i);
+                    i++;
+                }
+                return tab;
             }
 
             else {
@@ -841,17 +863,34 @@ public class EventQueueServiceBean implements EventQueueService {
                 ArrayList<Event> result = new ArrayList<Event>();
 
                 ArrayList<Event> listEvent = eventqueue.getEvents();
+                System.out.println(" listEvent size: "+listEvent.size());
                 Iterator<Event> it = listEvent.iterator();
-
+                System.out.println("date 1 :"+date1.getTime());
+                System.out.println("date 2 :"+date2.getTime());
                 while (it.hasNext()) {
                     Event ev = it.next();
-                    if ((ev.getDate().before(date1) || ev.getDate().equals(date1)) && (ev.getDate().after(date2) || ev.getDate().equals(date2))) {
+                    System.out.println("date ev :"+ev.getDate().getTime());
+
+                    // correction d'un bug concernant date1 et date2 et inversé
+//                    if (((ev.getDate().before(date1)) || (ev.getDate().equals(date1))) && ((ev.getDate().after(date2)) || (ev.getDate().equals(date2)))) {
+//                        result.add(ev);
+//                    }
+                    
+                    if((ev.getDate().getTime()>=date1.getTime()) && (ev.getDate().getTime()<=date2.getTime())){
                         result.add(ev);
                     }
+                    
 
                 }// while
 
-                return (Event[]) (result.toArray());
+                Event[] tab = new Event[result.size()];
+                int i =0;
+                while(i<result.size()){
+                    tab[i] = result.get(i);
+                    i++;
+                }
+                System.out.println(tab.length);
+                return tab;
             }
 
             else {
