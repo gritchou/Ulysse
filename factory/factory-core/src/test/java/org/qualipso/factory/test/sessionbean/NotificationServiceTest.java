@@ -19,13 +19,19 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.qualipso.factory.binding.BindingServiceException;
 import org.qualipso.factory.binding.entity.Node;
+import org.qualipso.factory.eventqueue.EventQueueService;
+import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.membership.entity.Profile;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.notification.NotificationServiceBean;
 import org.qualipso.factory.notification.NotificationServiceException;
 import org.qualipso.factory.notification.entity.Rule;
+import org.qualipso.factory.security.pap.PAPServiceException;
+import org.qualipso.factory.security.pep.PEPServiceException;
 
 import com.bm.testsuite.BaseSessionBeanFixture;
 
@@ -45,6 +51,8 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
     private MessageProducer mp;
     private Queue queue;
     private List<Rule> list;
+    private EventQueueService eventqueueservice;
+   
     public static int auto_ack = Session.AUTO_ACKNOWLEDGE;
 
     public NotificationServiceTest() {
@@ -65,6 +73,7 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         mp = mockery.mock(MessageProducer.class);
         queue = mockery.mock(Queue.class);
         list = mockery.mock(List.class);
+        eventqueueservice = mockery.mock(EventQueueService.class);
         getBeanToTest().setEntityManager(em);
         NotificationServiceBean.setConnectionFactory(connectionfactory);
         NotificationServiceBean.setQueue(queue);
@@ -185,6 +194,9 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         try {
             NotificationService service = getBeanToTest();
             service.register(null, "objectre", "targetre", "/li");
+            service.register("subjectre", null, "targetre", "/li");
+            service.register("subjectre", "objectre", null, "/li");
+            service.register("subjectre", "objectre", "targetre", null);
         } catch (NotificationServiceException e) {
 
         }
@@ -274,13 +286,17 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         service.register("subjectre", "objectre", "targetre", "/li");
         try {
             service.unregister(null, "objectre", "targetre", "/li");
+            service.unregister("subjectre", null, "targetre", "/li");
+            service.unregister("subjectre", "objectre", null, "/li");
+            service.unregister("subjectre", "objectre", "targetre", null);
         } catch (NotificationServiceException e) {
 
         }
         mockery.assertIsSatisfied();
     }
 
-    public void testthrowEvent() throws NotificationServiceException, JMSException {
+   
+    public void testthrowEvent() throws NotificationServiceException, JMSException, EventQueueServiceException, MembershipServiceException, PEPServiceException, BindingServiceException, PAPServiceException {
         logger.debug("testing testunregister(...)");
         final Rule[] tab = new Rule[] {};
         final Vector<Object> params1 = new Vector<Object>();
@@ -298,10 +314,17 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
             }
         });
         NotificationService service = getBeanToTest();
-        // créer une queue (mock) (penser à le faire pour les autres tests)
-        
         service.register("subjectre", "objectre", "targetre", "/li");
-
+        
+        // créer une queue (mock) (penser à le faire pour les autres tests)
+        mockery.checking(new Expectations() {
+            {
+                oneOf(eventqueueservice).createEventQueue(with(any(String.class))); 
+                
+            }
+        });
+        eventqueueservice.createEventQueue("/rules/li");
+        
         mockery.checking(new Expectations() {
             {
                 oneOf(connectionfactory).createConnection();
@@ -316,10 +339,21 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
                 oneOf(mp).send(om);
             }
         });
-
-        // penser a faire un event qui matche la regle de la queue
         Event e = new Event("fromRessource", "ressourceType", "eventType", "");
         service.throwEvent(e);
-        // récupérer l'event dans la queue
+        // penser a faire un event qui matche la regle de la queue
+        final Event[] event = new Event[]{e};
+        mockery.checking(new Expectations() {
+            {
+                oneOf(eventqueueservice).getEvents(with(any(String.class))); 
+                will(returnValue(event));
+            }
+        });
+        Event[] ev = eventqueueservice.getEvents("/queues/rules/li");
+        assertEquals(ev[0].getFromResource(),"fromRessource");
+        assertEquals(ev[0].getResourceType(),"ressourceType");
+        assertEquals(ev[0].getEventType(),"eventType");
+        assertEquals(ev[0].getArgs(),"");
+        mockery.assertIsSatisfied();
     }
 }

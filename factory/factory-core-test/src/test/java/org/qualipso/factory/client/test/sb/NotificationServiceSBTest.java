@@ -81,14 +81,14 @@ public class NotificationServiceSBTest {
 
     @Before
     public void setUp() throws Exception {
-        pathQueue1 = "/eventQueue/q1";
-        pathQueue2 = "/eventQueue/q2";
+        pathQueue1 = "/q1";
+        pathQueue2 = "/q2";
 
         eqs.createEventQueue(pathQueue1);
         eqs.createEventQueue(pathQueue2);
 
         notification.register("/profiles/*", "/name/*", "greeting.name.create", pathQueue1);
-        notification.register("/profiles/*", "/name/*", "greeting.name.read", pathQueue1);
+        notification.register("/profiles/*", "/name/*", "greeting.name.read", pathQueue2);
     }
 
     @After
@@ -98,8 +98,9 @@ public class NotificationServiceSBTest {
     }
 
     /**
-     * throw one event into one queue and check the event is inserted only in one queue
-     * 
+     * Test Right
+     * Throw one event into one queue and assert the event is inserted only in one queue
+     * the test assert too that no other event appears into the queue
      * @throws Exception
      */
 
@@ -107,40 +108,49 @@ public class NotificationServiceSBTest {
     public void testNotification1() throws Exception {
         
         String caller = membership.getProfilePathForConnectedIdentifier();
-        // greeting.sayHello()
 
         greeting.createName("/name", "toto");
         Event[] lEvent1 = new Event[] {};
 
+        //wait that an event appears into the queue
         while (lEvent1.length == 0) {
             lEvent1 = eqs.getEvents(pathQueue1);
         }
 
         assertTrue(lEvent1.length == 1);
         Event e = lEvent1[0];
-        assertEquals(e.getFromResource(), "/name/toto");
-        assertEquals(e.getEventType(), "greeting.name.create");
-        assertEquals(e.getThrowedBy(), caller);
+        assertEquals("TestNotification1 : event resource expected /name/toto but found "+e.getFromResource(),
+        		e.getFromResource(), "/name/toto");
+        assertEquals("TestNotification1 : event type expected greeting.name.create but found "+e.getEventType(),
+        		e.getEventType(), "greeting.name.create");
+        assertEquals("TestNotification1 : event throwedBy expected "+caller+" but found"+e.getThrowedBy(),
+        		e.getThrowedBy(), caller);
 
         Event[] lEvent2 = eqs.getEvents(pathQueue2);
-        assertTrue(lEvent2.length == 0);
+        assertTrue("TestNotification1 : expected 0 event into queue2("+pathQueue2+") but found "+lEvent2.length,
+        		lEvent2.length == 0);
         
+        Thread.sleep(10);
         //assert that no other events happen
         lEvent1 = eqs.getEvents(pathQueue1);
-        assertTrue(lEvent1.length==1);
+        assertTrue("TestNotification1 : expected 0 event into queue1("+pathQueue1+") but found "+lEvent1.length,
+        		lEvent1.length==1);
     }
 
     /**
-     * throw 10 events into one queue and check the order of these 10 events
+     * Test Right
+     * Throw 10 events into one queue and assert the order of these 10 events
      * 
      * @throws Exception
      */
     @Test(timeout = 100)
-    public void testNotification2() throws Exception {
+    public void testNotificationOrderEvent() throws Exception {
+    	Date beginThrow = new Date();
         for (int i = 0; i < 10; i++) {
             greeting.readName("/name/toto");
         }
-
+        Date endThrow = new Date();
+        
         Event[] lEvent2 = new Event[] {};
         while (lEvent2.length < 9) {
             lEvent2 = eqs.getEvents(pathQueue2);
@@ -151,27 +161,26 @@ public class NotificationServiceSBTest {
         int i = 1;
         boolean dateOrderOk = true;
         while (i < lEvent2.length && dateOrderOk) {
-            dateOrderOk = d.before(lEvent2[i].getDate());
+            assertTrue("TestNotificationOrderEvent : date event "+(i-1)+" must be before event "+i,
+            		d.before(lEvent2[i].getDate()));
+            assertTrue("TestNotificationOrderEvent : event"+ i +" must be after the begin of throw ",
+            		d.after(beginThrow));            
+            assertTrue("TestNotificationOrderEvent : event"+ i +" must be after the begin of throw ",
+            		d.before(endThrow));
+            d = lEvent2[i].getDate();
             i++;
         }
 
-        assertTrue(dateOrderOk);
-
         Event[] lEvent1 = eqs.getEvents(pathQueue1);
-        assertTrue(lEvent1.length == 0);
+        assertTrue("TestNotificationOrderEvent : expected 0 event into queue1("+pathQueue1+") but found "+lEvent1.length+" events",
+        		lEvent1.length == 0);
 
     }
 
-    /**
-     * throw one event matching by 1/2 queue
-     */
-    @Test(timeout = 100)
-    public void testNotification3() {
-        // je pense qu'il y a pas besoin, il est fait avec le 1
-    }
 
     /**
-     * throw one event matching by 0 queue
+     * Test Right
+     * Throw one event matching by 0 queue
      * 
      * @throws InterruptedException
      * @throws GreetingServiceException
@@ -179,16 +188,18 @@ public class NotificationServiceSBTest {
      * @throws NotificationServiceException 
      */
     @Test(timeout = 100)
-    public void testNotification4() throws InterruptedException, GreetingServiceException, EventQueueServiceException, NotificationServiceException {
-        greeting.readName("/name/toto");
+    public void testNotificationEventNotMatching() throws InterruptedException, GreetingServiceException, EventQueueServiceException, NotificationServiceException {
+        greeting.sayHello("/name/toto");
         Thread.sleep(60);
-        assertTrue(eqs.getEvents(pathQueue1).length == 0);
-        assertTrue(eqs.getEvents(pathQueue2).length == 0);
+        assertTrue("TestNotificationEventNotMatching : expected 0 event into queue1("+pathQueue1+") but found "+eqs.getEvents(pathQueue1).length,
+        		eqs.getEvents(pathQueue1).length == 0);
+        assertTrue("TestNotificationEventNotMatching : expected 0 event into queue1("+pathQueue2+") but found "+eqs.getEvents(pathQueue2).length,eqs.getEvents(pathQueue2).length == 0);
 
     }
 
     /**
-     * throw 2 event matching by one queue, but user can read only one event
+     * Test Right
+     * Throw 2 events matching by one queue, but user can read only one event
      * 
      * @throws MembershipServiceException
      * @throws GreetingServiceException 
@@ -196,46 +207,55 @@ public class NotificationServiceSBTest {
      * @throws InterruptedException 
      */
     @Test(timeout = 100)
-    public void testNotification5() throws MembershipServiceException, GreetingServiceException, EventQueueServiceException, InterruptedException {
+    public void testNotificationRightEvent() throws MembershipServiceException, GreetingServiceException, EventQueueServiceException, InterruptedException {
         membership.createProfile("marlene", "marlene", "toto@gmail.com", 0);
         String caller = membership.getProfilePathForConnectedIdentifier();
+        
         greeting.createNameWithUser("/name","toto", "marlene");
         greeting.readName("/name/toto");
         
         Event[] lEvent2 = new Event[] {};
+        
         while (lEvent2.length < 1) {
             lEvent2 = eqs.getEvents(pathQueue2);
         }
         
-        assertTrue(lEvent2.length == 1);
+        assertTrue("TestNotificationRighEvent : expected 1 events into queue2("+pathQueue2+") but found "+lEvent2.length,
+        		lEvent2.length == 1);
         Event e = lEvent2[0];
-        assertEquals(e.getFromResource(), "/name/toto");
-        assertEquals(e.getEventType(), "greeting.name.create");
-        assertEquals(e.getThrowedBy(), caller);
+        assertEquals("TestNotificationRighEvent : event resource expected /name/toto but found "+e.getFromResource(),
+        		e.getFromResource(), "/name/toto");
+        assertEquals("TestNotificationRighEvent : event type expected greeting.name.create but found "+e.getEventType(),
+        		e.getEventType(), "greeting.name.read");
+        assertEquals("TestNotificationRighEvent : event throwedBy expected "+caller+" but found"+e.getThrowedBy(),
+        		e.getThrowedBy(), caller);
         
         Thread.sleep(60);
         
-        assertTrue(eqs.getEvents(pathQueue1).length==0);
+        assertTrue("TestNotificationRighEvent : expected 0 event into queue1 but found "+eqs.getEvents(pathQueue1).length,
+        		eqs.getEvents(pathQueue1).length==0);
     }
     
     /**
-     * throw a null event
+     * Test Boundary
+     * Throw a null event
      * @throws NotificationServiceException 
      */
    @Test(expected=NotificationServiceException.class)
-    public void testNotification6() throws NotificationServiceException{
+    public void testNotificationThrowNull() throws NotificationServiceException{
         greeting.throwNullEvent();
     }
    
    
    /**
-    * throws 2 times the same event
+    * Test Boundary
+    * Throws 2 times the same event
     * @throws MembershipServiceException 
     * @throws NotificationServiceException 
     * @throws EventQueueServiceException 
     */
    @Test(timeout = 100)
-   public void testNotification7() throws NotificationServiceException, MembershipServiceException, EventQueueServiceException{
+   public void testNotificationThrow2SameEvent() throws NotificationServiceException, MembershipServiceException, EventQueueServiceException{
        greeting.throw2SameEvent("/name/toto");
        
        Event[] lEvent = new Event[] {};
@@ -243,26 +263,30 @@ public class NotificationServiceSBTest {
            lEvent = eqs.getEvents(pathQueue1);
        }       
        
-       assertEquals(lEvent[0],lEvent[1]);
+       assertEquals("TestNotificationThrow2SameEvent : expected "+lEvent[0].toString()+" but found "+lEvent[1].toString(),
+    		   lEvent[0],lEvent[1]);
    }
    
    /**
-    * throws a factice event
+    * Test Boundary
+    * Throws a false event
     * @throws NotificationServiceException 
     */
    @Test(expected=NotificationServiceException.class)
-   public void testNotification8() throws NotificationServiceException{
+   public void testNotificationFalseEvent() throws NotificationServiceException{
        greeting.throwFacticeEvent();
    }
    
    /**
-    * throws 10000 events
+    * Test Boundary - Performance
+    * throws 10000 events in 1 queue
     * @throws GreetingServiceException 
- * @throws EventQueueServiceException 
+    * @throws EventQueueServiceException 
     */
    @Test(timeout=1000)
-   public void testNotification9() throws GreetingServiceException, EventQueueServiceException{
-       for(int i=0;i<10000;i++){
+   public void testNotification10000Events() throws GreetingServiceException, EventQueueServiceException{
+       
+	   for(int i=0;i<10000;i++){
            greeting.readName("/name/toto");
        }
        
@@ -271,33 +295,32 @@ public class NotificationServiceSBTest {
            lEvent = eqs.getEvents(pathQueue2);
        }     
        
-       assertTrue(lEvent.length==10000);
+       assertTrue("TestNotification10000Events : expected 10000 events but found "+lEvent.length,
+    		   lEvent.length==10000);
    }
    
    /**
+    * Test Boundary - Performance
     * throws 1 event into 10000 queues
     * @throws EventQueueServiceException 
     * @throws NotificationServiceException 
     */
    @Test(timeout = 1000)
-   public void testNotification10() throws EventQueueServiceException, NotificationServiceException{
+   public void testNotification10000Queues() throws EventQueueServiceException, NotificationServiceException{
        String path = "/eventQueue/q";
        for(int i=0;i<10000;i++){
            eqs.createEventQueue(path+i);
            notification.register("/profiles/*", "/name/*", "greeting.name.read", path+i);
        }
        
-       boolean okAll = true;
        Event[] lEvent = new Event[] {};
        for(int i=0;i<10000;i++){
            while(lEvent.length<1){
                lEvent = eqs.getEvents(path+i);
            }
-           okAll = okAll && (lEvent.length==1);
-       }
-       
-       assertTrue(okAll);
-       
+           assertTrue("TestNotification10000Queues : expected 1 event but found "+lEvent.length,
+        		   lEvent.length==1);
+       }       
    }
 
 }

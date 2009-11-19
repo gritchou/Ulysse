@@ -1,3 +1,7 @@
 .metadata
 #ignore all text editor copy
 **/*~
+.classpath
+.project
+.settings
+
