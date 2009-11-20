@@ -75,7 +75,7 @@ public class NotificationServiceSBTest {
 
         notification = (NotificationService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + NotificationService.SERVICE_NAME);
         eqs = (EventQueueService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + EventQueueService.SERVICE_NAME);
-        greeting = (GreetingService) context.lookup("GreetingService");
+        greeting = (GreetingService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + GreetingService.SERVICE_NAME);
         membership = (MembershipService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + MembershipService.SERVICE_NAME);
     }
 
