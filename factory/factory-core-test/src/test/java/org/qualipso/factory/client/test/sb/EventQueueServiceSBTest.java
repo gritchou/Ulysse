@@ -24,6 +24,7 @@ import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.bootstrap.BootstrapService;
 import org.qualipso.factory.bootstrap.BootstrapServiceException;
+import org.qualipso.factory.client.test.AllTests;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
@@ -64,8 +65,8 @@ public class EventQueueServiceSBTest {
             logger.error(e);
         }
 
-        UsernamePasswordHandler uph = new UsernamePasswordHandler("kermit", "thefrog");
-        loginContext = new LoginContext("tests", uph);
+        UsernamePasswordHandler uph = new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS);
+        loginContext = new LoginContext("qualipso", uph);
         loginContext.login();
 
     }
@@ -78,9 +79,9 @@ public class EventQueueServiceSBTest {
 
     @Before
     public void setUp() throws NamingException, FactoryException {
-        eqs = (EventQueueService) context.lookup("EventQueueService");
-        paph = (PAPServiceHelper) context.lookup("PAPServiceHelper");
-        membership = (MembershipService) context.lookup("MembershipService");
+        eqs = (EventQueueService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + EventQueueService.SERVICE_NAME);
+        //paph = (PAPServiceHelper) context.lookup("PAPServiceHelper");
+        membership = (MembershipService) context.lookup(FactoryNamingConvention.getJNDINameForService("membership"));
         membership.createProfile("toto", "toto titi", "toto@gmail.com", 0);
         membership.createProfile("resource", "resource", "resource@gmail.com", 0);
     }
@@ -160,8 +161,8 @@ public class EventQueueServiceSBTest {
 
         eqs.pushEvent("/eventqueue1", myEvent1);
         eqs.pushEvent("/eventqueue1", myEvent2);
-
-        Event[] resultFind = eqs.findEventByfromRessource("/eventqueue1", "myEvent3", false);
+       
+        Event[] resultFind = eqs.findEventFromRessource("/eventqueue1", "myEvent3", false);
 
         assertEquals(resultFind.length, 0);
 
@@ -186,7 +187,7 @@ public class EventQueueServiceSBTest {
         eqs.pushEvent("/eventqueue1", myEvent2);
         eqs.pushEvent("/eventqueue1", myEvent3);
 
-        Event[] resultFind = eqs.findEventByfromRessource("/eventqueue1", "titi", false);
+        Event[] resultFind = eqs.findEventFromRessource("/eventqueue1", "titi", false);
         boolean b1 = resultFind[0].equals(myEvent3);
         boolean b2 = resultFind[1].equals(myEvent2);
         boolean b3 = resultFind.length == 2;
@@ -196,7 +197,7 @@ public class EventQueueServiceSBTest {
 
     /**
      * 
-     * test: search event(by eventType ) existing in the eventQueue
+     * test: search event(by eventType ) existing in the eventQueueEventQue
      * 
      * @throws EventQueueServiceException
      */
@@ -214,7 +215,7 @@ public class EventQueueServiceSBTest {
         eqs.pushEvent("/eventqueue1", myEvent2);
         eqs.pushEvent("/eventqueue1", myEvent3);
 
-        Event[] resultFind = eqs.findEventByfromRessource("/eventqueue1", "read", false);
+        Event[] resultFind = eqs.findEventFromRessource("/eventqueue1", "read", false);
         boolean b1 = resultFind[1].equals(myEvent2);
         boolean b2 = resultFind[2].equals(myEvent1);
         boolean b3 = resultFind.length == 2;
