@@ -106,7 +106,7 @@ public interface EventQueueService extends FactoryService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByfromRessource(String path, String fromRessource,boolean substring) throws EventQueueServiceException;
+    public Event[] findEventFromRessource(String path, String fromRessource,boolean substring) throws EventQueueServiceException;
 
    /**
     * 
