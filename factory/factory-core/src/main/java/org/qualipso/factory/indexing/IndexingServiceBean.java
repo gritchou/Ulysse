@@ -42,7 +42,7 @@ import java.util.Iterator;
  * @date 25 october 2009
  */
 
-@Stateless(name = "Indexing", mappedName = "IndexingService")
+@Stateless(name = IndexingService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + IndexingService.SERVICE_NAME)
 @SecurityDomain(value = "JBossWSDigest")
 
 public class IndexingServiceBean implements IndexingService {

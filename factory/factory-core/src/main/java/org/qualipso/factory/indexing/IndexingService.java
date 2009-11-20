@@ -24,11 +24,14 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 
 /**
  * @author benjamin Dreux(benjiiiiii@gmail.co)
+ * @author Jerome Blanchard jayblanc@gmail.com
  * @date 20 May 2009
  */
 @Local
 
 public interface IndexingService {
+    public static final String SERVICE_NAME = "IndexingService";
+    public static final String[] RESOURCE_TYPE_LIST = new String[] {};
 	/**
 	 * Index the resource identified by the given factoryResourceIdentifier, or
 	 * throws an IndexingServiceException if an error occurs.

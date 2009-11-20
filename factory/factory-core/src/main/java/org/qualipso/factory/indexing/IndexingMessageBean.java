@@ -6,21 +6,17 @@ import javax.ejb.MessageDriven;
 import javax.ejb.MessageDrivenContext;
 import javax.jms.Message;
 import javax.jms.MessageListener;
+
+import org.jboss.ejb3.annotation.Depends;
 import org.jboss.ejb3.annotation.SecurityDomain;
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryService;
 
-
-@MessageDriven(
-		name = "Indexer",
-		mappedName = "IndexerService",
-		activationConfig = {
-        @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-        @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/indexingQueue"),
-        @ActivationConfigProperty(propertyName = "acknowledgeMode", propertyValue = "AUTO_ACKNOWLEDGE"),
-        @ActivationConfigProperty(propertyName = "maxSession", propertyValue = "4"),
-        @ActivationConfigProperty(propertyName = "SubscriptionDurability", propertyValue = "Durable") })
-        
+@MessageDriven(mappedName = "queue/IndexingeQueue", activationConfig = {
+	@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
+	@ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/IndexingQueue"),
+	@ActivationConfigProperty(propertyName = "messagingType", propertyValue = "javax.jms.MessageListener") })
+@Depends ("jboss.mq.destination:service=Queue,name=IndexingQueue")
 @SecurityDomain(value = "JBossWSDigest")
 
 
