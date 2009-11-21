@@ -17,7 +17,8 @@
 package org.qualipso.factory.indexing;
 
 
-import javax.ejb.Local;
+
+import javax.ejb.Remote;
 import java.util.ArrayList;
 import org.qualipso.factory.FactoryResourceIdentifier;
 
@@ -27,7 +28,7 @@ import org.qualipso.factory.FactoryResourceIdentifier;
  * @author Jerome Blanchard jayblanc@gmail.com
  * @date 20 May 2009
  */
-@Local
+@Remote
 
 public interface IndexingService {
     public static final String SERVICE_NAME = "IndexingService";

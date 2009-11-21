@@ -41,6 +41,8 @@ import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResourceProperty;
+import org.qualipso.factory.browser.BrowserService;
+import org.qualipso.factory.browser.BrowserServiceException;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.BindingServiceException;
 import org.qualipso.factory.binding.InvalidPathException;
@@ -74,6 +76,7 @@ public class IndexingServiceSBTest{
 	private static MembershipService membership;
 	private static GreetingService greeting; 
 	private static BindingService binding;
+	private static BrowserService browser;
 	private FactoryResourceIdentifier friB, friF, friFB;
 
 
@@ -86,11 +89,17 @@ public class IndexingServiceSBTest{
 	 */
 	@BeforeClass
 	public static void before() throws NamingException, LoginException, MembershipServiceException {
+		try {
+			logger.debug("jaas config file path : " + ClassLoader.getSystemResource("jaas.config").getPath());
+			System.setProperty("java.security.auth.login.config", ClassLoader.getSystemResource("jaas.config").getPath());
+		} catch (Exception e) {
+			logger.error("unable to load local jaas.config file");
+		}
+
 		Properties properties = new Properties();
 		properties.put("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
 		properties.put("java.naming.factory.url.pkgs", "org.jboss.naming:org.jnp.interfaces");
 		properties.put("java.naming.provider.url", "localhost:1099");
-		System.setProperty("java.security.auth.login.config", ClassLoader.getSystemResource("jaas.config").getPath());
 		context = new InitialContext(properties);
 
 		BootstrapService bootstrap = (BootstrapService) context.lookup(FactoryNamingConvention.getJNDINameForService("bootstrap"));
@@ -101,19 +110,20 @@ public class IndexingServiceSBTest{
 		}
 
 		UsernamePasswordHandler uph = new UsernamePasswordHandler("kermit", "thefrog"); 
-		loginContext = new LoginContext("tests", uph);
+		loginContext = new LoginContext("qualipso", uph);
 		loginContext.login();
 
-		indexing = (IndexingService) context.lookup("IndexingService");
-		binding = (BindingService) context.lookup("BindingService");
-		greeting=(GreetingService) context.lookup("GreetingService");
-		membership = (MembershipService) context.lookup("MembershipService");
-		membership.createProfile("toto", "toto titi", "toto@gmail.com", 0);
+		indexing = (IndexingService) context.lookup(FactoryNamingConvention.getJNDINameForService(IndexingService.SERVICE_NAME));
+		//binding = (BindingService) context.lookup(BindingService.SERVICE_NAME);
+		browser = (BrowserService) context.lookup(FactoryNamingConvention.getJNDINameForService(BrowserService.SERVICE_NAME));
+		greeting=(GreetingService) context.lookup(FactoryNamingConvention.getJNDINameForService(GreetingService.SERVICE_NAME));
+		membership = (MembershipService) context.lookup(FactoryNamingConvention.getJNDINameForService(MembershipService.SERVICE_NAME));
+	
 
 	}
 
 	/**
-	 * Delete the profile toto, log out, and close the context
+	 * Log out, and close the context
 	 * 
 	 * @throws NamingException
 	 * @throws LoginException exception thrown when the logout fails
@@ -121,21 +131,24 @@ public class IndexingServiceSBTest{
 	 */
 	@AfterClass
 	public static void after() throws LoginException, NamingException, MembershipServiceException {
-		membership.deleteProfile("toto");
+		
 
 		loginContext.logout();
 		context.close();
 	}
 
 	/**
-	 * Set up the context before each test. We create 4 resources Name and get their FactoryResourceIdentifier
-	 * 
+	 * Set up the context before each test. We create 4 resources Name and get their FactoryResourceIdentifier,
+	 * and create profile toto.
 	 * @throws NamingException
 	 * @throws FactoryException
 	 * @throws InterruptedException
 	 */
 	@Before
 	public void setUp() throws NamingException, FactoryException, InterruptedException {
+	
+		membership.createProfile("toto", "toto titi", "toto@gmail.com", 0);
+
 		greeting.createName("/profiles/kermit/bug", "bug");
 		greeting.createName("/profiles/kermit/forge", "forge");
 		greeting.createName("/profiles/kermit/tm", "tm");
@@ -143,20 +156,21 @@ public class IndexingServiceSBTest{
 		
 		// Waiting 1 second for the asynchronous call of the indexation
 		Thread.sleep(1000);
-		
-		friB =  binding.lookup("/profiles/kermit/bug");
-		friF =  binding.lookup("/profiles/kermit/forge");
-		friFB = binding.lookup("/profiles/kermit/forge_bug");
+		friB =  browser.findResource("/profiles/kermit/bug").getFactoryResourceIdentifier();
+		friF =  browser.findResource("/profiles/kermit/forge").getFactoryResourceIdentifier();
+		friFB = browser.findResource("/profiles/kermit/forge_bug").getFactoryResourceIdentifier();
 	}
 	
 	/**
-	 * After each test, we delete these 4 resources
+	 * After each test, we delete these 4 resources, and profile toto.
 	 * 
 	 * @throws MembershipServiceException
 	 * @throws GreetingServiceException
 	 */
 	@After
 	public void tearDown() throws MembershipServiceException, GreetingServiceException{
+		membership.deleteProfile("toto");
+
 		greeting.deleteName("/profiles/kermit/bug");
 		greeting.deleteName("/profiles/kermit/forge");
 		greeting.deleteName("/profiles/kermit/tm");
@@ -191,12 +205,12 @@ public class IndexingServiceSBTest{
 	public void testIndexingSearchReadNotAllowedResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, IndexingServiceException{
 		logger.debug("Testing search of a resource on which we don't have the right to read");
 		String policy = PAPServiceHelper.buildPolicy("1", "/profiles/kermit", "/profiles/kermit/friFB", new String[]{""});
-		binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
+		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
 		ArrayList<SearchResult> result = indexing.search("bug AND forge");
 		
 		assertEquals("The ArrayList should be empty", 0, result.size());
 		
-		binding.setProperty("/profiles/resource",FactoryResourceProperty.OWNER, "/profiles/kermit");
+		//binding.setProperty("/profiles/resource",FactoryResourceProperty.OWNER, "/profiles/kermit");
 	}
 	
 	/**
@@ -212,8 +226,8 @@ public class IndexingServiceSBTest{
 	public void testIndexingSearchReadableResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, IndexingServiceException{
 		logger.debug("Testing search of a readable resource");
 		String policy = PAPServiceHelper.buildPolicy("1", "/profiles/kermit", "/profiles/kermit/friFB", new String[]{"read"});
-		binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.OWNER, "/profiles/toto");
-		binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
+		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.OWNER, "/profiles/toto");
+		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
 		ArrayList<SearchResult> result = indexing.search("bug AND forge");
 		
 		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
