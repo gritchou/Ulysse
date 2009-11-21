@@ -18,9 +18,11 @@ import org.jmock.Mockery;
 import org.jmock.Sequence;
 import org.junit.Test;
 import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.BindingServiceException;
 import org.qualipso.factory.binding.InvalidPathException;
+import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.binding.PathNotFoundException;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceBean;
@@ -91,25 +93,25 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
     public void testCreateEventQueue() throws MembershipServiceException, PEPServiceException, BindingServiceException, PAPServiceException {
         logger.debug("testing testCreateEventQueue(...)");
-        final String name = "myQueue";
+        final String name = "/queue/myQueue";
         final String caller = "theCaller";
         final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, name);
 
         final Vector<Object> allParams = new Vector<Object>();
-
+        final Sequence sequence1 = mockery.sequence("sequence1");
         mockery.checking(new Expectations() {
             {
-
-                // 
                 oneOf(membership).getProfilePathForConnectedIdentifier();
                 will(returnValue(caller));
 
-                oneOf(pep).checkSecurity(caller, "/queues", "create");
+                oneOf(pep).checkSecurity(with(equal(caller)), with(equal(PathHelper.getParentPath(name))), with(equal("create"))); inSequence(sequence1);
                 oneOf(em).persist(with(any(EventQueue.class)));
                 will(saveParams(allParams));
 
-                oneOf(binding).bind(identifier, EventQueueService.QUEUES_PATH + "/" + name);
+                oneOf(binding).bind(identifier, name);
                 oneOf(pap).createPolicy(with(any(String.class)), with(any(String.class)));
+                oneOf(binding).setProperty(with(equal(name)), with(equal(FactoryResourceProperty.OWNER)), with(any(String.class))); inSequence(sequence1);
+                oneOf(binding).setProperty(with(equal(name)), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class))); inSequence(sequence1);
 
             }
         });
@@ -122,9 +124,10 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
             e.printStackTrace();
         }
 
+        
         logger.info("allParams.get(0).getName() = " + ((EventQueue) allParams.get(0)).getName());
         assertEquals(((EventQueue) allParams.get(0)).getName(), name);
-        assertEquals(((EventQueue) allParams.get(0)).getResourcePath(), EventQueueService.QUEUES_PATH + "/" + name);
+        assertEquals(((EventQueue) allParams.get(0)).getResourcePath(), name);
         assertEquals(((EventQueue) allParams.get(0)).getEvents().size(), 0);
 
         mockery.assertIsSatisfied();
@@ -145,7 +148,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
             EventQueueServiceException {
         logger.debug("testing testCreateEventQueue2(...) ");
         logger.debug("an Other Queue have the same name ...");
-        final String name = "myQueue";
+        final String name = "/queue/myQueue";
         final String caller = "theCaller";
         final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, name);
 
@@ -158,7 +161,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 oneOf(membership).getProfilePathForConnectedIdentifier();
                 will(returnValue(caller));
 
-                oneOf(pep).checkSecurity(caller, "/queues", "create");
+                oneOf(pep).checkSecurity(caller, PathHelper.getParentPath(name), "create");
                 oneOf(em).persist(with(any(EventQueue.class)));
                 will(throwException(new EventQueueServiceException("illegal")));
 
@@ -190,7 +193,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         final Sequence sq1 = mockery.sequence("seq1");
         final Sequence sq2 = mockery.sequence("seq2");
 
-        final String name = "myQueue";
+        final String name = "/queue/myQueue";
         final String caller = "theCaller";
         final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, name);
 
@@ -198,11 +201,11 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         final EventQueue firstQueue = new EventQueue();
         firstQueue.setEvents(new ArrayList<Event>());
         firstQueue.setName(name);
-        firstQueue.setResourcePath(EventQueueService.QUEUES_PATH + "/" + name);
+        firstQueue.setResourcePath (name);
         mockery.checking(new Expectations() {
             {
 
-                oneOf(binding).lookup(EventQueueService.QUEUES_PATH + "/" + name);
+                oneOf(binding).lookup(name);
                 will(returnValue(identifier));
                 inSequence(sq1);
 
@@ -210,7 +213,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 will(returnValue(caller));
                 inSequence(sq1);
 
-                oneOf(pep).checkSecurity(caller, EventQueueService.QUEUES_PATH + "/" + name, "update");
+                oneOf(pep).checkSecurity(caller, name, "update");
                 inSequence(sq1);
 
                 oneOf(em).find(with(EventQueue.class), with(any(String.class)));
@@ -249,7 +252,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         mockery.checking(new Expectations() {
             {
 
-                oneOf(binding).lookup(EventQueueService.QUEUES_PATH + "/" + name);
+                oneOf(binding).lookup(name);
                 will(returnValue(identifier));
                 inSequence(sq2);
 
@@ -257,7 +260,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 will(returnValue(caller));
                 inSequence(sq2);
 
-                oneOf(pep).checkSecurity(caller, EventQueueService.QUEUES_PATH + "/" + name, "update");
+                oneOf(pep).checkSecurity(caller, name, "update");
                 inSequence(sq2);
 
                 allowing(em).find(with(EventQueue.class), with(any(String.class)));
@@ -424,13 +427,12 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
     /**
      * suppression d'une queue qui existe
-     * @throws InvalidPathException
-     * @throws PathNotFoundException
      * @throws MembershipServiceException
      * @throws PEPServiceException
+     * @throws BindingServiceException 
      */
     @Test(expected = EventQueueServiceException.class)
-    public void testRemoveExistingQueue() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+    public void testRemoveExistingQueue() throws MembershipServiceException, PEPServiceException, BindingServiceException {
 
         logger.debug("testing testRemoveExistingQueue(...)");
         final Sequence sq1 = mockery.sequence("seq1");
@@ -466,6 +468,8 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 inSequence(sq1);
 
                 oneOf(em).remove(with(any(EventQueue.class)));
+                oneOf(binding).unbind(EventQueueService.QUEUES_PATH + "/" + name);
+                inSequence(sq1);
             }
         });
 

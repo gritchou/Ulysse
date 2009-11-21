@@ -48,12 +48,15 @@ import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.eventqueue.entity.EventQueue;
 import org.qualipso.factory.membership.MembershipService;
+import org.qualipso.factory.membership.MembershipServiceBean;
+import org.qualipso.factory.membership.entity.Profile;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
@@ -283,7 +286,7 @@ public class EventQueueServiceBean implements EventQueueService {
     public void createEventQueue(String name) throws EventQueueServiceException {
         logger.info("createEventQueue(...) called");
         logger.debug("params : name=" + name);
-        String path = getEventQueuePathFromName(name);
+        String path = name;
         try {
 
             String caller = membership.getProfilePathForConnectedIdentifier();
@@ -298,8 +301,10 @@ public class EventQueueServiceBean implements EventQueueService {
             binding.bind(evq.getFactoryResourceIdentifier(), path);
 
             String policyId = UUID.randomUUID().toString();
-            pap.createPolicy(policyId, PAPServiceHelper.buildOwnerPolicy(policyId, path, path));
-            // il manque peut être les setProperty
+			pap.createPolicy(policyId, PAPServiceHelper.addRuleToPolicy(PAPServiceHelper.buildOwnerPolicy(policyId, caller, path), "", new String[] {"create","read"}));
+			binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
+			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
+
 
         } catch (Exception e) {
             logger.error("unable to create an event queue", e);
@@ -331,11 +336,11 @@ public class EventQueueServiceBean implements EventQueueService {
      */
     @Override
     public void pushEvent(String name, Event event) throws EventQueueServiceException {
-        String path = getEventQueuePathFromName(name);
+        String path = name;
 
         FactoryResourceIdentifier identifier;
         try {
-            identifier = binding.lookup(path);
+            identifier = binding.lookup(name);
             if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "update");
@@ -1075,7 +1080,7 @@ public class EventQueueServiceBean implements EventQueueService {
                 }
 
                 em.remove(eventqueue);
-
+                binding.unbind(path);
             } else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");
             }
