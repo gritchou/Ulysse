@@ -39,9 +39,7 @@ import org.qualipso.factory.eventqueue.entity.*;
 public interface EventQueueService extends FactoryService {
     
     public static final String SERVICE_NAME = "eventqueue";
-    public static final String[] RESOURCE_TYPE_LIST = new String[] { "EventQueue" };
-    
-    public static final String QUEUES_PATH = "/queues";
+    public static final String[] RESOURCE_TYPE_LIST = new String[] { EventQueue.RESOURCE_NAME };
     
     /**
      * 

@@ -206,7 +206,7 @@ public class NotificationServiceBean implements NotificationService {
     @SuppressWarnings("unchecked")
     @Override
     public Rule[] list() throws NotificationServiceException {
-        Query q = em.createQuery("select * from Rule");
+        Query q = em.createQuery("select r from Rule r");
         List<Rule> l = q.getResultList();
         Rule[] tab = new Rule[l.size()];
         tab = l.toArray(tab);
@@ -223,6 +223,9 @@ public class NotificationServiceBean implements NotificationService {
             om.setObject(event);
             MessageProducer messageProducer = session.createProducer(queue);
             messageProducer.send(om);
+            messageProducer.close();
+            session.close();
+            connection.close();
         } catch (JMSException e) {
             logger.error("unable to throw event", e);
             throw new NotificationServiceException("unable to throw event", e);

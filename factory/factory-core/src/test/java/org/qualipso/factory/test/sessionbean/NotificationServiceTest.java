@@ -337,6 +337,9 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
                 oneOf(session).createProducer(with(any(Queue.class)));
                 will(returnValue(mp));
                 oneOf(mp).send(om);
+                oneOf(mp).close();
+                oneOf(session).close();
+                oneOf(connection).close();
             }
         });
         Event e = new Event("fromRessource", "ressourceType", "eventType", "");

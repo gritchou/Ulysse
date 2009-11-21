@@ -55,8 +55,6 @@ import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.eventqueue.entity.EventQueue;
 import org.qualipso.factory.membership.MembershipService;
-import org.qualipso.factory.membership.MembershipServiceBean;
-import org.qualipso.factory.membership.entity.Profile;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
@@ -283,19 +281,16 @@ public class EventQueueServiceBean implements EventQueueService {
      * 
      */
     @Override
-    public void createEventQueue(String name) throws EventQueueServiceException {
+    public void createEventQueue(String path) throws EventQueueServiceException {
         logger.info("createEventQueue(...) called");
-        logger.debug("params : name=" + name);
-        String path = name;
+        logger.debug("params : path=" + path);
         try {
 
             String caller = membership.getProfilePathForConnectedIdentifier();
             pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
             EventQueue evq = new EventQueue();
+            evq.setId(UUID.randomUUID().toString());
             evq.setEvents(new ArrayList<Event>());
-            evq.setName(name);
-            evq.setResourcePath(path);
-
             em.persist(evq);
 
             binding.bind(evq.getFactoryResourceIdentifier(), path);
@@ -314,17 +309,6 @@ public class EventQueueServiceBean implements EventQueueService {
     }
 
     /**
-     * cette methode retourne le path de l event queue associe a name
-     * 
-     * @param name
-     *            le nom de la queue
-     * @return le path de l event queue associé au nom name
-     */
-    private String getEventQueuePathFromName(String name) {
-        return QUEUES_PATH + "/" + name;
-    }
-
-    /**
      * cette methode place un evenement dans la queue associe au name sinon
      * retourne une exception si l evenement n est pas ajoute
      * 
@@ -335,12 +319,14 @@ public class EventQueueServiceBean implements EventQueueService {
      * 
      */
     @Override
-    public void pushEvent(String name, Event event) throws EventQueueServiceException {
-        String path = name;
+    public void pushEvent(String path, Event event) throws EventQueueServiceException {
 
         FactoryResourceIdentifier identifier;
         try {
-            identifier = binding.lookup(name);
+            if(event==null){
+                throw new IllegalArgumentException("event can't be null");
+            }
+            identifier = binding.lookup(path);
             if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
                 pep.checkSecurity(caller, path, "update");
@@ -469,9 +455,9 @@ public class EventQueueServiceBean implements EventQueueService {
                 if(newEventList.remove(e)){
                     eventqueue.setEvents(newEventList);
                     em.merge(eventqueue);
+                }else {
+                    throw new EventQueueServiceException("this event doesn't exist in this queue");
                 }
-                
-
 
             } else {
                 throw new CoreServiceException("Resource " + identifier + " is not managed by Event Queue Service");

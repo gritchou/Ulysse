@@ -1,7 +1,6 @@
 package org.qualipso.factory.client.test.sb;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,20 +28,18 @@ import org.qualipso.factory.client.test.AllTests;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
-import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationServiceException;
-import org.qualipso.factory.security.pap.PAPServiceHelper;
 
 public class EventQueueServiceSBTest {
     private static Context context;
 
     private static Log logger = LogFactory.getLog(EventQueueServiceSBTest.class);
-    private static MembershipService membership;
+
     private static EventQueueService eqs;
     private static LoginContext loginContext;
-    private PAPServiceHelper paph;
-    private String pathQ1, pathQ2;
+
+    private final static String pathQ1 = "/eventqueue1", pathQ2 = "/eventqueue2";
 
     /**
      * Set up service for all tests.
@@ -59,7 +56,7 @@ public class EventQueueServiceSBTest {
         properties.put("java.naming.provider.url", "localhost:1099");
         System.setProperty("java.security.auth.login.config", ClassLoader.getSystemResource("jaas.config").getPath());
         context = new InitialContext(properties);
-        
+
         BootstrapService bootstrap = (BootstrapService) context.lookup(FactoryNamingConvention.getJNDINameForService("bootstrap"));
         try {
             bootstrap.bootstrap();
@@ -72,17 +69,19 @@ public class EventQueueServiceSBTest {
         loginContext.login();
 
         eqs = (EventQueueService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + EventQueueService.SERVICE_NAME);
-        //paph = (PAPServiceHelper) context.lookup("PAPServiceHelper");
-        membership = (MembershipService) context.lookup(FactoryNamingConvention.getJNDINameForService("membership"));
-        //membership.createProfile("toto", "toto titi", "toto@gmail.com", 0);
-        //membership.createProfile("resource", "resource", "resource@gmail.com", 0);
-        
+        // paph = (PAPServiceHelper) context.lookup("PAPServiceHelper");
+        // membership = (MembershipService)
+        // context.lookup(FactoryNamingConvention.getJNDINameForService("membership"));
+        // membership.createProfile("toto", "toto titi", "toto@gmail.com", 0);
+        // membership.createProfile("resource", "resource",
+        // "resource@gmail.com", 0);
+
     }
 
     @AfterClass
     public static void after() throws LoginException, NamingException, MembershipServiceException {
-    	//membership.deleteProfile("toto");
-    	//membership.deleteProfile("resource");
+        // membership.deleteProfile("toto");
+        // membership.deleteProfile("resource");
 
         loginContext.logout();
         context.close();
@@ -90,16 +89,14 @@ public class EventQueueServiceSBTest {
 
     @Before
     public void setUp() throws NamingException, FactoryException {
-    	pathQ1 = "/eventqueue1";
-    	pathQ2 = "/eventqueue2";
-    	eqs.createEventQueue(pathQ1);
-    	eqs.createEventQueue(pathQ2);
+        eqs.createEventQueue(pathQ1);
+        eqs.createEventQueue(pathQ2);
     }
-    
+
     @After
-    public void tearDown() throws EventQueueServiceException{
-    	eqs.removeQueue(pathQ1);
-    	eqs.removeQueue(pathQ2);
+    public void tearDown() throws EventQueueServiceException {
+        eqs.removeQueue(pathQ1);
+        eqs.removeQueue(pathQ2);
     }
 
     @Test
@@ -111,15 +108,16 @@ public class EventQueueServiceSBTest {
     // *******************************Right**************************************************
     public void test1() throws EventQueueServiceException {
         logger.debug(" Test existence of Event in EventQueue(...)");
-       // eqs.createEventQueue(path);
+
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
         Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write", "");
         eqs.pushEvent(pathQ1, myEvent1);
         eqs.pushEvent(pathQ1, myEvent2);
         Event[] tabEvent = eqs.getEvents(pathQ1);
-        boolean b = tabEvent.length == 2;
 
-        assertTrue(tabEvent[0].equals(myEvent2) && tabEvent[1].equals(myEvent1) && b);
+        assertEquals(tabEvent[0], myEvent1);
+        assertEquals(tabEvent[1], myEvent2);
+        assertEquals(tabEvent.length, 2);
 
     }
 
@@ -131,8 +129,6 @@ public class EventQueueServiceSBTest {
 
     public void test2() throws EventQueueServiceException {
         logger.debug("push 1 Event in 2 EventQueue and verification(...)");
-        /*eqs.createEventQueue(path1);
-        eqs.createEventQueue(path2);*/
 
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
         eqs.pushEvent(pathQ1, myEvent1);
@@ -140,7 +136,8 @@ public class EventQueueServiceSBTest {
         Event e1 = eqs.getLastEvent(pathQ1);
         Event e2 = eqs.getLastEvent(pathQ2);
 
-        assertTrue(e1.equals(myEvent1) && e2.equals(myEvent1));
+        assertEquals(e1, myEvent1);
+        assertEquals(e2, myEvent1);
 
     }
 
@@ -167,14 +164,13 @@ public class EventQueueServiceSBTest {
     public void test4() throws EventQueueServiceException {
 
         logger.debug("test: search event(by name) not exist in eventQueue(...)");
-       // eqs.createEventQueue("/eventqueue1");
 
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
         Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write", "");
 
         eqs.pushEvent(pathQ1, myEvent1);
         eqs.pushEvent(pathQ1, myEvent2);
-       
+
         Event[] resultFind = eqs.findEventFromRessource(pathQ1, "myEvent3", false);
 
         assertEquals(resultFind.length, 0);
@@ -190,7 +186,6 @@ public class EventQueueServiceSBTest {
     public void test5() throws EventQueueServiceException {
 
         logger.debug("test: search event(by creator ) existing in eventQueue(...)");
-        //eqs.createEventQueue("/eventqueue1");
 
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
         Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write", "");
@@ -201,10 +196,9 @@ public class EventQueueServiceSBTest {
         eqs.pushEvent(pathQ1, myEvent3);
 
         Event[] resultFind = eqs.findEventFromRessource(pathQ1, "titi", false);
-        boolean b1 = resultFind[0].equals(myEvent3);
-        boolean b2 = resultFind[1].equals(myEvent2);
-        boolean b3 = resultFind.length == 2;
-        assertTrue(b1 && b2 && b3);
+        assertEquals(resultFind[0], myEvent3);
+        assertEquals(resultFind[1], myEvent2);
+        assertEquals(resultFind.length, 2);
 
     }
 
@@ -218,7 +212,7 @@ public class EventQueueServiceSBTest {
     public void test6() throws EventQueueServiceException {
 
         logger.debug("test: search event(eventType) existing in eventQueue(...)");
-       // eqs.createEventQueue("/eventqueue1");
+        // eqs.createEventQueue("/eventqueue1");
 
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
         Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write", "");
@@ -229,10 +223,9 @@ public class EventQueueServiceSBTest {
         eqs.pushEvent(pathQ1, myEvent3);
 
         Event[] resultFind = eqs.findEventFromRessource(pathQ1, "read", false);
-        boolean b1 = resultFind[1].equals(myEvent2);
-        boolean b2 = resultFind[2].equals(myEvent1);
-        boolean b3 = resultFind.length == 2;
-        assertTrue(b1 && b2 && b3);
+        assertEquals(resultFind[1], myEvent2);
+        assertEquals(resultFind[2], myEvent1);
+        assertEquals(resultFind.length, 2);
 
     }
 
@@ -244,7 +237,7 @@ public class EventQueueServiceSBTest {
     public void test7() throws EventQueueServiceException {
 
         logger.debug("test: delete an Event from EventQueue(...)");
-       // eqs.createEventQueue("/eventqueue1");
+        // eqs.createEventQueue("/eventqueue1");
 
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
         Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write", "");
@@ -267,9 +260,9 @@ public class EventQueueServiceSBTest {
     public void test8() throws EventQueueServiceException {
 
         logger.debug("test: delete an Event from EventQueue(...)");
-      //  eqs.createEventQueue("/eventqueue1");
-       // eqs.removeQueue("/eventqueue1");
-        Event[] tabEvent = eqs.getEvents("/eventqueue1");
+        eqs.createEventQueue("/eventqueue3");
+        eqs.removeQueue("/eventqueue3");
+        eqs.getEvents("/eventqueue3");
 
     }
 
@@ -281,7 +274,7 @@ public class EventQueueServiceSBTest {
     public void test9() throws EventQueueServiceException {
 
         logger.debug("test: delete an Event from EventQueue(...)");
-     //   eqs.createEventQueue("/eventqueue1");
+        // eqs.createEventQueue("/eventqueue1");
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
         Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write", "");
         Event myEvent3 = new Event("/path/resource/", "titi", "resourceType", "write", "");
@@ -291,19 +284,13 @@ public class EventQueueServiceSBTest {
         eqs.pushEvent(pathQ1, myEvent3);
         Event[] tabEvent = eqs.getEvents(pathQ1);
 
-        boolean b = true;
-
         for (int i = 0; i < tabEvent.length; i++) {
             Event e = eqs.getLastEvent(pathQ1);
-            if (!e.equals(tabEvent[i])) {
-                b = false;
-            }
+            assertEquals(e, tabEvent[i]);
 
             eqs.deleteEvent(pathQ1, e);
 
         }
-
-        assertTrue(b);
 
     }
 
@@ -320,8 +307,8 @@ public class EventQueueServiceSBTest {
     public void testPushNullInEventQueue() throws EventQueueServiceException {
 
         logger.debug("test: push null in an eventqueue");
-     //   eqs.createEventQueue("/eventqueue1");
-        eqs.pushEvent("/eventqueue1", null);
+
+        eqs.pushEvent(pathQ1, null);
 
     }
 
@@ -332,18 +319,14 @@ public class EventQueueServiceSBTest {
      */
     public void testPushSameEventInEventQueue() throws EventQueueServiceException {
         logger.debug("test: push the same event in the eventQueue");
-       // eqs.createEventQueue("/eventqueue1");
+
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
         eqs.pushEvent(pathQ1, myEvent1);
         eqs.pushEvent(pathQ1, myEvent1);
         Event[] tabEvent = eqs.getEvents(pathQ1);
-        boolean b = true;
         for (int i = 0; i < tabEvent.length; i++) {
-            if (!tabEvent[i].equals(myEvent1)) {
-                b = false;
-            }
+            assertEquals(tabEvent[i], myEvent1);
         }
-        assertTrue(b);
 
     }
 
@@ -356,7 +339,7 @@ public class EventQueueServiceSBTest {
     @Test(expected = EventQueueServiceException.class)
     public void testDesorderPushDelete() throws EventQueueServiceException {
         logger.debug("test:Test the desorder");
-        //eqs.createEventQueue("/eventqueue1");
+
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
         eqs.deleteEvent(pathQ1, myEvent1);
 
@@ -371,7 +354,6 @@ public class EventQueueServiceSBTest {
     @Test(expected = EventQueueServiceException.class)
     public void testBoundaryEvent() throws EventQueueServiceException {
 
-        eqs.createEventQueue(pathQ1);
         int i = 0;
         while (i < 10000) {
 
@@ -394,21 +376,18 @@ public class EventQueueServiceSBTest {
     public void testBoundaryEventQueue() throws EventQueueServiceException {
         Event e = new Event("/path/resource/", "toto", "resourceType", "read", "");
 
-        int i = 3;
-        while (i < 10003) {
+        for (int i = 3; i < 10003; i++) {
             eqs.createEventQueue("/eventqueue" + i);
             eqs.pushEvent("/eventqueue" + i, e);
-
-            i++;
         }
-        boolean b = true;
         for (int j = 3; j < 10003; j++) {
             Event[] tabEvent = eqs.getEvents("/eventqueue" + j);
-            if (!tabEvent[0].equals(e) || tabEvent.length != 1) {
-                b = false;
-            }
+            assertEquals(tabEvent.length, 1);
+            assertEquals(tabEvent[0], e);
         }
-        assertTrue(b);
+        for (int i = 3; i < 10003; i++) {
+            eqs.removeQueue("/eventqueue" + i);
+        }
     }
 
     // ******************************** Cross-check
@@ -420,7 +399,7 @@ public class EventQueueServiceSBTest {
 
     public void testcrossCheckOfFindEvent() throws EventQueueServiceException {
         logger.debug("test: Test: test the cross check of findEvent(...)");
-      //  eqs.createEventQueue("/eventqueue1");
+        // eqs.createEventQueue("/eventqueue1");
         List<Event> list = new ArrayList<Event>();
         String nameOwner = "titi";
 
@@ -436,14 +415,12 @@ public class EventQueueServiceSBTest {
         for (int i = 0; i < tabEvent.length; i++) {
             if (tabEvent[i].getThrowedBy().equals(nameOwner)) {
                 list.add(tabEvent[i]);
-
             }
         }
 
-        boolean b1 = list.get(0).equals(myEvent3);
-        boolean b2 = list.get(1).equals(myEvent2);
-        boolean b3 = list.size() == 2;
-        assertTrue(b1 && b2 && b3);
+        assertEquals(list.get(0), myEvent3);
+        assertEquals(list.get(1), myEvent2);
+        assertEquals(list.size(), 2);
 
     }
 
@@ -458,7 +435,7 @@ public class EventQueueServiceSBTest {
     public void testFullDiskEventQueue() throws EventQueueServiceException {
         Event e = new Event("/path/resource/", "toto", "resourceType", "read", "");
 
-        int i = 0;
+        int i = 3;
         while (true) {
             eqs.createEventQueue("/eventqueue" + i);
             eqs.pushEvent("/eventqueue" + i, e);
@@ -477,7 +454,6 @@ public class EventQueueServiceSBTest {
     @Test(expected = EventQueueServiceException.class)
     public void testFullDiskEvent() throws EventQueueServiceException {
 
-        eqs.createEventQueue(pathQ1);
         int i = 0;
         while (true) {
 

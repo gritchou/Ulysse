@@ -29,7 +29,7 @@ public class EventQueue extends FactoryResource {
     private static final long serialVersionUID = 8866543643223847878L;
 
     @Id
-    private String name;
+    private String id;
     private String path;
 
     private ArrayList<Event> events;
@@ -46,15 +46,6 @@ public class EventQueue extends FactoryResource {
     public EventQueue() {
     }
 
-    @XmlAttribute(name = "name", required = true)
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     @XmlAttribute(name = "path", required = true)
     @Transient
     @Override
@@ -69,13 +60,21 @@ public class EventQueue extends FactoryResource {
     @Override
     @XmlTransient
     public FactoryResourceIdentifier getFactoryResourceIdentifier() {
-        return new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueue.RESOURCE_NAME, getName());
+        return new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueue.RESOURCE_NAME, getId());
     }
 
     @Override
     @XmlTransient
     public String getResourceName() {
-        return name;
+        return RESOURCE_NAME;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
     }
 
 }
