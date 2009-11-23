@@ -1,33 +1,33 @@
-/**
- * 
- */
+
 package org.qualipso.factory.indexing;
 
+import org.apache.lucene.document.Document;
+
 /**
- * Interface which specify the property of indexable document. 
+ * <p>Interface which specify the property of indexable document. 
  * Documents are the unit of indexing. 
- * A Document is a set of fields. Each field has a name and a textual value. 
+ * A Document is a set of fields. Each field has a name and a textual value. </p>
  * @author cynthia FLORENTIN
  *
  */
 public interface IndexableDocumentI {
 	
   /**
-   * Give a Factory Resource Identifier (FRI) reference of document. 
+   * <p>Give a Factory Resource Identifier (FRI) reference of document. </p>
    * @return The string form of this URI
    * @throws IndexingServiceException
    */
   public String getResourceFRI() throws IndexingServiceException ;
 
   /**
-   * Give the service of document
+   * <p>Give the service of document</p>
    * @return a string which represent the service of document
    * @throws IndexingServiceException
    */
   public String getResourceService() throws IndexingServiceException ;
     
   /**
-   * Give the type of document. 
+   * <p>Give the type of document. </p>
    * The type is defined according to the extension of document.  
    * @return a string which represent the type of document
    * @throws IndexingServiceException
@@ -35,17 +35,57 @@ public interface IndexableDocumentI {
   public String getResourceType() throws IndexingServiceException ;
     
   /**
-   * Give the name of document
-   * @return
+   * <p>Give the name of document</p>
+   * @return a name of document
    * @throws IndexingServiceException
    */
   public String getResourceShortName() throws IndexingServiceException ;
     
   /**
-   * Give an object of type IndexableContent
+   * <p>Give an object of type IndexableContent</p>
    * @see IndexableContentI 
    * @return an indexable content
    * @throws IndexingServiceException
    */
   public IndexableContentI getIndexableContent() throws IndexingServiceException ;
+  
+  /**
+   * <p>Set a Factory Resource Identifier (FRI) reference of document with a string</p>
+   * @param resourceFRI is a string
+   */
+  public void setResourceFRI(String resourceFRI);
+  
+  /**
+   * <p>Set the service of document with the string</p>
+   * @param resourceService is a string
+   */
+  public void setResourceService(String resourceService);
+  
+  /**
+   * <p>Set the type of document with a string</p>
+   * @param resourceType is a string
+   */
+  public void setResourceType(String resourceType);
+  
+  /**
+   * <p>Set the name of document with a string</p>
+   * @param resourceShortName is a string
+   */
+  public void setResourceShortName(String resourceShortName);
+  
+  /**
+   * <p>set an object of type IndexableContent</p>
+   * @param indexableContent
+   */
+  public void setIndexableContent(IndexableContent indexableContent);
+  
+  /**
+   * <p> Give a document. 
+   * A Document has a list of fields; each field has a name and a textual value.  
+   * A field Index specifies whether and how a field should be indexed. 
+   * Index the tokens produced by running the field's value through an Analyzer.
+   * </p>
+   * @return a Lucene Document is a record in the index.
+   */
+	public Document getDocument() ;
 }
