@@ -48,14 +48,17 @@ import java.util.Iterator;
 public class IndexingServiceBean implements IndexingService {
 	
 	private static Log logger = LogFactory.getLog(IndexingServiceBean.class);
-	static String indexingQueuePath = "queue/QualipsoFactory/Indexing";
 	
 	private PEPService pep;
 	private MembershipService membership;
 	private SessionContext ctx;
-	private Queue indexingQueue;
-	private QueueConnectionFactory queueConnectionFactory;
 	private IndexI index;
+
+    @Resource(mappedName="jms/QueueConnectionFactory")
+	private QueueConnectionFactory queueConnectionFactory;
+
+	@Resource(mappedName="queue/indexingQueue")
+	private Queue indexingQueue;
 	
     
     public IndexingServiceBean() {
@@ -96,7 +99,7 @@ public class IndexingServiceBean implements IndexingService {
 	}
 
 	
-	@Resource(mappedName="jms/QueueConnectionFactory")
+
 	public void setQueueConnectionFactory(QueueConnectionFactory queueConnectionFactory){
 		this.queueConnectionFactory = queueConnectionFactory;
 	}
@@ -104,7 +107,7 @@ public class IndexingServiceBean implements IndexingService {
 		return this.queueConnectionFactory;
 	}
 	
-	@Resource(mappedName="jms/queue/indexingQueue")
+
 	public void setIndexingQueue(Queue indexingQueue){
 		this.indexingQueue = indexingQueue;
 	}

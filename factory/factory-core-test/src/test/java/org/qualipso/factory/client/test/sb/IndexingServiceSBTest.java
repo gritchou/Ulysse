@@ -37,6 +37,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.qualipso.factory.client.test.AllTests;
 import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResourceIdentifier;
@@ -78,6 +79,7 @@ public class IndexingServiceSBTest{
 	private static BindingService binding;
 	private static BrowserService browser;
 	private FactoryResourceIdentifier friB, friF, friFB;
+    private String profilePath;
 
 
 	/**
@@ -88,7 +90,7 @@ public class IndexingServiceSBTest{
 	 * @throws MembershipServiceException When the creation of profile toto fails, a MembershipServiceException will be thrown
 	 */
 	@BeforeClass
-	public static void before() throws NamingException, LoginException, MembershipServiceException {
+	public static void before() throws NamingException, LoginException{
 		try {
 			logger.debug("jaas config file path : " + ClassLoader.getSystemResource("jaas.config").getPath());
 			System.setProperty("java.security.auth.login.config", ClassLoader.getSystemResource("jaas.config").getPath());
@@ -109,7 +111,7 @@ public class IndexingServiceSBTest{
 			logger.error(e);
 		}
 
-		UsernamePasswordHandler uph = new UsernamePasswordHandler("kermit", "thefrog"); 
+		UsernamePasswordHandler uph = new UsernamePasswordHandler("root", "root"); 
 		loginContext = new LoginContext("qualipso", uph);
 		loginContext.login();
 
@@ -146,19 +148,20 @@ public class IndexingServiceSBTest{
 	 */
 	@Before
 	public void setUp() throws NamingException, FactoryException, InterruptedException {
-	
-		membership.createProfile("toto", "toto titi", "toto@gmail.com", 0);
+	    //TODO create toto profile with root user
+		//membership.createProfile("toto", "toto titi", "toto@gmail.com", 0);
 
-		greeting.createName("/profiles/kermit/bug", "bug");
-		greeting.createName("/profiles/kermit/forge", "forge");
-		greeting.createName("/profiles/kermit/tm", "tm");
-		greeting.createName("/profiles/kermit/forge_bug", "forge_bug");
+        profilePath = /*membership.getProfilePathForConnectedIdentifier()+*/"/";
+		greeting.createName(profilePath+"bug", "bug");
+		greeting.createName(profilePath+"forge", "forge");
+		greeting.createName(profilePath+"tm", "tm");
+		greeting.createName(profilePath+"forge_bug", "forge_bug");
 		
 		// Waiting 1 second for the asynchronous call of the indexation
 		Thread.sleep(1000);
-		friB =  browser.findResource("/profiles/kermit/bug").getFactoryResourceIdentifier();
-		friF =  browser.findResource("/profiles/kermit/forge").getFactoryResourceIdentifier();
-		friFB = browser.findResource("/profiles/kermit/forge_bug").getFactoryResourceIdentifier();
+		friB =  browser.findResource(profilePath+"bug").getFactoryResourceIdentifier();
+		friF =  browser.findResource(profilePath+"forge").getFactoryResourceIdentifier();
+		friFB = browser.findResource(profilePath+"forge_bug").getFactoryResourceIdentifier();
 	}
 	
 	/**
@@ -169,12 +172,12 @@ public class IndexingServiceSBTest{
 	 */
 	@After
 	public void tearDown() throws MembershipServiceException, GreetingServiceException{
-		membership.deleteProfile("toto");
+		//membership.deleteProfile("toto");
 
-		greeting.deleteName("/profiles/kermit/bug");
-		greeting.deleteName("/profiles/kermit/forge");
-		greeting.deleteName("/profiles/kermit/tm");
-		greeting.deleteName("/profiles/kermit/forge_bug");   
+		greeting.deleteName(profilePath+"bug");
+		greeting.deleteName(profilePath+"forge");
+		greeting.deleteName(profilePath+"tm");
+		greeting.deleteName(profilePath+"forge_bug");   
 	}
 
 /* ****************************** TESTS ****************************** */
