@@ -33,12 +33,10 @@ import org.qualipso.factory.security.pep.PEPServiceException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-
-
-
-
 /**
+ * <p>Class which implements Indexing Service</p>
  * @author Benjamin Dreux (benjiiiiii@gmail.com)
+ * @author cynthia FLORENTIN
  * @date 25 october 2009
  */
 
