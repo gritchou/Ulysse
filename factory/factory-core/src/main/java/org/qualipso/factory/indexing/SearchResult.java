@@ -25,7 +25,7 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 
 
 /**
- * Class which represent the result of a search with a query
+ * <p>Class which represent the result of a search with a query</p>
  * @author Benjamin DREUX
  * @author cynthia FLORENTIN 
  */
