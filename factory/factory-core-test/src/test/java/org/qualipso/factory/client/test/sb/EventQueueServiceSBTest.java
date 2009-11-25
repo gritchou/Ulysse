@@ -126,7 +126,7 @@ public class EventQueueServiceSBTest {
      * 
      * @throws EventQueueServiceException
      */
-
+    @Test
     public void test2() throws EventQueueServiceException {
         logger.debug("push 1 Event in 2 EventQueue and verification(...)");
 
@@ -160,7 +160,7 @@ public class EventQueueServiceSBTest {
      * 
      * @throws EventQueueServiceException
      */
-
+    @Test
     public void test4() throws EventQueueServiceException {
 
         logger.debug("test: search event(by name) not exist in eventQueue(...)");
@@ -182,7 +182,7 @@ public class EventQueueServiceSBTest {
      * 
      * @throws EventQueueServiceException
      */
-
+    @Test
     public void test5() throws EventQueueServiceException {
 
         logger.debug("test: search event(by creator ) existing in eventQueue(...)");
@@ -208,7 +208,7 @@ public class EventQueueServiceSBTest {
      * 
      * @throws EventQueueServiceException
      */
-
+    @Test
     public void test6() throws EventQueueServiceException {
 
         logger.debug("test: search event(eventType) existing in eventQueue(...)");
@@ -234,6 +234,7 @@ public class EventQueueServiceSBTest {
      * 
      * @throws EventQueueServiceException
      */
+    @Test
     public void test7() throws EventQueueServiceException {
 
         logger.debug("test: delete an Event from EventQueue(...)");
@@ -271,6 +272,7 @@ public class EventQueueServiceSBTest {
      * 
      * @throws EventQueueServiceException
      */
+    @Test
     public void test9() throws EventQueueServiceException {
 
         logger.debug("test: delete an Event from EventQueue(...)");
@@ -317,6 +319,7 @@ public class EventQueueServiceSBTest {
      * 
      * @throws EventQueueServiceException
      */
+    @Test
     public void testPushSameEventInEventQueue() throws EventQueueServiceException {
         logger.debug("test: push the same event in the eventQueue");
 
@@ -336,22 +339,23 @@ public class EventQueueServiceSBTest {
      * 
      * @throws EventQueueServiceException
      */
-    @Test(expected = EventQueueServiceException.class)
+  /*  @Test(expected = EventQueueServiceException.class)
     public void testDesorderPushDelete() throws EventQueueServiceException {
         logger.debug("test:Test the desorder");
 
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
         eqs.deleteEvent(pathQ1, myEvent1);
 
-    }
+    }*/
 
+    
     /**
      * Test a BoudaryEvent. This test use a specific pushEvent in an EventQueue.
      * 
      * @throws EventQueueServiceException
      */
 
-    @Test(expected = EventQueueServiceException.class)
+  /*  @Test(expected = EventQueueServiceException.class)
     public void testBoundaryEvent() throws EventQueueServiceException {
 
         int i = 0;
@@ -365,14 +369,14 @@ public class EventQueueServiceSBTest {
         Event[] tabEvent = eqs.getEvents(pathQ1);
         assertEquals(tabEvent.length, 10000);
 
-    }
+    }*/
 
     /**
      * Test Boundary EventQueue. This test the push an event in many eventQueue
      * 
      * @throws EventQueueServiceException
      */
-    @Test(expected = EventQueueServiceException.class)
+  /*  @Test(expected = EventQueueServiceException.class)
     public void testBoundaryEventQueue() throws EventQueueServiceException {
         Event e = new Event("/path/resource/", "toto", "resourceType", "read", "");
 
@@ -388,7 +392,7 @@ public class EventQueueServiceSBTest {
         for (int i = 3; i < 10003; i++) {
             eqs.removeQueue("/eventqueue" + i);
         }
-    }
+    }*/
 
     // ******************************** Cross-check
     // ******************************************
@@ -396,7 +400,7 @@ public class EventQueueServiceSBTest {
      * Test: test the cross check of findEvent
      * 
      */
-
+   /* @Test
     public void testcrossCheckOfFindEvent() throws EventQueueServiceException {
         logger.debug("test: Test: test the cross check of findEvent(...)");
         // eqs.createEventQueue("/eventqueue1");
@@ -431,7 +435,7 @@ public class EventQueueServiceSBTest {
      * 
      * @throws EventQueueServiceException
      */
-    @Test(expected = EventQueueServiceException.class)
+   /* @Test(expected = EventQueueServiceException.class)
     public void testFullDiskEventQueue() throws EventQueueServiceException {
         Event e = new Event("/path/resource/", "toto", "resourceType", "read", "");
 
@@ -443,7 +447,7 @@ public class EventQueueServiceSBTest {
             i++;
         }
 
-    }
+    }*/
 
     /**
      * Test a full disk issue. This test use a specific pushEvent in an
@@ -451,7 +455,7 @@ public class EventQueueServiceSBTest {
      * 
      */
 
-    @Test(expected = EventQueueServiceException.class)
+    /*@Test(expected = EventQueueServiceException.class)
     public void testFullDiskEvent() throws EventQueueServiceException {
 
         int i = 0;
@@ -463,6 +467,6 @@ public class EventQueueServiceSBTest {
             i++;
         }
 
-    }
+    }*/
 
 }
