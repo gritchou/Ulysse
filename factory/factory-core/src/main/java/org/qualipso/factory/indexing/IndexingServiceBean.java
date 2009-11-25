@@ -51,11 +51,11 @@ public class IndexingServiceBean implements IndexingService {
 	private MembershipService membership;
 	private SessionContext ctx;
 	private IndexI index;
-
-    @Resource(mappedName="jms/QueueConnectionFactory")
+    
+    @Resource(mappedName="ConnectionFactory")
 	private QueueConnectionFactory queueConnectionFactory;
 
-	@Resource(mappedName="queue/indexingQueue")
+	@Resource(mappedName="indexingQueue")
 	private Queue indexingQueue;
 	
     
@@ -150,6 +150,9 @@ public class IndexingServiceBean implements IndexingService {
 	public ArrayList<SearchResult> search(String query) throws IndexingServiceException {
 		logger.info("search(...) called ");
 		logger.debug("params : query=" + query);
+        if(index == null){
+            index = Index.getInstance();
+        }
 		ArrayList<SearchResult> unCheckRes = index.search(query);
 		return filter(unCheckRes);
 	}

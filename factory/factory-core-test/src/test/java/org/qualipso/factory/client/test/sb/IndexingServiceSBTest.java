@@ -111,9 +111,10 @@ public class IndexingServiceSBTest{
 			logger.error(e);
 		}
 
-		UsernamePasswordHandler uph = new UsernamePasswordHandler("root", "root"); 
+		UsernamePasswordHandler uph = new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS); 
 		loginContext = new LoginContext("qualipso", uph);
-		loginContext.login();
+        //we need to login in just to delete things created by the quest user
+        loginContext.login();
 
 		indexing = (IndexingService) context.lookup(FactoryNamingConvention.getJNDINameForService(IndexingService.SERVICE_NAME));
 		//binding = (BindingService) context.lookup(BindingService.SERVICE_NAME);
@@ -151,7 +152,7 @@ public class IndexingServiceSBTest{
 	    //TODO create toto profile with root user
 		//membership.createProfile("toto", "toto titi", "toto@gmail.com", 0);
 
-        profilePath = /*membership.getProfilePathForConnectedIdentifier()+*/"/";
+        profilePath = membership.getProfilePathForConnectedIdentifier()+"/";
 		greeting.createName(profilePath+"bug", "bug");
 		greeting.createName(profilePath+"forge", "forge");
 		greeting.createName(profilePath+"tm", "tm");
@@ -172,12 +173,15 @@ public class IndexingServiceSBTest{
 	 */
 	@After
 	public void tearDown() throws MembershipServiceException, GreetingServiceException{
-		//membership.deleteProfile("toto");
 
-		greeting.deleteName(profilePath+"bug");
-		greeting.deleteName(profilePath+"forge");
-		greeting.deleteName(profilePath+"tm");
-		greeting.deleteName(profilePath+"forge_bug");   
+    	//membership.deleteProfile("toto");
+    //name may have been deleted by the test
+    try{ greeting.deleteName(profilePath+"bug");}catch(GreetingServiceException e){}
+	try{ greeting.deleteName(profilePath+"forge");}catch(GreetingServiceException e){}
+    try{ greeting.deleteName(profilePath+"tm");}catch(GreetingServiceException e){}
+	try{ greeting.deleteName(profilePath+"forge_bug");}catch(GreetingServiceException e){}   
+
+
 	}
 
 /* ****************************** TESTS ****************************** */
@@ -228,7 +232,7 @@ public class IndexingServiceSBTest{
 	@Test
 	public void testIndexingSearchReadableResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, IndexingServiceException{
 		logger.debug("Testing search of a readable resource");
-		String policy = PAPServiceHelper.buildPolicy("1", "/profiles/kermit", "/profiles/kermit/friFB", new String[]{"read"});
+		String policy = PAPServiceHelper.buildPolicy("1", profilePath+"kermit", profilePath+"friFB", new String[]{"read"});
 		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.OWNER, "/profiles/toto");
 		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
 		ArrayList<SearchResult> result = indexing.search("bug AND forge");
@@ -321,7 +325,7 @@ public class IndexingServiceSBTest{
 	@Test
 	public void testUpdateIndex() throws GreetingServiceException, IndexingServiceException, InterruptedException {
 		logger.debug("Testing update index");
-		greeting.updateName("/profiles/kermit/forge", "egrof");
+		greeting.updateName(profilePath+"forge", "egrof");
 		// Waiting 1 second for the asynchronous call of the reindexation
 		Thread.sleep(1000);
 		ArrayList<SearchResult> result = indexing.search("egrof");
@@ -338,9 +342,11 @@ public class IndexingServiceSBTest{
 	 * @throws InterruptedException
 	 */
 	@Test
-	public void testDeletedSearch() throws GreetingServiceException, IndexingServiceException, InterruptedException {
+	public void testDeletedSearch() throws GreetingServiceException, IndexingServiceException, InterruptedException{
 		logger.debug("Testing delete index");
-		greeting.deleteName("/profiles/kermit/forge");
+
+		greeting.deleteName(profilePath+"forge");
+
 		// Waiting 1 second for the asynchronous call of the deletion in index
 		Thread.sleep(1000);
 		ArrayList<SearchResult> result = indexing.search("forge");
