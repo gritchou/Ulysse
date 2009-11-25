@@ -156,8 +156,7 @@ public class NotificationServiceSBTest {
         assertTrue(lEvent2.length == 9);
         Date d = lEvent2[0].getDate();
         int i = 1;
-        boolean dateOrderOk = true;
-        while (i < lEvent2.length && dateOrderOk) {
+        while (i < lEvent2.length) {
             assertTrue("TestNotificationOrderEvent : date event " + (i - 1) + " must be before event " + i, d.before(lEvent2[i].getDate()));
             assertTrue("TestNotificationOrderEvent : event" + i + " must be after the begin of throw ", d.after(beginThrow));
             assertTrue("TestNotificationOrderEvent : event" + i + " must be after the begin of throw ", d.before(endThrow));
@@ -183,10 +182,10 @@ public class NotificationServiceSBTest {
             NotificationServiceException {
         greeting.sayHello("/name/toto");
         Thread.sleep(60);
-        assertTrue("TestNotificationEventNotMatching : expected 0 event into queue1(" + pathQueue1 + ") but found " + eqs.getEvents(pathQueue1).length, eqs
-                .getEvents(pathQueue1).length == 0);
-        assertTrue("TestNotificationEventNotMatching : expected 0 event into queue1(" + pathQueue2 + ") but found " + eqs.getEvents(pathQueue2).length, eqs
-                .getEvents(pathQueue2).length == 0);
+        assertEquals("TestNotificationEventNotMatching : expected 0 event into queue1(" + pathQueue1 + ") but found " + eqs.getEvents(pathQueue1).length, eqs
+                .getEvents(pathQueue1).length , 0);
+        assertEquals("TestNotificationEventNotMatching : expected 0 event into queue1(" + pathQueue2 + ") but found " + eqs.getEvents(pathQueue2).length, eqs
+                .getEvents(pathQueue2).length , 0);
 
     }
 
