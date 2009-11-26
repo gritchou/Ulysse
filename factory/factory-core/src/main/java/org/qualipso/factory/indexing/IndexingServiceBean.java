@@ -33,12 +33,10 @@ import org.qualipso.factory.security.pep.PEPServiceException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-
-
-
-
 /**
+ * <p>Class which implements Indexing Service</p>
  * @author Benjamin Dreux (benjiiiiii@gmail.com)
+ * @author cynthia FLORENTIN
  * @date 25 october 2009
  */
 
@@ -48,14 +46,17 @@ import java.util.Iterator;
 public class IndexingServiceBean implements IndexingService {
 	
 	private static Log logger = LogFactory.getLog(IndexingServiceBean.class);
-	static String indexingQueuePath = "queue/QualipsoFactory/Indexing";
 	
 	private PEPService pep;
 	private MembershipService membership;
 	private SessionContext ctx;
-	private Queue indexingQueue;
-	private QueueConnectionFactory queueConnectionFactory;
 	private IndexI index;
+    
+    @Resource(mappedName="ConnectionFactory")
+	private QueueConnectionFactory queueConnectionFactory;
+
+	@Resource(mappedName="indexingQueue")
+	private Queue indexingQueue;
 	
     
     public IndexingServiceBean() {
@@ -96,7 +97,7 @@ public class IndexingServiceBean implements IndexingService {
 	}
 
 	
-	@Resource(mappedName="jms/QueueConnectionFactory")
+
 	public void setQueueConnectionFactory(QueueConnectionFactory queueConnectionFactory){
 		this.queueConnectionFactory = queueConnectionFactory;
 	}
@@ -104,7 +105,7 @@ public class IndexingServiceBean implements IndexingService {
 		return this.queueConnectionFactory;
 	}
 	
-	@Resource(mappedName="jms/queue/indexingQueue")
+
 	public void setIndexingQueue(Queue indexingQueue){
 		this.indexingQueue = indexingQueue;
 	}
@@ -149,6 +150,9 @@ public class IndexingServiceBean implements IndexingService {
 	public ArrayList<SearchResult> search(String query) throws IndexingServiceException {
 		logger.info("search(...) called ");
 		logger.debug("params : query=" + query);
+        if(index == null){
+            index = Index.getInstance();
+        }
 		ArrayList<SearchResult> unCheckRes = index.search(query);
 		return filter(unCheckRes);
 	}

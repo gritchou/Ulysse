@@ -31,7 +31,7 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 @Remote
 
 public interface IndexingService {
-    public static final String SERVICE_NAME = "IndexingService";
+    public static final String SERVICE_NAME = "indexing";
     public static final String[] RESOURCE_TYPE_LIST = new String[] {};
 	/**
 	 * Index the resource identified by the given factoryResourceIdentifier, or

@@ -35,6 +35,7 @@ import org.qualipso.factory.notification.NotificationServiceException;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
+import org.qualipso.factory.indexing.IndexingService;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -59,6 +60,7 @@ public class GreetingServiceBean implements GreetingService {
     private MembershipService membership;
     private SessionContext ctx;
     private EntityManager em;
+    private IndexingService indexing;
 
     public GreetingServiceBean() {
     }
@@ -88,6 +90,14 @@ public class GreetingServiceBean implements GreetingService {
 
     public BindingService getBindingService() {
         return this.binding;
+    }
+    @EJB
+    public void setIndexingService(IndexingService indexing) {
+        this.indexing = indexing;
+    }
+
+    public IndexingService getIndexingService() {
+        return this.indexing;
     }
 
     @EJB
@@ -166,6 +176,9 @@ public class GreetingServiceBean implements GreetingService {
             
             //Using the notification service to throw an event : 
             notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "create"), ""));
+
+            //Using the indexing service to index the name newly created
+            indexing.index(name.getFactoryResourceIdentifier());
         } catch ( Exception e ) {
             ctx.setRollbackOnly();
             logger.error("unable to create the name at path " + path, e);

@@ -18,6 +18,7 @@ package org.qualipso.factory.indexing;
 
 
 /**
+ * <p>Class which implements IndexableContentI</p>
  * @author Benjamin DREUX
  * @author cynthia FLORENTIN
  * @see IndexableContentI
@@ -27,7 +28,7 @@ public class IndexableContent implements IndexableContentI {
     private StringBuffer sb;
     
     /**
-     * Constructor with a type of object to represent the list
+     * <p>Constructor with a type of object to represent the list</p>
      */
     public IndexableContent() {
         sb = new StringBuffer();

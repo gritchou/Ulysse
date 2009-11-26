@@ -30,7 +30,8 @@ import org.junit.runners.Suite.SuiteClasses;
     MembershipServiceSBTest.class, 
     BrowserServiceSBTest.class,
     EventQueueServiceSBTest.class,
-    NotificationServiceSBTest.class}
+    NotificationServiceSBTest.class,
+    IndexingServiceSBTest.class}
 )
 public class AllSBTests {
 	

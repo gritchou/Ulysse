@@ -12,11 +12,11 @@ import org.jboss.ejb3.annotation.SecurityDomain;
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryService;
 
-@MessageDriven(mappedName = "queue/IndexingeQueue", activationConfig = {
+@MessageDriven(mappedName = "indexingeQueue", activationConfig = {
 	@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
-	@ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/IndexingQueue"),
+	@ActivationConfigProperty(propertyName = "destination", propertyValue = "indexingQueue"),
 	@ActivationConfigProperty(propertyName = "messagingType", propertyValue = "javax.jms.MessageListener") })
-@Depends ("jboss.mq.destination:service=Queue,name=IndexingQueue")
+@Depends ("jboss.mq.destination:service=Queue,name=indexingQueue")
 @SecurityDomain(value = "JBossWSDigest")
 
 

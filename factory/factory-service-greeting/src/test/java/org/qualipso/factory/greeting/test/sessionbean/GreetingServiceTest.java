@@ -23,6 +23,7 @@ import org.qualipso.factory.membership.entity.Profile;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
+import org.qualipso.factory.indexing.IndexingService;
 
 import com.bm.testsuite.BaseSessionBeanFixture;
 
@@ -43,6 +44,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 	private PEPService pep;
 	private PAPService pap;
 	private NotificationService notification;
+	private IndexingService indexing;
 	
     public GreetingServiceTest() {
     	super(GreetingServiceBean.class, usedBeans);
@@ -57,11 +59,13 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 		pep = mockery.mock(PEPService.class);
 		pap = mockery.mock(PAPService.class);
 		notification = mockery.mock(NotificationService.class);
+		indexing = mockery.mock(IndexingService.class);
 		getBeanToTest().setMembershipService(membership);
 		getBeanToTest().setNotificationService(notification);
 		getBeanToTest().setBindingService(binding);
 		getBeanToTest().setPEPService(pep);
 		getBeanToTest().setPAPService(pap);
+		getBeanToTest().setIndexingService(indexing);
 	}
     
     public void testCRUDName() {
@@ -88,6 +92,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.OWNER)), with(equal("/profiles/jayblanc"))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("greeting.name.create"))); inSequence(sequence1);
+					oneOf(indexing).index(with(any(FactoryResourceIdentifier.class)));inSequence(sequence1);
 					
 					//Second time for second name : 
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
@@ -100,6 +105,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.OWNER)), with(equal("/profiles/jayblanc"))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("greeting.name.create"))); inSequence(sequence1);
+					oneOf(indexing).index(with(any(FactoryResourceIdentifier.class)));inSequence(sequence1);
 				}
 			});
 			
@@ -205,6 +211,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					allowing(pep);
 					allowing(pap);
 					allowing(notification);
+                    allowing(indexing);
 					allowing(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); 
 					allowing(binding).bind(with(any(FactoryResourceIdentifier.class)), with(any(String.class))); will(saveParams(params));
 					allowing(binding).setProperty(with(any(String.class)), with(any(String.class)), with(any(String.class))); 
