@@ -39,6 +39,7 @@ import org.qualipso.factory.indexing.IndexingService;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
+ * @author Benjamin Dreux (benjiiiiii@gmail.com)
  * @date 11 june 2009
  */
 @Stateless(name = GreetingService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + GreetingService.SERVICE_NAME)
@@ -252,6 +253,10 @@ public class GreetingServiceBean implements GreetingService {
             
             //Using the notification service to throw an event : 
             notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "update"), ""));
+            
+            //Using the indexing service to reindex the name newly updated
+            indexing.reindex(name.getFactoryResourceIdentifier());
+
         } catch ( Exception e ) {
             ctx.setRollbackOnly();
             logger.error("unable to update the name at path " + path, e);
@@ -293,6 +298,10 @@ public class GreetingServiceBean implements GreetingService {
             
             //Using the notification service to throw an event : 
             notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "delete"), ""));
+
+        //Using the indexing service to unindex the name 
+        indexing.remove(name.getFactoryResourceIdentifier());
+
         } catch ( Exception e ) {
             ctx.setRollbackOnly();
             logger.error("unable to delete the name at path " + path, e);

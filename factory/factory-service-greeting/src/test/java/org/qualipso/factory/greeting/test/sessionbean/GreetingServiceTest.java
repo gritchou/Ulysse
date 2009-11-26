@@ -140,6 +140,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(binding).lookup(with(equal("/names/sheldon"))); will(returnValue(params1.get(0))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("greeting.name.update"))); inSequence(sequence1);
+                    oneOf(indexing).reindex(with(any(FactoryResourceIdentifier.class)));inSequence(sequence1);
 					
 					//Update the second name : 
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
@@ -147,6 +148,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(binding).lookup(with(equal("/names/howard"))); will(returnValue(params2.get(0))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("greeting.name.update"))); inSequence(sequence1);
+                    oneOf(indexing).reindex(with(any(FactoryResourceIdentifier.class)));inSequence(sequence1);
 					
 					//Reading the first name : 
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
@@ -177,6 +179,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(pap).deletePolicy(with(any(String.class))); inSequence(sequence1);
 					oneOf(binding).unbind(with(equal("/names/sheldon"))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("greeting.name.delete"))); inSequence(sequence1);
+                    oneOf(indexing).remove(with(any(FactoryResourceIdentifier.class)));inSequence(sequence1);
 					
 					//Update the second name : 
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
@@ -186,6 +189,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(pap).deletePolicy(with(any(String.class))); inSequence(sequence1);
 					oneOf(binding).unbind(with(equal("/names/howard"))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("greeting.name.delete"))); inSequence(sequence1);
+                    oneOf(indexing).remove(with(any(FactoryResourceIdentifier.class)));inSequence(sequence1);
 				}
 			});
             
