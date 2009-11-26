@@ -1223,8 +1223,8 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         logger.info(" verification TFEBRTNP");
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            eqsb.findEventFromRessource(name, null, true);
-            eqsb.findEventFromRessource(null, "eventype", false);
+            eqsb.findEventByFromRessource(name, null, true);
+            eqsb.findEventByFromRessource(null, "eventype", false);
         } catch (EventQueueServiceException e) {
             logger.info("exception generated : " + e.getMessage());
         }
@@ -1364,8 +1364,8 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         logger.info(" verification TFEFRNP");
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            eqsb.findEventFromRessource(name, null, true);
-            eqsb.findEventFromRessource(null, "eventype", false);
+            eqsb.findEventByFromRessource(name, null, true);
+            eqsb.findEventByFromRessource(null, "eventype", false);
         } catch (EventQueueServiceException e) {
             logger.info("exception generated : " + e.getMessage());
         }

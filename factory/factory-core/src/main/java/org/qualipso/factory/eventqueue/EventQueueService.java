@@ -19,6 +19,8 @@
  * Christophe Bouthier / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
+ * El amri Firas
+ * Yuksel Huriye
  */
 package org.qualipso.factory.eventqueue;
 
@@ -104,7 +106,7 @@ public interface EventQueueService extends FactoryService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventFromRessource(String path, String fromRessource,boolean substring) throws EventQueueServiceException;
+    public Event[] findEventByFromRessource(String path, String fromRessource,boolean substring) throws EventQueueServiceException;
 
    /**
     * 
@@ -170,6 +172,9 @@ public interface EventQueueService extends FactoryService {
     
     @WebMethod
     public Event []  findObjectEvent(String path, Event event) throws EventQueueServiceException ;
+    
+    @WebMethod
+    public  void generateXML(String path); 
 
    
 }

@@ -3,6 +3,7 @@ package org.qualipso.factory.client.test.sb;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
@@ -106,7 +107,7 @@ public class EventQueueServiceSBTest {
      * 
      * **/
     // *******************************Right**************************************************
-    public void test1() throws EventQueueServiceException {
+    public void testExistingEventInEQ() throws EventQueueServiceException {
         logger.debug(" Test existence of Event in EventQueue(...)");
 
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
@@ -115,9 +116,9 @@ public class EventQueueServiceSBTest {
         eqs.pushEvent(pathQ1, myEvent2);
         Event[] tabEvent = eqs.getEvents(pathQ1);
 
-        assertEquals(tabEvent[0], myEvent1);
-        assertEquals(tabEvent[1], myEvent2);
-        assertEquals(tabEvent.length, 2);
+        assertEquals("error in existing of myEvent2 in testExistingEventInEQ() ",myEvent2,tabEvent[0]);
+        assertEquals("error in existing of myEvent1 in testExistingEventInEQ()",myEvent1,tabEvent[1]);
+        assertEquals("error Length of array in testExistingEventInEQ() ",2,tabEvent.length);
 
     }
 
@@ -127,7 +128,7 @@ public class EventQueueServiceSBTest {
      * @throws EventQueueServiceException
      */
     @Test
-    public void test2() throws EventQueueServiceException {
+    public void testPushEventInTooEQ() throws EventQueueServiceException {
         logger.debug("push 1 Event in 2 EventQueue and verification(...)");
 
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
@@ -136,9 +137,10 @@ public class EventQueueServiceSBTest {
         Event e1 = eqs.getLastEvent(pathQ1);
         Event e2 = eqs.getLastEvent(pathQ2);
 
-        assertEquals(e1, myEvent1);
-        assertEquals(e2, myEvent1);
+        assertEquals("error existing event in the first EQ :testPushEventInTooEQ()",myEvent1,e1);
+        assertEquals("error existing event in the second EQ :testPushEventInTooEQ()",myEvent1,e2);
 
+        
     }
 
     /**
@@ -147,7 +149,7 @@ public class EventQueueServiceSBTest {
      * @throws EventQueueServiceException
      */
     @Test(expected = EventQueueServiceException.class)
-    public void test3() throws EventQueueServiceException {
+    public void testpushEventInInexistEQ() throws EventQueueServiceException {
 
         logger.debug("push 1 Event inexisting EventQueue and verification(...)");
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
@@ -155,87 +157,361 @@ public class EventQueueServiceSBTest {
 
     }
 
+    
+    
+    
+    
+    
     /**
-     * test: search event(by name) not exist in eventQueue
+     * test existing of Event in the EventQueue having exactly a ressourceType
      * 
      * @throws EventQueueServiceException
      */
-    @Test
-    public void test4() throws EventQueueServiceException {
-
-        logger.debug("test: search event(by name) not exist in eventQueue(...)");
-
-        Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write", "");
-
-        eqs.pushEvent(pathQ1, myEvent1);
-        eqs.pushEvent(pathQ1, myEvent2);
-
-        Event[] resultFind = eqs.findEventFromRessource(pathQ1, "myEvent3", false);
-
-        assertEquals(resultFind.length, 0);
-
-    }
-
+    
+    public void testFindEventByResourcetypeEx() throws  EventQueueServiceException
+    {
+        
+        logger.debug("test: testFindEventByResourcetypeEx()...");
+        eqs.createEventQueue("/eventqueue1");
+      
+        
+        Event myEvent1 = new Event("/path/resource/", "toto", "rtype1", "read", "");
+        Event myEvent2 = new Event("/path/resource/", "titi", "rtype2", "read,write","");
+        
+        eqs.pushEvent("/eventqueue1", myEvent1);
+        eqs.pushEvent("/eventqueue1", myEvent2);
+        
+        //test existing of Event in the EventQueue having exactly a ressourceType= rtype2
+        
+        Event[] resultFind =  eqs.findEventByRessourceType("/eventqueue1","rtype2",false);
+       
+        
+        assertEquals("error length of array from testFindEventByResourcetypeEx() ",1,resultFind.length);
+        assertEquals("error length of array from testFindEventByResourcetypeEx() ",myEvent2,resultFind[0]);
+        
+        
+    } 
     /**
-     * test: search event(by creator ) existing in the eventQueue
+     * test existing of Event in the EventQueue contains a string parameter resourceType
      * 
      * @throws EventQueueServiceException
      */
-    @Test
-    public void test5() throws EventQueueServiceException {
-
-        logger.debug("test: search event(by creator ) existing in eventQueue(...)");
-
-        Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write", "");
-        Event myEvent3 = new Event("/path/resource/", "titi", "resourceType", "commit", "");
-
-        eqs.pushEvent(pathQ1, myEvent1);
-        eqs.pushEvent(pathQ1, myEvent2);
-        eqs.pushEvent(pathQ1, myEvent3);
-
-        Event[] resultFind = eqs.findEventFromRessource(pathQ1, "titi", false);
-        assertEquals(resultFind[0], myEvent3);
-        assertEquals(resultFind[1], myEvent2);
-        assertEquals(resultFind.length, 2);
-
-    }
-
+    
+    public void testFindEventByResourcetypeContains() throws  EventQueueServiceException
+    {
+        
+        logger.debug("test: testFindEventByResourcetypeContains()...");
+        eqs.createEventQueue("/eventqueue1");
+      
+        
+        Event myEvent1 = new Event("/path/resource/", "toto", "rtype1Resource", "read", "");
+        Event myEvent2 = new Event("/path/resource/", "titi", "Resourcetype2", "read,write","");
+        
+        eqs.pushEvent("/eventqueue1", myEvent1);
+        eqs.pushEvent("/eventqueue1", myEvent2);
+        
+        //test existing of Event in the EventQueue  having ressourceType contains ("Resource")
+        
+        Event[] resultFind =  eqs.findEventByRessourceType("/eventqueue1","rtype2",true);
+       
+        
+        assertEquals("error length of array in  testFindEventByResourcetypeContains() ",2,resultFind.length);
+        assertEquals("error of finding Event2 in testFindEventByResourcetypeContains() ",myEvent2,resultFind[0]);
+        assertEquals("error of finding Event1 in testFindEventByResourcetypeContains() ",myEvent1,resultFind[1]);
+        
+    } 
     /**
-     * 
-     * test: search event(by eventType ) existing in the eventQueueEventQue
+     * test existing of Event in the EventQueue contains/having a string parameter throwedBy
      * 
      * @throws EventQueueServiceException
      */
-    @Test
-    public void test6() throws EventQueueServiceException {
-
+    public void testFindEventByThrower() throws  EventQueueServiceException
+    {
+        
+        logger.debug("test: testFindEventByThrower() ...");
+        eqs.createEventQueue("/eventqueue1");
+      
+        
+        Event myEvent1 = new Event("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
+        Event myEvent2 = new Event("/path/resource/", "titiQualipso", "Resourcetype2", "read,write","");
+        
+        eqs.pushEvent("/eventqueue1", myEvent1);
+        eqs.pushEvent("/eventqueue1", myEvent2);
+        
+        //test existing of Event in the EventQueue  having the attribute By thrower contains ("Qualipso")
+        
+        Event[] resultFind =  eqs.findEventBythrower("/eventqueue1","Qualipso",true);
+       
+        
+        assertEquals("error length of array in testFindEventByThrower()  ",2,resultFind.length);
+        assertEquals("error of finding Event2 in testFindEventByThrower() ",myEvent2,resultFind[0]);
+        assertEquals("error of finding Event1 in testFindEventByThrower() ",myEvent1,resultFind[1]);
+        
+      //test existing of Event in the EventQueue  having the attribute By thrower ="titiQualipso"
+        
+        Event[] resultFind1 =  eqs.findEventBythrower("/eventqueue1","titiQualipso",false);
+        
+        assertEquals("error length of array1 in testFindEventByThrower()  ",1,resultFind1.length);
+        assertEquals("error of finding(array1) Event2 in testFindEventByThrower() ",myEvent2,resultFind1[0]);
+           
+    } 
+    /**
+     * test existing of Event in the EventQueue contains/having an string parameter path
+     * 
+     * @throws EventQueueServiceException
+     */
+    public void testFindEventByPath() throws  EventQueueServiceException
+    {
+        
+        logger.debug("test: testFindEventByPath() ...");
+        eqs.createEventQueue("/eventqueue1");
+      
+        
+        Event myEvent1 = new Event("/path/res/eq", "totoQualipso", "rtype1Resource", "read", "");
+        Event myEvent2 = new Event("/path/resource/", "titiQualipso", "Resourcetype2", "read,write","");
+        
+        eqs.pushEvent("/eventqueue1", myEvent1);
+        eqs.pushEvent("/eventqueue1", myEvent2);
+        
+        //test existing of Event in the EventQueue  having the attribute path contains ("path")
+        
+        Event[] resultFind =  eqs.findEventByFromRessource("/eventqueue1","path",true);
+       
+        
+        assertEquals("error length of array in testFindEventByPath() ",2,resultFind.length);
+        assertEquals("error of finding Event2 in testFindEventByPath() ",myEvent2,resultFind[0]);
+        assertEquals("error of finding Event1 in testFindEventByPath() ",myEvent1,resultFind[1]);
+        
+      //test existing of Event in the EventQueue  having the attribute path ="/path/res/eq"
+        
+        Event[] resultFind1 =  eqs.findEventByFromRessource("/eventqueue1","/path/res/eq",false);
+        
+        assertEquals("error length of array1 in testFindEventByThrower()  ",1,resultFind1.length);
+        assertEquals("error of finding(array1) Event2 in testFindEventByThrower() ",myEvent1,resultFind1[0]);
+           
+    } 
+    
+    /**
+     * 
+     * find event in the EventQueue by Date 
+     * @throws EventQueueServiceException
+     */
+    public void testFindEventByDate() throws  EventQueueServiceException
+    {
+        
+        logger.debug("test: testFindEventByDate() ...");
+        eqs.createEventQueue("/eventqueue1");
+      
+        
+        Event myEvent1 = new Event("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
+        Event myEvent2 = new Event("/path/resource/", "titiQualipso", "Resourcetype2", "read,write","");
+        
+        // Change the date of myEvent1 and myEvent2
+        
+        Date date1=new Date(2009,11,14,13,01,30);
+        myEvent1.setDate(date1 );
+        
+        Date date2=new Date(2009,11,14,15,01,30);
+        myEvent1.setDate(date2);
+        
+        //push myEvent1 and MyEvent2 in the EventQueue
+        
+        eqs.pushEvent("/eventqueue1", myEvent1);
+        eqs.pushEvent("/eventqueue1", myEvent2);
+        
+        // finding by date1 
+        
+        Event[] resultFind =  eqs.findEventByDate("/eventqueue1",date1);
+       
+        // verify the length of array and the existing of myEent1 in the EventQueue
+        
+        assertEquals("error length of array in testFindByDate() ",1,resultFind.length);
+        assertEquals("error of finding myEvent1 in testFindEventByDate() ",myEvent1,resultFind[0]);
+        
+    } 
+    
+    /**
+     * 
+     * find event in the EventQueue having Date >= date (parameter)
+     * @throws EventQueueServiceException
+     */
+    
+    public void testFindEventByDateSup() throws  EventQueueServiceException
+    {
+        
+        logger.debug("test: testFindEventByDateSup() ...");
+        eqs.createEventQueue("/eventqueue1");
+      
+        
+        Event myEvent1 = new Event("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
+        Event myEvent2 = new Event("/path/resource/", "titiQualipso", "Resourcetype2", "read,write","");
+        
+        // Change the date of myEvent1 and myEvent2
+        
+        Date date1=new Date(2009,11,14,13,01,30);
+        myEvent1.setDate(date1 );
+        
+        Date date2=new Date(2009,11,14,15,30,30);
+        myEvent1.setDate(date2);
+        
+        //push myEvent1 and MyEvent2 in the EventQueue
+        
+        eqs.pushEvent("/eventqueue1", myEvent1);
+        eqs.pushEvent("/eventqueue1", myEvent2);
+        
+        // finding by date>= date1 
+        
+        Event[] resultFind =  eqs.findEventByDateSup("/eventqueue1",date1);
+       
+        // verify the length of array and the existing of myEent2 in the EventQueue
+        
+        assertEquals("error length of array in testFindByDateSup() ",1,resultFind.length);
+        assertEquals("error of finding myEvent2 in testFindEventByDateSup() ",myEvent2,resultFind[0]);
+        
+    } 
+    
+    /**
+     * find event in the EventQueue having Date <= date (parameter)
+     * 
+     * @throws EventQueueServiceException
+     */
+    
+    public void testFindEventByDateInf() throws  EventQueueServiceException
+    {
+        
+        logger.debug("test: testFindEventByDateInf() ...");
+        eqs.createEventQueue("/eventqueue1");
+      
+        
+        Event myEvent1 = new Event("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
+        Event myEvent2 = new Event("/path/resource/", "titiQualipso", "Resourcetype2", "read,write","");
+        
+        // Change the date of myEvent1 and myEvent2
+        
+        Date date1=new Date(2009,11,14,13,01,30);
+        myEvent1.setDate(date1 );
+        
+        Date date2=new Date(2009,11,14,15,30,30);
+        myEvent1.setDate(date2);
+        
+        //push myEvent1 and MyEvent2 in the EventQueue
+        
+        eqs.pushEvent("/eventqueue1", myEvent1);
+        eqs.pushEvent("/eventqueue1", myEvent2);
+        
+        // finding by date<= date2
+        
+        Event[] resultFind =  eqs.findEventByDateInf("/eventqueue1",date2);
+       
+        // verify the length of array and the existing of myEent1 in the EventQueue
+        
+        assertEquals("error length of array in testFindByDateInf() ",1,resultFind.length);
+        assertEquals("error of finding myEvent1 in testFindEventByDateInf() ",myEvent1,resultFind[0]);
+        
+    } 
+    
+    /**
+     * 
+     * find event in the EventQueue having Date Between date1 and date2 (parameters)
+     * @throws EventQueueServiceException
+     */
+    
+    
+    public void testFindEventByDateBetween() throws  EventQueueServiceException
+    {
+        
+        logger.debug("test: testFindEventByDateBetween() ...");
+        eqs.createEventQueue("/eventqueue1");
+      
+        
+        Event myEvent1 = new Event("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
+        Event myEvent2 = new Event("/path/resource/", "titiQualipso", "Resourcetype2", "read,write","");
+        
+        // Change the date of myEvent1 and myEvent2
+        
+        Date date1=new Date(2009,11,14,13,01,30);
+        myEvent1.setDate(date1 );
+        
+        Date date2=new Date(2009,11,14,15,30,30);
+        myEvent1.setDate(date2);
+        
+        // creation of date3
+        
+        Date date3=new Date(2009,11,11,15,30,30);
+        
+        //push myEvent1 and MyEvent2 in the EventQueue
+        
+        eqs.pushEvent("/eventqueue1", myEvent1);
+        eqs.pushEvent("/eventqueue1", myEvent2);
+        
+        // finding by date between date3 and and date2
+        
+        Event[] resultFind =  eqs.findEventByDateBetween("/eventqueue1",date3,date2);
+       
+        // verify the length of array and the existing of myEent1 and myEvent2 in the EventQueue
+        
+        assertEquals("error length of array in testFindByDateBetween() ",2,resultFind.length);
+        assertEquals("error of finding myEvent2 in testFindEventByDateBetween() ",myEvent2,resultFind[0]);
+        assertEquals("error of finding myEvent2 in testFindEventByDateBetween() ",myEvent1,resultFind[1]);
+        
+    } 
+    
+   
+    
+   
+    
+    /**
+     * 
+     * test: search event(by eventType ) existing in the eventQueue
+     * 
+     * @throws EventQueueServiceException
+     */
+    
+    
+    public void testFindEventByEventType() throws  EventQueueServiceException
+    {
+        
         logger.debug("test: search event(eventType) existing in eventQueue(...)");
-        // eqs.createEventQueue("/eventqueue1");
-
+        eqs.createEventQueue("/eventqueue1");
+        
         Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write", "");
-        Event myEvent3 = new Event("/path/resource/", "titi", "resourceType", "commit", "");
+        Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write","");
+        Event myEvent3 = new Event("/path/resource/", "titi", "resourceType", "commit","");
+        
+        eqs.pushEvent("/eventqueue1", myEvent1);
+        eqs.pushEvent("/eventqueue1", myEvent2);
+        eqs.pushEvent("/eventqueue1", myEvent3);
+        
+        //test existing of Event in the EventQueue  having the EventType contains ("r")
+        Event[] resultFind =  eqs.findEventByEventType("/eventqueue1","r",true);
+        
+        assertEquals("error length of array in testFindEventByType() ",2,resultFind.length);
+        assertEquals("error of finding myEvent2 in testFindEventByType() ",myEvent2,resultFind[0]);
+        assertEquals("error of finding myEvent1 in testFindEventByType() ",myEvent1,resultFind[1]);
+        
+      //test existing of Event in the EventQueue  having the EventType equals to ("read")
+        Event[] resultFind1 =  eqs.findEventByEventType("/eventqueue1","read",false);
+        
+        assertEquals("error length of array in testFindEventByType() ",2,resultFind1.length);
+        assertEquals("error of finding myEvent2 in testFindEventByType() ",myEvent2,resultFind1[0]);
+        assertEquals("error of finding myEvent1 in testFindEventByType() ",myEvent1,resultFind1[1]);
+        
+        
+    } 
 
-        eqs.pushEvent(pathQ1, myEvent1);
-        eqs.pushEvent(pathQ1, myEvent2);
-        eqs.pushEvent(pathQ1, myEvent3);
-
-        Event[] resultFind = eqs.findEventFromRessource(pathQ1, "read", false);
-        assertEquals(resultFind[1], myEvent2);
-        assertEquals(resultFind[2], myEvent1);
-        assertEquals(resultFind.length, 2);
-
-    }
-
+    
+    
+    
+    
+    
+   
     /**
      * Test:delete an Event from EventQueue
      * 
      * @throws EventQueueServiceException
      */
     @Test
-    public void test7() throws EventQueueServiceException {
+    public void testDeleteeventFromEQ() throws EventQueueServiceException {
 
         logger.debug("test: delete an Event from EventQueue(...)");
         // eqs.createEventQueue("/eventqueue1");
@@ -248,7 +524,7 @@ public class EventQueueServiceSBTest {
         eqs.deleteEvent(pathQ1, myEvent1);
         eqs.deleteEvent(pathQ1, myEvent2);
         Event[] tabEvent = eqs.getEvents(pathQ1);
-        assertEquals(tabEvent.length, 0);
+        assertEquals("error length of array intestDeleteeventFromEQ()",tabEvent.length, 0);
 
     }
 
@@ -258,7 +534,7 @@ public class EventQueueServiceSBTest {
      * @throws EventQueueServiceException
      */
     @Test(expected = EventQueueServiceException.class)
-    public void test8() throws EventQueueServiceException {
+    public void testRemoveEventQueue() throws EventQueueServiceException {
 
         logger.debug("test: delete an Event from EventQueue(...)");
         eqs.createEventQueue("/eventqueue3");
@@ -273,7 +549,7 @@ public class EventQueueServiceSBTest {
      * @throws EventQueueServiceException
      */
     @Test
-    public void test9() throws EventQueueServiceException {
+    public void testLastEventInEQ() throws EventQueueServiceException {
 
         logger.debug("test: delete an Event from EventQueue(...)");
         // eqs.createEventQueue("/eventqueue1");

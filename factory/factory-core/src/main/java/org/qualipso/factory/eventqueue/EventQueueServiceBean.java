@@ -632,7 +632,7 @@ public class EventQueueServiceBean implements EventQueueService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventFromRessource(String path, String fromRessource, boolean substring) throws EventQueueServiceException {
+    public Event[] findEventByFromRessource(String path, String fromRessource, boolean substring) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
           //li des cas exceptionnelles
@@ -1088,6 +1088,12 @@ public class EventQueueServiceBean implements EventQueueService {
     public Event[] findEventByComposedParameter(String path, String eventType, String thrower, String resourceType, String fromRessource, Date date1, Date date2)
             throws EventQueueServiceException {
         return null;
+    }
+
+    @Override
+    public void generateXML(String path) {
+        // TODO Auto-generated method stub
+        
     }
 
 }
