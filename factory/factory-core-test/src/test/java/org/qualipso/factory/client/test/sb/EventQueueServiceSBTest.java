@@ -704,28 +704,4 @@ public class EventQueueServiceSBTest {
 
     }
 
-    // ******************************* Performance
-    // ***************************************************************
-
-
-    /**
-     * Test a full disk issue. This test use a specific pushEvent in an
-     * EventQueue.
-     * 
-     */
-
-    /*@Test(expected = EventQueueServiceException.class)
-    public void testFullDiskEvent() throws EventQueueServiceException {
-
-        int i = 0;
-        while (true) {
-
-            Event e = new Event("/path/resource/", "toto" + i, "resourceType" + i, "read", "");
-            eqs.pushEvent(pathQ1, e);
-
-            i++;
-        }
-
-    }*/
-
 }
