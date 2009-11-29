@@ -58,7 +58,7 @@ public class IndexingServiceBean implements IndexingService {
     @Resource(mappedName="ConnectionFactory")
 	private QueueConnectionFactory queueConnectionFactory;
 
-	@Resource(mappedName="indexingQueue")
+	@Resource(mappedName="queue/indexingQueue")
 	private Queue indexingQueue;
 	
     
@@ -162,6 +162,8 @@ public class IndexingServiceBean implements IndexingService {
 	}
 
 	private ArrayList<SearchResult> filter(ArrayList<SearchResult> uncheckedRes) throws IndexingServiceException {
+		logger.info("filter(...) called ");
+		logger.debug("params : UnchedSearchResult= " + uncheckedRes);
 		Iterator<SearchResult> iter = uncheckedRes.iterator();
 		ArrayList<SearchResult> checkedRes = new ArrayList<SearchResult>();
 		try{	
@@ -182,8 +184,10 @@ public class IndexingServiceBean implements IndexingService {
 		return checkedRes;
 	}
 
-	@TransactionAttribute(TransactionAttributeType.REQUIRED)
+
 	private void sendMessage(String action, String fs, String path) throws IndexingServiceException{
+		logger.info("sendMessage(...) called ");
+		logger.debug("params : action= " +action+" Service="+fs+" path="+path);
 		try{
 			QueueConnection queueConnection = queueConnectionFactory.createQueueConnection();
 			try{
@@ -196,7 +200,9 @@ public class IndexingServiceBean implements IndexingService {
 						message.setStringProperty("action", action);
 						message.setStringProperty("service", fs);
 						message.setStringProperty("path", path);
+						queueConnection.start();
 						queueSender.send(message);
+						queueSession.commit();
 						queueSender.close();
 						queueSession.close();
 						queueConnection.close();
@@ -204,9 +210,9 @@ public class IndexingServiceBean implements IndexingService {
 				}finally{queueSession.close();}
 			}finally{queueConnection.close();}
 		}catch(JMSException e){
-			logger.error("Error in indexingservice when sending message "+ action, e);
+			logger.error("Unable to send message "+ action, e);
             ctx.setRollbackOnly();
-            throw new IndexingServiceException("Error in indexingservice when sending message "+ action, e);  
+            throw new IndexingServiceException("Unable to send message"+ action, e);  
 		}
 	}
 	

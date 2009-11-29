@@ -2,7 +2,7 @@
 <server>
    <mbean code="org.jboss.mq.server.jmx.Queue" 
       name="jboss.mq.destination:service=Queue,name=indexingQueue">
-     <attribute name="JNDIName">indexingQueue</attribute>
-      <depends optional-attribute-name="DestinationManager"> jboss.mq:service=DestinationManager</depends>
+      <attribute name="JNDIName">queue/indexingQueue</attribute>
+      <depends optional-attribute-name="DestinationManager">jboss.mq:service=DestinationManager</depends>
    </mbean>
 </server> 
