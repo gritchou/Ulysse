@@ -11,6 +11,7 @@ import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.greeting.entity.Name;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationServiceException;
+import org.qualipso.factory.indexing.IndexableContent;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -56,5 +57,7 @@ public interface GreetingService extends FactoryService {
     @WebMethod
     @WebResult(name = "name")
     public void throwFacticeEvent() throws NotificationServiceException;
+	
+	public IndexableContent toIndexableContent(String path)throws GreetingServiceException;
 
 }

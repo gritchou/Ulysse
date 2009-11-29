@@ -36,6 +36,7 @@ import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
 import org.qualipso.factory.indexing.IndexingService;
+import org.qualipso.factory.indexing.IndexableContent;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -179,7 +180,7 @@ public class GreetingServiceBean implements GreetingService {
             notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "create"), ""));
 
             //Using the indexing service to index the name newly created
-            indexing.index(name.getFactoryResourceIdentifier());
+            indexing.index(getServiceName(), path);
         } catch ( Exception e ) {
             ctx.setRollbackOnly();
             logger.error("unable to create the name at path " + path, e);
@@ -255,7 +256,7 @@ public class GreetingServiceBean implements GreetingService {
             notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "update"), ""));
             
             //Using the indexing service to reindex the name newly updated
-            indexing.reindex(name.getFactoryResourceIdentifier());
+            indexing.reindex(getServiceName(), path);
 
         } catch ( Exception e ) {
             ctx.setRollbackOnly();
@@ -300,7 +301,7 @@ public class GreetingServiceBean implements GreetingService {
             notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "delete"), ""));
 
         //Using the indexing service to unindex the name 
-        indexing.remove(name.getFactoryResourceIdentifier());
+        indexing.remove(getServiceName(), path);
 
         } catch ( Exception e ) {
             ctx.setRollbackOnly();
@@ -445,6 +446,20 @@ public class GreetingServiceBean implements GreetingService {
             throw new GreetingServiceException("unable to create the name at path " + path, e);
         }
     }
+
+	@Override
+	public IndexableContent toIndexableContent(String path) throws GreetingServiceException{
+	try{
+		Name name = (Name)findResource(path);
+		IndexableContent content = new IndexableContent();
+		content.addContentPart(name.getValue());
+		return content;
+	} catch (Exception e) {
+            ctx.setRollbackOnly();
+            logger.error("unable to convert name to IndexableContent " + path, e);
+            throw new GreetingServiceException("unable to convert name to IndexableContent" + path, e);
+        }
+	}
 
     @Override
     public void throwNullEvent() throws NotificationServiceException {

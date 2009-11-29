@@ -21,6 +21,7 @@ import org.qualipso.factory.indexing.SearchResult;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.security.pep.PEPService;
 import com.bm.testsuite.BaseSessionBeanFixture;
+import org.qualipso.factory.FactoryService;
 
 public class IndexingServiceTest extends BaseSessionBeanFixture<IndexingServiceBean> {
 
@@ -78,7 +79,7 @@ public class IndexingServiceTest extends BaseSessionBeanFixture<IndexingServiceB
 					}
 				});
 				IndexingService service = getBeanToTest();
-				service.index(new FactoryResourceIdentifier());
+				service.index(new String(), new String());
 				mockery.assertIsSatisfied();
 				
 				mockery.checking(new Expectations() {
@@ -87,7 +88,7 @@ public class IndexingServiceTest extends BaseSessionBeanFixture<IndexingServiceB
 					inSequence(sequence2);
 					}
 				});
-				service.reindex(new FactoryResourceIdentifier());
+				service.reindex(new String(), new String());
 				mockery.assertIsSatisfied();
 				
 				mockery.checking(new Expectations() {
@@ -96,19 +97,14 @@ public class IndexingServiceTest extends BaseSessionBeanFixture<IndexingServiceB
 					inSequence(sequence3);
 					}
 				});
-				service.remove(new FactoryResourceIdentifier());
+				service.remove(new String(), new String());
 				mockery.assertIsSatisfied();
 				
 				mockery.checking(new Expectations() {
 					{
-					oneOf(index).search("bug AND forge");
-					will(returnValue(new ArrayList<SearchResult>()));
-					inSequence(sequence4);
-					oneOf(membership).getProfilePathForConnectedIdentifier();
-					will(returnValue("/profiles/kermit"));
-					inSequence(sequence4);
-					allowing(pep).checkSecurity(with(any(String.class)), with(any(String.class)), with(any(String.class)));
-					inSequence(sequence4);
+					allowing(index).search("bug AND forge");will(returnValue(new ArrayList<SearchResult>()));inSequence(sequence4);
+					allowing(membership).getProfilePathForConnectedIdentifier();will(returnValue("/profiles/kermit"));inSequence(sequence4);
+					allowing(pep).checkSecurity(with(any(String.class)), with(any(String.class)), with(any(String.class)));inSequence(sequence4);
 					
 
 					}
