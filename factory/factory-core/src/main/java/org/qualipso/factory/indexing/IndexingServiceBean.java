@@ -191,7 +191,7 @@ public class IndexingServiceBean implements IndexingService {
 		try{
 			QueueConnection queueConnection = queueConnectionFactory.createQueueConnection();
 			try{
-				QueueSession queueSession = queueConnection.createQueueSession(true, javax.jms.Session.AUTO_ACKNOWLEDGE);
+				QueueSession queueSession = queueConnection.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
 				try{
 					QueueSender queueSender = queueSession.createSender(indexingQueue);
 					try {
@@ -202,7 +202,6 @@ public class IndexingServiceBean implements IndexingService {
 						message.setStringProperty("path", path);
 						queueConnection.start();
 						queueSender.send(message);
-						queueSession.commit();
 						queueSender.close();
 						queueSession.close();
 						queueConnection.close();
