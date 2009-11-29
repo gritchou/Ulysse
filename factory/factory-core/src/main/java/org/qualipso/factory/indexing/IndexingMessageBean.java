@@ -14,7 +14,7 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.FactoryException;
-import org.qualipso.factory.greeting.GreetingService;
+//import org.qualipso.factory.greeting.GreetingService;
 import org.qualipso.factory.indexing.IndexingServiceBean;
 import org.qualipso.factory.FactoryNamingConvention;
 
@@ -115,7 +115,7 @@ public class IndexingMessageBean implements MessageListener{
 		
 		try{
 		//TODO remove the cast
-		IndexableContent indexableContent = ((GreetingService) service).toIndexableContent(path);
+		IndexableContent indexableContent = new IndexableContent();
 
 		IndexableDocument doc = new IndexableDocument();
 		doc.setIndexableContent(indexableContent);
