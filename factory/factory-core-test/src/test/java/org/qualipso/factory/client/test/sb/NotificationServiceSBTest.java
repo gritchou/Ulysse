@@ -31,6 +31,7 @@ import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.notification.NotificationServiceException;
+import org.qualipso.factory.notification.entity.Rule;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -85,7 +86,14 @@ public class NotificationServiceSBTest {
         eqs.createEventQueue(pathQueue2);
 
         notification.register("/profiles/.*", "greeting.name.create", "/name.*", pathQueue1);
+       
+        assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.create,/name.*, pathQueue1)",notification.list().length==1);
+        
         notification.register("/profiles/.*", "greeting.name.read", "/name.*", pathQueue2);
+        Rule[] t = notification.list();
+        Rule r = t[0];
+        
+        assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.read,/name.*, pathQueue2) "+r.getQueuePath()+" "+r.getObjectre()+" "+r.getSubjectre()+" "+r.getTargetre()+" "+notification.list().length,notification.list().length==2);
     }
 
     @After
@@ -106,9 +114,9 @@ public class NotificationServiceSBTest {
      * @throws Exception
      */
 
-    @Test(timeout = 100)
-    public void testNotification1() throws Exception {
-
+    @Test(timeout = 1000)
+    public void testNotificationSimple() throws Exception {
+    	logger.info("testNotificationSimple called");
         String caller = membership.getProfilePathForConnectedIdentifier();
 
         greeting.createName("/name", "toto");
