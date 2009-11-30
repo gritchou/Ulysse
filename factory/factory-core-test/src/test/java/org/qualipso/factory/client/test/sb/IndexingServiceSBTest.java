@@ -66,6 +66,7 @@ import org.qualipso.factory.bootstrap.BootstrapServiceException;
  * @author Benjamin Dreux / Nancy UHP
  * @author Anthony Claudot / Nancy UHP
  * @author Philippe Schmucker / Nancy UHP
+ * @author cynthia FLORENTIN / Nancy UHP
  * 
  */
 public class IndexingServiceSBTest{
