@@ -623,38 +623,49 @@ public class EventQueueServiceSBTest {
      * 
      * @throws EventQueueServiceException
      */
+    
+    //@Test(expected = EventQueueServiceException.class)
+   /* @Test
+    public void testBoundaryEvent() throws EventQueueServiceException {
+        logger.info("testBoundaryEvent()");
+        int i = 0;
+        int number = 750;
+        while (i < number) {
 
-    /*
-     * @Test(expected = EventQueueServiceException.class) public void
-     * testBoundaryEvent() throws EventQueueServiceException {
-     * 
-     * int i = 0; while (i < 10000) {
-     * 
-     * Event e = new Event("/path/resource/", "toto" + i, "resourceType" + i,
-     * "read", ""); eqs.pushEvent(pathQ1, e);
-     * 
-     * i++; } Event[] tabEvent = eqs.getEvents(pathQ1);
-     * assertEquals(tabEvent.length, 10000);
-     * 
-     * }
-     */
+            Event e = new Event("/path/resource/", "toto" + i, "resourceType" + i, "read", "");
+            eqs.pushEvent(pathQ1, e);
+
+            i++;
+        }
+        Event[] tabEvent = eqs.getEvents(pathQ1);
+        logger.info("taille queue :"+tabEvent.length);
+        assertEquals(tabEvent.length, number);
+
+    }*/
 
     /**
      * Test Boundary EventQueue. This test the push an event in many eventQueue
      * 
      * @throws EventQueueServiceException
      */
-    /*
-     * @Test(expected = EventQueueServiceException.class) public void
-     * testBoundaryEventQueue() throws EventQueueServiceException { Event e =
-     * new Event("/path/resource/", "toto", "resourceType", "read", "");
-     * 
-     * for (int i = 3; i < 10003; i++) { eqs.createEventQueue("/eventqueue" +
-     * i); eqs.pushEvent("/eventqueue" + i, e); } for (int j = 3; j < 10003;
-     * j++) { Event[] tabEvent = eqs.getEvents("/eventqueue" + j);
-     * assertEquals(tabEvent.length, 1); assertEquals(tabEvent[0], e); } for
-     * (int i = 3; i < 10003; i++) { eqs.removeQueue("/eventqueue" + i); } }
-     */
+    /*  @Test(expected = EventQueueServiceException.class)
+    public void testBoundaryEventQueue() throws EventQueueServiceException {
+        
+        Event e = new Event("/path/resource/", "toto", "resourceType", "read", "");
+
+        for (int i = 3; i < 10003; i++) {
+            eqs.createEventQueue("/eventqueue" + i);
+            eqs.pushEvent("/eventqueue" + i, e);
+        }
+        for (int j = 3; j < 10003; j++) {
+            Event[] tabEvent = eqs.getEvents("/eventqueue" + j);
+            assertEquals(tabEvent.length, 1);
+            assertEquals(tabEvent[0], e);
+        }
+        for (int i = 3; i < 10003; i++) {
+            eqs.removeQueue("/eventqueue" + i);
+        }
+    }*/
 
     // ******************************** Cross-check
     // ******************************************
