@@ -21,6 +21,7 @@ package org.qualipso.factory.indexing;
 import javax.ejb.Remote;
 import java.util.ArrayList;
 import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.FactoryService;
 
 
 /**
@@ -30,33 +31,38 @@ import org.qualipso.factory.FactoryResourceIdentifier;
  */
 @Remote
 
-public interface IndexingService {
+
+public interface IndexingService extends FactoryService{
     public static final String SERVICE_NAME = "indexing";
+
     public static final String[] RESOURCE_TYPE_LIST = new String[] {};
 	/**
 	 * Index the resource identified by the given factoryResourceIdentifier, or
 	 * throws an IndexingServiceException if an error occurs.
-	 * @param fri The identifier of the resource.
+	 * @param fs The name of the service who want to index a resource.
+	 * @param path The path to the resource to index.
 	 * @throws IndexingServiceException if the message can't be send to the JMS queue.
 	 */
-	public void index(FactoryResourceIdentifier fri) throws IndexingServiceException;
+	public void index(String fs, String path) throws IndexingServiceException;
 
 	/**
 	 * Update the indexed data of the resource identified by the given
 	 * FactoryResourceIdentfier, or throws an IndexingServiceExcpetion if an
 	 * error occurs.
-	 * @param fri the identifier of the resource.
+	 * @param fs The name of the service who want to reindex a resource.
+	 * @param path The path to the resource to reindex.
 	 * @throws IndexingServiceExcpetion if the message can't be send to the JMS queue.
 	 */
-    public void reindex(FactoryResourceIdentifier fri) throws IndexingServiceException;
+    public void reindex(String fs, String path) throws IndexingServiceException;
 
     /**
      * Remove the resource's indexing data from the index, or throws 
      * an IndexingServiceExcpetion if an error occurs.
-     * @param fri the identifier of the resource.
+	 * @param fs The name of the service who want to remove a resource from the index.
+	 * @param path The path to the resource to stop to index.
      * @throws IndexingServiceException if the message can't be send to the queue.
      */
-    public void remove(FactoryResourceIdentifier fri) throws IndexingServiceException;
+    public void remove(String fs, String path) throws IndexingServiceException;
     
     /**
      * Search in the index a match to the query.

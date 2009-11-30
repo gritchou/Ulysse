@@ -58,9 +58,15 @@ import org.qualipso.factory.security.auth.AuthenticationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
 
+/**
+ * @author Nicolas HENRY
+ * @author Marlène HANTZ
+ */
 @Stateless(name = NotificationService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + NotificationService.SERVICE_NAME)
-@WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace =  FactoryNamingConvention.SERVICE_NAMESPACE + NotificationService.SERVICE_NAME, serviceName = NotificationService.SERVICE_NAME)
-@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + NotificationService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE
+        + NotificationService.SERVICE_NAME, serviceName = NotificationService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX
+        + NotificationService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
@@ -206,6 +212,7 @@ public class NotificationServiceBean implements NotificationService {
     @SuppressWarnings("unchecked")
     @Override
     public Rule[] list() throws NotificationServiceException {
+        logger.debug("list() called");
         Query q = em.createQuery("select r from Rule r");
         List<Rule> l = q.getResultList();
         Rule[] tab = new Rule[l.size()];
@@ -215,6 +222,8 @@ public class NotificationServiceBean implements NotificationService {
 
     @Override
     public void throwEvent(Event event) throws NotificationServiceException {
+        logger.info("throwEvent(...) called");
+        if(event==null) throw new NotificationServiceException("impossible to throw a null event");
         Connection connection;
         try {
             connection = connectionFactory.createConnection();

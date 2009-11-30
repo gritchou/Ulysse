@@ -30,6 +30,8 @@ import org.qualipso.factory.FactoryException;
  * Exception for the Clock service.
  * 
  * @author <a href="mailto:christophe.bouthier@loria.fr">Christophe Bouthier</a>
+ * @author Nicolas HENRY
+ * @author Marlène HANTZ
  * @date 27 July 2009
  */
 @WebFault

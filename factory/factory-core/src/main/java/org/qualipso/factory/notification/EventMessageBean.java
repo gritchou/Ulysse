@@ -18,6 +18,12 @@ import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.notification.entity.Rule;
 
+/**
+ * The message driven bean which distributes events to the event queues
+ * 
+ * @author Nicolas HENRY
+ * @author Marlène HANTZ
+ */
 @MessageDriven(mappedName = "queue/EventMessageQueue", activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
         @ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/EventMessageQueue"),
@@ -51,7 +57,8 @@ public class EventMessageBean implements MessageListener {
     }
 
     @Override
-    public void onMessage(Message message) {
+    public void onMessage(Message message){
+    	logger.info("onMessage() called");
         if (message instanceof ObjectMessage) {
             try {
                 Serializable o = ((ObjectMessage) message).getObject();
