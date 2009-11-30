@@ -29,6 +29,9 @@ import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.security.pep.PEPService;
 import org.qualipso.factory.security.pep.PEPServiceException;
+import org.qualipso.factory.FactoryService;
+import org.qualipso.factory.FactoryResource;
+import org.qualipso.factory.FactoryException;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -55,7 +58,7 @@ public class IndexingServiceBean implements IndexingService {
     @Resource(mappedName="ConnectionFactory")
 	private QueueConnectionFactory queueConnectionFactory;
 
-	@Resource(mappedName="indexingQueue")
+	@Resource(mappedName="queue/indexingQueue")
 	private Queue indexingQueue;
 	
     
@@ -115,33 +118,36 @@ public class IndexingServiceBean implements IndexingService {
 	
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void index(FactoryResourceIdentifier fri) throws IndexingServiceException {
+	public void index(String fs, String path) throws IndexingServiceException {
 		logger.info("index(...) called ");
-		logger.debug("params : FactoryResourceIdentifier=\r\n" + fri + "\r\n}");
+		logger.debug("params : FactoryService=\r\n" + fs + "\r\n}");
+		logger.debug("params : Path=\r\n" + path + "\r\n}");
 		String action = "index";
 		
-        sendMessage(action,fri);
+        sendMessage(action,fs,path);
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void reindex(FactoryResourceIdentifier fri) throws IndexingServiceException {
+	public void reindex(String fs, String path) throws IndexingServiceException {
 		logger.info("reindex(...) called ");
-		logger.debug("params : FactoryResourceIdentifier=\r\n" + fri + "\r\n}");
+		logger.debug("params : FactoryService=\r\n" + fs + "\r\n}");
+		logger.debug("params : Path=\r\n" + path + "\r\n}");
 		String action = "reindex";
 		
-        sendMessage(action,fri);
+        sendMessage(action,fs,path);
 
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void remove(FactoryResourceIdentifier fri) throws IndexingServiceException {
+	public void remove(String fs, String path) throws IndexingServiceException {
 		logger.info("remove(...) called ");
-		logger.debug("params : FactoryResourceIdentifier=" + fri);
+		logger.debug("params : FactoryService=\r\n" + fs + "\r\n}");
+		logger.debug("params : Path=\r\n" + path + "\r\n}");
 		String action = "remove";
 		
-        sendMessage(action,fri);
+        sendMessage(action,fs,path);
 
 	}
 
@@ -150,14 +156,14 @@ public class IndexingServiceBean implements IndexingService {
 	public ArrayList<SearchResult> search(String query) throws IndexingServiceException {
 		logger.info("search(...) called ");
 		logger.debug("params : query=" + query);
-        if(index == null){
-            index = Index.getInstance();
-        }
+     	index = Index.getInstance();
 		ArrayList<SearchResult> unCheckRes = index.search(query);
 		return filter(unCheckRes);
 	}
 
 	private ArrayList<SearchResult> filter(ArrayList<SearchResult> uncheckedRes) throws IndexingServiceException {
+		logger.info("filter(...) called ");
+		logger.debug("params : UnchedSearchResult= " + uncheckedRes);
 		Iterator<SearchResult> iter = uncheckedRes.iterator();
 		ArrayList<SearchResult> checkedRes = new ArrayList<SearchResult>();
 		try{	
@@ -178,19 +184,23 @@ public class IndexingServiceBean implements IndexingService {
 		return checkedRes;
 	}
 
-	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	private void sendMessage(String action, FactoryResourceIdentifier fri) throws IndexingServiceException{
+
+	private void sendMessage(String action, String fs, String path) throws IndexingServiceException{
+		logger.info("sendMessage(...) called ");
+		logger.debug("params : action= " +action+" Service="+fs+" path="+path);
 		try{
 			QueueConnection queueConnection = queueConnectionFactory.createQueueConnection();
 			try{
-				QueueSession queueSession = queueConnection.createQueueSession(true, javax.jms.Session.AUTO_ACKNOWLEDGE);
+				QueueSession queueSession = queueConnection.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE);
 				try{
 					QueueSender queueSender = queueSession.createSender(indexingQueue);
 					try {
 
 						Message message = queueSession.createMessage();
 						message.setStringProperty("action", action);
-						message.setStringProperty("uri", fri.toString());
+						message.setStringProperty("service", fs);
+						message.setStringProperty("path", path);
+						queueConnection.start();
 						queueSender.send(message);
 						queueSender.close();
 						queueSession.close();
@@ -199,11 +209,30 @@ public class IndexingServiceBean implements IndexingService {
 				}finally{queueSession.close();}
 			}finally{queueConnection.close();}
 		}catch(JMSException e){
-			logger.error("Error in indexingservice when sending message "+ action, e);
+			logger.error("Unable to send message "+ action, e);
             ctx.setRollbackOnly();
-            throw new IndexingServiceException("Error in indexingservice when sending message "+ action, e);  
+            throw new IndexingServiceException("Unable to send message"+ action, e);  
 		}
 	}
+	
+	@Override
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
+	public FactoryResource findResource(String path) throws FactoryException {
+		logger.info("findResource(...) called");
+		logger.debug("params : path=" + path);
+		
+		throw new IndexingServiceException("Indexing service does not manage any resource");
+			
+	}
+	@Override
+	public String[] getResourceTypeList() {
+		return RESOURCE_TYPE_LIST;
+	}
 
+
+	@Override
+	public String getServiceName() {
+		return SERVICE_NAME;
+	}
 
 }

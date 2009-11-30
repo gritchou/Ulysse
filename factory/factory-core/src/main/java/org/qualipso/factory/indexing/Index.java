@@ -29,6 +29,8 @@ import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 @SuppressWarnings("deprecation")
 public class Index implements IndexI {
@@ -37,8 +39,9 @@ public class Index implements IndexI {
 	private Directory indexDirectory;
 	private Analyzer analyzer;
 	private IndexWriter writer;
-
+	private static Log logger = LogFactory.getLog(Index.class);
 	private Index() throws Exception {
+	
 		File indexDir = new File(indexFolderName);
 		analyzer = new QualipsoAnalyzer();
 		if (indexDir.exists() && indexDir.isDirectory()) {
@@ -58,8 +61,8 @@ public class Index implements IndexI {
 			try {
 				instance = new Index();
 			} catch (Exception e) {
-				throw new IndexingServiceException(
-						"Can't get instance of index class");
+				logger.error("can't get instance of index " , e);
+				throw new IndexingServiceException("Can't get instance of index");
 			}
 		}
 		return instance;
@@ -67,6 +70,8 @@ public class Index implements IndexI {
 
 	@Override
 	public void index(IndexableDocument doc) throws IndexingServiceException {
+	logger.info("index(...) called");
+    logger.debug("params : IndexableDocument=" + doc);
 		try {
 			synchronized (this) {
 				IndexWriter writer = null;
@@ -80,22 +85,23 @@ public class Index implements IndexI {
 				}
 			}
 		} catch (IOException e) {
+			logger.error("unable to index document " + doc, e);
 			throw new IndexingServiceException("Can't index a document", e);
 		}
 
 	}
 
 	@Override
-	public void reindex(FactoryResourceIdentifier fri, IndexableDocument doc)
-			throws IndexingServiceException {
+	public void reindex(FactoryResourceIdentifier fri, IndexableDocument doc) throws IndexingServiceException {
 		remove(fri);
 		index(doc);
 
 	}
 
 	@Override
-	public void remove(FactoryResourceIdentifier fri)
-			throws IndexingServiceException {
+	public void remove(FactoryResourceIdentifier fri) throws IndexingServiceException {
+	logger.info("remove(...) called");
+    logger.debug("params :FactoryResourceIdentfier=" + fri);
 		try {
 			synchronized (this) {
 				Term term = new Term("FRI", fri.toString());
@@ -104,7 +110,8 @@ public class Index implements IndexI {
 				reader.close();
 			}
 		} catch (IOException e) {
-			throw new IndexingServiceException("Can't remove a document", e);
+			logger.error("unable to remove resource " + fri +" from index", e);
+			throw new IndexingServiceException("Can't remove resource" + fri +" from index", e);
 		}
 
 	}
@@ -156,8 +163,8 @@ public class Index implements IndexI {
 
 			return listRs;
 		} catch (Exception e) {
-			throw new IndexingServiceException("Can't search " + queryString
-					+ "\n", e);
+			logger.error("unable search in index using " + queryString, e);
+			throw new IndexingServiceException("Can't search in index using" + queryString+ "\n", e);
 		}
 
 	}
