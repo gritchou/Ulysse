@@ -58,6 +58,10 @@ import org.qualipso.factory.security.auth.AuthenticationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
 
+/**
+ * @author Nicolas HENRY
+ * @author Marlène HANTZ
+ */
 @Stateless(name = NotificationService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + NotificationService.SERVICE_NAME)
 @WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE
         + NotificationService.SERVICE_NAME, serviceName = NotificationService.SERVICE_NAME)

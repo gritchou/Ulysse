@@ -18,6 +18,8 @@ import org.qualipso.factory.eventqueue.entity.Event;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
+ * @author Nicolas HENRY
+ * @author Marlène HANTZ
  * @date 11 june 2009
  */
 @Entity
