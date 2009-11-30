@@ -219,6 +219,7 @@ public class NotificationServiceBean implements NotificationService {
     @Override
     public void throwEvent(Event event) throws NotificationServiceException {
         logger.info("throwEvent(...) called");
+        if(event==null) throw new NotificationServiceException("impossible to throw a null event");
         Connection connection;
         try {
             connection = connectionFactory.createConnection();

@@ -51,7 +51,7 @@ public class EventMessageBean implements MessageListener {
     }
 
     @Override
-    public void onMessage(Message message) {
+    public void onMessage(Message message){
     	logger.info("onMessage() called");
         if (message instanceof ObjectMessage) {
             try {
