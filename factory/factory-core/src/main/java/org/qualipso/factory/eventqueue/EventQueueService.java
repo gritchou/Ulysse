@@ -33,19 +33,21 @@ import javax.jws.soap.SOAPBinding;
 
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
-import org.qualipso.factory.eventqueue.entity.*;
+import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.eventqueue.entity.EventQueue;
 
 @Remote
 @WebService(name = EventQueueService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + EventQueueService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface EventQueueService extends FactoryService {
-    
+
     public static final String SERVICE_NAME = "eventqueue";
     public static final String[] RESOURCE_TYPE_LIST = new String[] { EventQueue.RESOURCE_NAME };
-    
+
     /**
      * 
-     * @param path path of the new queue
+     * @param path
+     *            path of the new queue
      * @throws EventQueueServiceException
      */
     @WebMethod
@@ -53,7 +55,8 @@ public interface EventQueueService extends FactoryService {
 
     /**
      * 
-     * @param queuePath path of the queue
+     * @param queuePath
+     *            path of the queue
      * @return return all the event in the queue associated to path
      * @throws EventQueueServiceException
      */
@@ -68,113 +71,143 @@ public interface EventQueueService extends FactoryService {
 
     @WebMethod
     public void deleteEvent(String path, Event e) throws EventQueueServiceException;
-    
-    
+
     @WebMethod
     public void removeQueue(String path) throws EventQueueServiceException;
 
-    
     /**
      * 
      * return an array of event that have or contains the same ressourceType
-     * @param path  path of the EventQueue
-     * @param ressourceType  the type of resource event 
-     * @param substring  true if typeRssource contains parameter typeRessource, false if typeRssource contains exactly the parameter typeRessource
-     * @return  array of event
+     * 
+     * @param path
+     *            path of the EventQueue
+     * @param ressourceType
+     *            the type of resource event
+     * @param substring
+     *            true if typeRssource contains parameter typeRessource, false
+     *            if typeRssource contains exactly the parameter typeRessource
+     * @return array of event
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByRessourceType(String path, String ressourceType,boolean substring) throws EventQueueServiceException;
+    public Event[] findEventByRessourceType(String path, String ressourceType, boolean substring) throws EventQueueServiceException;
 
     /**
-        return an array of event that have or contains the same thrower
-     * @param path  path of the EventQueue
-     * @param thrower thrower of event 
-     * @param substring  true if thrower contains the string parameter thrower , false if thrower contains exactly the parameter thrower.
-     * @return  array of event (return an array of event that have or contains the same thrower)
+     * return an array of event that have or contains the same thrower
+     * 
+     * @param path
+     *            path of the EventQueue
+     * @param thrower
+     *            thrower of event
+     * @param substring
+     *            true if thrower contains the string parameter thrower , false
+     *            if thrower contains exactly the parameter thrower.
+     * @return array of event (return an array of event that have or contains
+     *         the same thrower)
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventBythrower(String path, String thrower,boolean substring) throws EventQueueServiceException;
+    public Event[] findEventBythrower(String path, String thrower, boolean substring) throws EventQueueServiceException;
 
     /**
      * 
-     * @param path path of the EventQueue
-     * @param fromRessource fromRessource of event
-     * @param substring true if fromRessource contains the string parameter fromRessource , false if thrower contains exactly the parameter fromRessource.
-     * @return array of event (  return an array of event that have or contains the same fromRessource )
+     * @param path
+     *            path of the EventQueue
+     * @param fromRessource
+     *            fromRessource of event
+     * @param substring
+     *            true if fromRessource contains the string parameter
+     *            fromRessource , false if thrower contains exactly the
+     *            parameter fromRessource.
+     * @return array of event ( return an array of event that have or contains
+     *         the same fromRessource )
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByFromRessource(String path, String fromRessource,boolean substring) throws EventQueueServiceException;
-
-   /**
-    * 
-    * @param path path of the EventQueue 
-    * @param date date of the event
-    * @return array of event (  return an array of event having the same date )
-    * @throws EventQueueServiceException
-    */
-    @WebMethod
-    public Event[] findEventByDate(String path, Date date ) throws EventQueueServiceException;
+    public Event[] findEventByFromRessource(String path, String fromRessource, boolean substring) throws EventQueueServiceException;
 
     /**
      * 
-     * @param path path of the EventQueue 
-     * @param date date of the event
-     * @return array of event (return an array of event having date superior or equal of the parameter date )
+     * @param path
+     *            path of the EventQueue
+     * @param date
+     *            date of the event
+     * @return array of event ( return an array of event having the same date )
      * @throws EventQueueServiceException
      */
-    
     @WebMethod
-    public Event[] findEventByDateSup(String path, Date date ) throws EventQueueServiceException;
-
-   /**
-    * 
-    * @param path path of the EventQueue 
-    * @param date date date of the event
-    * @return array of event (return an array of event having date lesser or equal of the parameter date )
-    * @throws EventQueueServiceException
-    */
-    @WebMethod
-    public Event[] findEventByDateInf(String path, Date date ) throws EventQueueServiceException;
+    public Event[] findEventByDate(String path, Date date) throws EventQueueServiceException;
 
     /**
      * 
-     * @param path path of the EventQueue 
-     * @param date1 date of the event
-     * @param date2 date of the event
-     * @return array of event (return an array of event having date between date1 and date2)
+     * @param path
+     *            path of the EventQueue
+     * @param date
+     *            date of the event
+     * @return array of event (return an array of event having date superior or
+     *         equal of the parameter date )
      * @throws EventQueueServiceException
      */
-    @WebMethod
-    public Event[] findEventByDateBetween(String path, Date date1,Date date2 ) throws EventQueueServiceException;
 
-   
+    @WebMethod
+    public Event[] findEventByDateSup(String path, Date date) throws EventQueueServiceException;
+
     /**
      * 
-     * @param path path of the EventQueue 
-     * @param event Type type of the event
-     * @param substring true if eventType contains the string parameter eventType , false if eventType contains exactly the parameter eventType.
-     * @return array of event (return an array of event that have or contains the same eventType )
+     * @param path
+     *            path of the EventQueue
+     * @param date
+     *            date date of the event
+     * @return array of event (return an array of event having date lesser or
+     *         equal of the parameter date )
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByEventType(String path,String eventType,boolean substring ) throws EventQueueServiceException;
+    public Event[] findEventByDateInf(String path, Date date) throws EventQueueServiceException;
 
-    
-     @WebMethod
-    public Event[] findEventBySimpleParameter(String path,String eventType,String thrower, String resourceType, String fromRessource, Date date, boolean dateSup,boolean dateInf ) throws EventQueueServiceException;
+    /**
+     * 
+     * @param path
+     *            path of the EventQueue
+     * @param date1
+     *            date of the event
+     * @param date2
+     *            date of the event
+     * @return array of event (return an array of event having date between
+     *         date1 and date2)
+     * @throws EventQueueServiceException
+     */
+    @WebMethod
+    public Event[] findEventByDateBetween(String path, Date date1, Date date2) throws EventQueueServiceException;
+
+    /**
+     * 
+     * @param path
+     *            path of the EventQueue
+     * @param event
+     *            Type type of the event
+     * @param substring
+     *            true if eventType contains the string parameter eventType ,
+     *            false if eventType contains exactly the parameter eventType.
+     * @return array of event (return an array of event that have or contains
+     *         the same eventType )
+     * @throws EventQueueServiceException
+     */
+    @WebMethod
+    public Event[] findEventByEventType(String path, String eventType, boolean substring) throws EventQueueServiceException;
 
     @WebMethod
-    public Event[] findEventByComposedParameter(String path,String eventType,String thrower, String resourceType, String fromRessource, Date date1, Date date2 ) throws EventQueueServiceException;
+    public Event[] findEventBySimpleParameter(String path, String eventType, String thrower, String resourceType, String fromRessource, Date date,
+            boolean dateSup, boolean dateInf) throws EventQueueServiceException;
 
-    
     @WebMethod
-    public Event []  findObjectEvent(String path, Event event) throws EventQueueServiceException ;
-    
-    @WebMethod
-    public  void generateXML(String path); 
+    public Event[] findEventByComposedParameter(String path, String eventType, String thrower, String resourceType, String fromRessource, Date date1, Date date2)
+            throws EventQueueServiceException;
 
-   
+    @WebMethod
+    public Event[] findObjectEvent(String path, Event event) throws EventQueueServiceException;
+
+    @WebMethod
+    public void generateXML(String path);
+
 }

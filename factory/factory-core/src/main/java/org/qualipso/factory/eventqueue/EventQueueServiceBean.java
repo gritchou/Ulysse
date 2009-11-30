@@ -296,10 +296,10 @@ public class EventQueueServiceBean implements EventQueueService {
             binding.bind(evq.getFactoryResourceIdentifier(), path);
 
             String policyId = UUID.randomUUID().toString();
-			pap.createPolicy(policyId, PAPServiceHelper.addRuleToPolicy(PAPServiceHelper.buildOwnerPolicy(policyId, caller, path), "", new String[] {"create","read"}));
-			binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
-			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
-
+            pap.createPolicy(policyId, PAPServiceHelper.addRuleToPolicy(PAPServiceHelper.buildOwnerPolicy(policyId, caller, path), "", new String[] { "create",
+                    "read", "update" }));
+            binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
+            binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
 
         } catch (Exception e) {
             logger.error("unable to create an event queue", e);
@@ -323,7 +323,7 @@ public class EventQueueServiceBean implements EventQueueService {
 
         FactoryResourceIdentifier identifier;
         try {
-            if(event==null){
+            if (event == null) {
                 throw new IllegalArgumentException("event can't be null");
             }
             identifier = binding.lookup(path);
@@ -447,15 +447,14 @@ public class EventQueueServiceBean implements EventQueueService {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
                 /*
-                int size = eventqueue.getEvents().size();
-                Event[] evq = new Event[size];
-                evq = eventqueue.getEvents().toArray(evq);
-                */
+                 * int size = eventqueue.getEvents().size(); Event[] evq = new
+                 * Event[size]; evq = eventqueue.getEvents().toArray(evq);
+                 */
                 ArrayList<Event> newEventList = eventqueue.getEvents();
-                if(newEventList.remove(e)){
+                if (newEventList.remove(e)) {
                     eventqueue.setEvents(newEventList);
                     em.merge(eventqueue);
-                }else {
+                } else {
                     throw new EventQueueServiceException("this event doesn't exist in this queue");
                 }
 
@@ -489,11 +488,10 @@ public class EventQueueServiceBean implements EventQueueService {
 
         FactoryResourceIdentifier identifier;
         try {
-          //li des cas exceptionnelles
+            // li des cas exceptionnelles
             if ((path == null) || (ressourceType == null))
                 throw new EventQueueServiceException("Le parametre n'est pas correct verifier le path ou le ressourceType");
-           
-            
+
             identifier = binding.lookup(path);
             if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
@@ -591,7 +589,7 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (substring == true) {
                     Event[] tab = new Event[resultContains.size()];
                     int i = 0;
-                    while(i < resultContains.size()){
+                    while (i < resultContains.size()) {
                         tab[i] = resultContains.get(i);
                         i++;
                     }
@@ -599,7 +597,7 @@ public class EventQueueServiceBean implements EventQueueService {
                 } else {
                     Event[] tab = new Event[resultFalse.size()];
                     int i = 0;
-                    while(i < resultFalse.size()){
+                    while (i < resultFalse.size()) {
                         tab[i] = resultFalse.get(i);
                         i++;
                     }
@@ -635,12 +633,10 @@ public class EventQueueServiceBean implements EventQueueService {
     public Event[] findEventByFromRessource(String path, String fromRessource, boolean substring) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
-          //li des cas exceptionnelles
+            // li des cas exceptionnelles
             if ((path == null) || (fromRessource == null))
                 throw new EventQueueServiceException("Le parametre n'est pas correct verifier le path ou fromRessource");
-           
-            
-            
+
             identifier = binding.lookup(path);
             if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
@@ -672,7 +668,7 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (substring == true) {
                     Event[] tab = new Event[resultContains.size()];
                     int i = 0;
-                    while(i < resultContains.size()){
+                    while (i < resultContains.size()) {
                         tab[i] = resultContains.get(i);
                         i++;
                     }
@@ -680,7 +676,7 @@ public class EventQueueServiceBean implements EventQueueService {
                 } else {
                     Event[] tab = new Event[resultFalse.size()];
                     int i = 0;
-                    while(i < resultFalse.size()){
+                    while (i < resultFalse.size()) {
                         tab[i] = resultFalse.get(i);
                         i++;
                     }
@@ -733,14 +729,14 @@ public class EventQueueServiceBean implements EventQueueService {
                     }
 
                 }
-                
+
                 Event[] tab = new Event[result.size()];
-                int i =0;
-                while(i<result.size()){
+                int i = 0;
+                while (i < result.size()) {
                     tab[i] = result.get(i);
                     i++;
                 }
-                //return (Event[]) (result.toArray());
+                // return (Event[]) (result.toArray());
                 return tab;
             }
 
@@ -793,11 +789,11 @@ public class EventQueueServiceBean implements EventQueueService {
 
                 }// while
 
-                //return (Event[]) (result.toArray());
-                
+                // return (Event[]) (result.toArray());
+
                 Event[] tab = new Event[result.size()];
-                int i =0;
-                while(i<result.size()){
+                int i = 0;
+                while (i < result.size()) {
                     tab[i] = result.get(i);
                     i++;
                 }
@@ -852,8 +848,8 @@ public class EventQueueServiceBean implements EventQueueService {
                 }// while
 
                 Event[] tab = new Event[result.size()];
-                int i =0;
-                while(i<result.size()){
+                int i = 0;
+                while (i < result.size()) {
                     tab[i] = result.get(i);
                     i++;
                 }
@@ -904,20 +900,22 @@ public class EventQueueServiceBean implements EventQueueService {
                     Event ev = it.next();
 
                     // correction d'un bug concernant date1 et date2 et inversé
-//                    if (((ev.getDate().before(date1)) || (ev.getDate().equals(date1))) && ((ev.getDate().after(date2)) || (ev.getDate().equals(date2)))) {
-//                        result.add(ev);
-//                    }
-                    
-                    if((ev.getDate().getTime()>=date1.getTime()) && (ev.getDate().getTime()<=date2.getTime())){
+                    // if (((ev.getDate().before(date1)) ||
+                    // (ev.getDate().equals(date1))) &&
+                    // ((ev.getDate().after(date2)) ||
+                    // (ev.getDate().equals(date2)))) {
+                    // result.add(ev);
+                    // }
+
+                    if ((ev.getDate().getTime() >= date1.getTime()) && (ev.getDate().getTime() <= date2.getTime())) {
                         result.add(ev);
                     }
-                    
 
                 }// while
 
                 Event[] tab = new Event[result.size()];
-                int i =0;
-                while(i<result.size()){
+                int i = 0;
+                while (i < result.size()) {
                     tab[i] = result.get(i);
                     i++;
                 }
@@ -946,10 +944,10 @@ public class EventQueueServiceBean implements EventQueueService {
     public Event[] findEventByEventType(String path, String eventType, boolean substring) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
-            //li des cas exceptionnelles
+            // li des cas exceptionnelles
             if ((path == null) || (eventType == null))
                 throw new EventQueueServiceException("Le parametre n'est pas correct . Verifier le path ou l'eventType");
-            
+
             identifier = binding.lookup(path);
             if (identifier.getType().equals(EventQueue.RESOURCE_NAME)) {
                 String caller = membership.getProfilePathForConnectedIdentifier();
@@ -980,7 +978,7 @@ public class EventQueueServiceBean implements EventQueueService {
                 if (substring == true) {
                     Event[] tab = new Event[resultContains.size()];
                     int i = 0;
-                    while(i < resultContains.size()){
+                    while (i < resultContains.size()) {
                         tab[i] = resultContains.get(i);
                         i++;
                     }
@@ -988,7 +986,7 @@ public class EventQueueServiceBean implements EventQueueService {
                 } else {
                     Event[] tab = new Event[resultEquals.size()];
                     int i = 0;
-                    while(i < resultEquals.size()){
+                    while (i < resultEquals.size()) {
                         tab[i] = resultEquals.get(i);
                         i++;
                     }
@@ -1030,10 +1028,10 @@ public class EventQueueServiceBean implements EventQueueService {
                         result.add(ev);
                     }
                 }
-                
+
                 Event[] tab = new Event[result.size()];
                 int i = 0;
-                while(i < result.size()){
+                while (i < result.size()) {
                     tab[i] = result.get(i);
                     i++;
                 }
@@ -1093,7 +1091,7 @@ public class EventQueueServiceBean implements EventQueueService {
     @Override
     public void generateXML(String path) {
         // TODO Auto-generated method stub
-        
+
     }
 
 }

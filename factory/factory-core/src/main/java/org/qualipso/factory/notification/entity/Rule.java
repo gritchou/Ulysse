@@ -1,7 +1,6 @@
 package org.qualipso.factory.notification.entity;
 
 import java.io.Serializable;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,14 +11,13 @@ import javax.xml.bind.annotation.XmlType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.qualipso.factory.eventqueue.entity.Event;
-import org.qualipso.factory.notification.EventMessageBean;
 
 @Entity
 @XmlType(name = "Rule", namespace = "http://org.qualipso.factory.ws/entity", propOrder = { "id", "subjectre", "objectre", "targetre", "queuePath" })
 public class Rule implements Serializable {
 
     private static final long serialVersionUID = -3537424425785767451L;
-    private static Log logger = LogFactory.getLog(EventMessageBean.class);
+    private static Log logger = LogFactory.getLog(Rule.class);
     @Id
     private String id;
 
@@ -68,22 +66,35 @@ public class Rule implements Serializable {
         this.queuePath = queuePath;
     }
 
+    /**
+     * Tells if the event in parameter matches the rule
+     * 
+     * @param e
+     *            the event to match
+     * @return
+     */
+
     public boolean match(Event e) {
-    	logger.info("match(...) called");
-    	logger.debug("subject "+subjectre+" "+e.getThrowedBy());
+        logger.info("match(...) called");
+        logger.debug("subject " + subjectre + " " + e.getThrowedBy());
         Pattern p1 = Pattern.compile(subjectre);
         Matcher m1 = p1.matcher(e.getThrowedBy());
-        
+
         Pattern p2 = Pattern.compile(objectre);
         Matcher m2 = p2.matcher(e.getEventType());
-        logger.debug("objectre "+objectre+" "+e.getEventType());
-        
+        logger.debug("objectre " + objectre + " " + e.getEventType());
+
         Pattern p3 = Pattern.compile(targetre);
         Matcher m3 = p3.matcher(e.getFromResource());
-        logger.debug("targetre "+targetre+" "+e.getFromResource());
-        
-        logger.debug("m1 "+m1.matches()+" m2 "+m2.matches()+" m3 "+m3.matches());
+        logger.debug("targetre " + targetre + " " + e.getFromResource());
+
+        logger.debug("m1 " + m1.matches() + " m2 " + m2.matches() + " m3 " + m3.matches());
         return m1.matches() && m2.matches() && m3.matches();
+    }
+
+    @Override
+    public String toString() {
+        return "Rule :\nsubjectre = \"" + subjectre + "\"\nobjectre = \"" + objectre + "\"\ntargetre = \"" + targetre + "\"\nqueuePath = \"" + queuePath + "\"";
     }
 
 }

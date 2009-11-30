@@ -2,11 +2,9 @@ package org.qualipso.factory.notification;
 
 import java.io.Serializable;
 
-import javax.annotation.Resource;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
-import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
@@ -61,7 +59,7 @@ public class EventMessageBean implements MessageListener {
                 if (o instanceof Event) {
                     Event ev = (Event) o;
                     try {
-                        Rule[] l = this.notification.list();
+                        Rule[] l = notification.list();
                         for (Rule rule : l) {
                             if (rule.match(ev)) {
                                 try {
