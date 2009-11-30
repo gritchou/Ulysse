@@ -630,12 +630,14 @@ public class EventQueueServiceSBTest {
      * 
      * @throws EventQueueServiceException
      */
-
-  /*  @Test(expected = EventQueueServiceException.class)
+    
+    //@Test(expected = EventQueueServiceException.class)
+   /* @Test
     public void testBoundaryEvent() throws EventQueueServiceException {
-
+        logger.info("testBoundaryEvent()");
         int i = 0;
-        while (i < 10000) {
+        int number = 750;
+        while (i < number) {
 
             Event e = new Event("/path/resource/", "toto" + i, "resourceType" + i, "read", "");
             eqs.pushEvent(pathQ1, e);
@@ -643,7 +645,8 @@ public class EventQueueServiceSBTest {
             i++;
         }
         Event[] tabEvent = eqs.getEvents(pathQ1);
-        assertEquals(tabEvent.length, 10000);
+        logger.info("taille queue :"+tabEvent.length);
+        assertEquals(tabEvent.length, number);
 
     }*/
 
@@ -654,6 +657,7 @@ public class EventQueueServiceSBTest {
      */
   /*  @Test(expected = EventQueueServiceException.class)
     public void testBoundaryEventQueue() throws EventQueueServiceException {
+        
         Event e = new Event("/path/resource/", "toto", "resourceType", "read", "");
 
         for (int i = 3; i < 10003; i++) {
