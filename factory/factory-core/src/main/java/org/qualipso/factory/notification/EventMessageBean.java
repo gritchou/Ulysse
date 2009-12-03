@@ -63,6 +63,7 @@ public class EventMessageBean implements MessageListener {
                         for (Rule rule : l) {
                             if (rule.match(ev)) {
                                 try {
+                                	logger.debug("will go pushEvent");
                                     eventQueue.pushEvent(rule.getQueuePath(), ev);
                                 } catch (EventQueueServiceException e) {
                                     logger.error("unable to push event : " + ev + "\nin queue : " + rule.getQueuePath(), e);

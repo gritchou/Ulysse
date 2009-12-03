@@ -171,6 +171,7 @@ public class NotificationServiceBean implements NotificationService {
 
     @Override
     public void register(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException {
+    	logger.info("register(...) called");
         if ((subjectre == null) || (objectre == null) || (targetre == null) || (queuePath == null))
             throw new NotificationServiceException("Il existe un paramètre incorrect");
         Rule[] tmp = list();

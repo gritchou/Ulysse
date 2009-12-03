@@ -44,7 +44,7 @@ public interface GreetingService extends FactoryService {
 
     @WebMethod
     @WebResult(name = "name")
-    public void createNameWithUser(String path, String value, String caller) throws GreetingServiceException;
+    public void readNameWithUser(String path, String caller) throws GreetingServiceException;
 
     @WebMethod
     @WebResult(name = "name")

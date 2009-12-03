@@ -59,6 +59,7 @@ import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
+import org.qualipso.factory.security.pep.PEPServiceException;
 
 /**
  * Implementation of the ClockService. Provides a time service for the factory.
@@ -259,6 +260,18 @@ public class EventQueueServiceBean implements EventQueueService {
                 }
 
                 Event[] evs = new Event[eventqueue.getEvents().size()];
+                
+                /*ArrayList<Event> evts = new ArrayList<Event>();
+                ArrayList<Event> allEvts = eventqueue.getEvents();
+                for (Event event : allEvts) {
+                	try{
+                		pep.checkSecurity(caller,event.getFromResource(), "read");
+                		evts.add(event);
+                	}catch(PEPServiceException e){
+                		
+                	}
+				}*/
+                
                 return eventqueue.getEvents().toArray(evs);
 
             } else {

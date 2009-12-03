@@ -115,8 +115,9 @@ public class EventQueueServiceSBTest {
         eqs.pushEvent(pathQ1, myEvent2);
         Event[] tabEvent = eqs.getEvents(pathQ1);
 
-        assertEquals("error in existing of myEvent2 in testExistingEventInEQ() ", myEvent2, tabEvent[0]);
-        assertEquals("error in existing of myEvent1 in testExistingEventInEQ()", myEvent1, tabEvent[1]);
+        assertEquals("error in existing of myEvent1 in testExistingEventInEQ()", myEvent1, tabEvent[0]);
+        assertEquals("error in existing of myEvent2 in testExistingEventInEQ() ", myEvent2, tabEvent[1]);
+        
         assertEquals("error Length of array in testExistingEventInEQ() ", 2, tabEvent.length);
 
     }
