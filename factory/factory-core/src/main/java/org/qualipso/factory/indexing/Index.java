@@ -10,12 +10,11 @@ package org.qualipso.factory.indexing;
  * */
 import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 
-import org.qualipso.factory.FactoryResourceIdentifier;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
@@ -23,27 +22,26 @@ import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Hits;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Searcher;
 import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
-import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.qualipso.factory.FactoryResourceIdentifier;
 
-@SuppressWarnings("deprecation")
 public class Index implements IndexI {
 	private static Index instance;
 	private static String indexFolderName = "data/index/";
-	private Directory indexDirectory;
+	//private Directory indexDirectory;
+	private File indexDir;
 	private Analyzer analyzer;
 	private IndexWriter writer;
 	private static Log logger = LogFactory.getLog(Index.class);
+	
 	private Index() throws Exception {
 	
-		File indexDir = new File(indexFolderName);
+		indexDir = new File(indexFolderName);
 		analyzer = new QualipsoAnalyzer();
+		/*
 		if (indexDir.exists() && indexDir.isDirectory()) {
 			indexDirectory = FSDirectory.getDirectory(indexFolderName);
 		} else {
@@ -53,7 +51,12 @@ public class Index implements IndexI {
 			// Build the index
 			writer = new IndexWriter(indexDirectory, analyzer, true);
 			writer.close();
-		}
+		}*/
+		if (indexDir.exists()) {
+			 writer = new IndexWriter(FSDirectory.open(indexDir), analyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
+	     }else{
+	    	 writer = new IndexWriter(FSDirectory.open(indexDir), analyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+	     }
 	}
 
 	public static Index getInstance() throws IndexingServiceException {
@@ -74,10 +77,10 @@ public class Index implements IndexI {
     logger.debug("params : IndexableDocument=" + doc);
 		try {
 			synchronized (this) {
-				IndexWriter writer = null;
+				//IndexWriter writer = null;
 
 				try {
-					writer = new IndexWriter(indexDirectory, analyzer, false);
+					//writer = new IndexWriter(indexDirectory, analyzer, false);
 					writer.addDocument(doc.getDocument());
 					writer.optimize();
 				} finally {
@@ -92,26 +95,29 @@ public class Index implements IndexI {
 	}
 
 	@Override
-	public void reindex(FactoryResourceIdentifier fri, IndexableDocument doc) throws IndexingServiceException {
-		remove(fri);
+	public void reindex(String path, IndexableDocument doc) throws IndexingServiceException {
+   	logger.info("reindex(...) called");
+    logger.debug("params :path=" + path +" doc="+doc);
+		remove(path);
 		index(doc);
 
 	}
 
 	@Override
-	public void remove(FactoryResourceIdentifier fri) throws IndexingServiceException {
+	public void remove(String path) throws IndexingServiceException {
 	logger.info("remove(...) called");
-    logger.debug("params :FactoryResourceIdentfier=" + fri);
+    logger.debug("params :path=" + path);
 		try {
 			synchronized (this) {
-				Term term = new Term("FRI", fri.toString());
-				IndexReader reader = IndexReader.open(indexDirectory);
+				Term term = new Term("path", path);
+				//IndexReader reader = IndexReader.open(indexDirectory);
+				IndexReader reader = IndexReader.open(FSDirectory.open(indexDir), true);
 				reader.deleteDocuments(term);
 				reader.close();
 			}
 		} catch (IOException e) {
-			logger.error("unable to remove resource " + fri +" from index", e);
-			throw new IndexingServiceException("Can't remove resource" + fri +" from index", e);
+			logger.error("unable to remove resource " + path +" from index", e);
+			throw new IndexingServiceException("Can't remove resource" + path +" from index", e);
 		}
 
 	}
@@ -126,8 +132,10 @@ public class Index implements IndexI {
 
 			Query query = queryParser.parse(queryString);
 
-			Searcher searcher = new IndexSearcher(indexDirectory);
-			IndexReader reader = IndexReader.open(indexDirectory);
+			//Searcher searcher = new IndexSearcher(indexDirectory);
+			//IndexReader reader = IndexReader.open(indexDirectory);
+			IndexReader reader = IndexReader.open(FSDirectory.open(indexDir), true); 
+            IndexSearcher searcher=new IndexSearcher(reader);
 
 			Hits hits = searcher.search(query);
 

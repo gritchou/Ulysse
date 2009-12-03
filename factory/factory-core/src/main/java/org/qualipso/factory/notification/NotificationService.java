@@ -27,10 +27,10 @@ import javax.jws.WebMethod;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.notification.entity.Rule;
-import org.qualipso.factory.FactoryNamingConvention;
 
 /**
  * 
@@ -61,6 +61,8 @@ import org.qualipso.factory.FactoryNamingConvention;
  * jack or john also commits in <code>/p1/t1</code>, it will match as well.
  * 
  * @author Jean-Francois Grand
+ * @author Nicolas HENRY
+ * @author Marlène HANTZ
  * @version 11/19/2009
  */
 @Remote
