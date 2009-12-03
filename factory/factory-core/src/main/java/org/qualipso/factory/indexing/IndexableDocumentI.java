@@ -15,39 +15,34 @@ public interface IndexableDocumentI {
   /**
    * <p>Give a Factory Resource Identifier (FRI) reference of document. </p>
    * @return The string form of this URI
-   * @throws IndexingServiceException
    */
-  public String getResourceFRI() throws IndexingServiceException ;
+  public String getResourceFRI();
 
   /**
    * <p>Give the service of document</p>
    * @return a string which represent the service of document
-   * @throws IndexingServiceException
    */
-  public String getResourceService() throws IndexingServiceException ;
+  public String getResourceService();
     
   /**
    * <p>Give the type of document. </p>
    * The type is defined according to the extension of document.  
    * @return a string which represent the type of document
-   * @throws IndexingServiceException
    */
-  public String getResourceType() throws IndexingServiceException ;
+  public String getResourceType();
     
   /**
    * <p>Give the name of document</p>
    * @return a name of document
-   * @throws IndexingServiceException
    */
-  public String getResourceShortName() throws IndexingServiceException ;
+  public String getResourceShortName();
     
   /**
    * <p>Give an object of type IndexableContent</p>
    * @see IndexableContentI 
    * @return an indexable content
-   * @throws IndexingServiceException
    */
-  public IndexableContentI getIndexableContent() throws IndexingServiceException ;
+  public IndexableContentI getIndexableContent();
   
   /**
    * <p>Set a Factory Resource Identifier (FRI) reference of document with a string</p>

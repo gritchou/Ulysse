@@ -1,5 +1,20 @@
 package org.qualipso.factory.indexing;
-
+/*
+ *
+ * Qualipso Factory
+ * Copyright (C) 2006-2010 INRIA
+ * http://www.inria.fr - molli@loria.fr
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of LGPL. See licenses details in LGPL.txt
+ *
+ * Initial authors :
+ *
+ * Jérôme Blanchard / INRIA
+ * Pascal Molli / Nancy Université
+ * Gérald Oster / Nancy Université
+ *
+ */
 import javax.annotation.Resource;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
@@ -14,16 +29,19 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.FactoryException;
-//import org.qualipso.factory.greeting.GreetingService;
-import org.qualipso.factory.indexing.IndexingServiceBean;
 import org.qualipso.factory.FactoryNamingConvention;
+
+/**
+  * @date 2 dec 2009
+  * @author Benjamin Dreux(benjiiiiii@gmail.com)
+  */
+
 
 @MessageDriven(mappedName = "indexingeQueue", activationConfig = {
 	@ActivationConfigProperty(propertyName = "destinationType", propertyValue = "javax.jms.Queue"),
 	@ActivationConfigProperty(propertyName = "destination", propertyValue = "queue/indexingQueue"),
 	@ActivationConfigProperty(propertyName = "messagingType", propertyValue = "javax.jms.MessageListener") })
 @Depends ("jboss.mq.destination:service=Queue,name=indexingQueue")
-
 
 
 public class IndexingMessageBean implements MessageListener{
@@ -66,7 +84,7 @@ public class IndexingMessageBean implements MessageListener{
 		logger.info("reindex(...) called");
         logger.debug("params : service=" + service+" path="+path);
 		index = Index.getInstance();
-		index.reindex(getFactoryResourceIdentifier(service, path), toIndexableDocument(service, path));
+		index.reindex(path, toIndexableDocument(service, path));
 		
 	}
 
@@ -74,55 +92,24 @@ public class IndexingMessageBean implements MessageListener{
 		logger.info("remove(...) called");
         logger.debug("params : service=" + service+" path="+path);
 		index = Index.getInstance();
-		index.remove(getFactoryResourceIdentifier(service, path));	
+		index.remove(path);	
 		
 	}
 	private FactoryService getService(String service) throws IndexingServiceException{
 		try{
 		FactoryService fs = (FactoryService)ctx.lookup(FactoryNamingConvention.getJNDINameForService(service));
-		return fs;}
-		catch(Exception e){
+		return fs;
+        }catch(Exception e){
 			logger.error("unable to locate service  " + service, e);
 			throw new IndexingServiceException("Unable to locate Service "+service);
 		}
 	}
-	private FactoryResourceIdentifier getFactoryResourceIdentifier(FactoryService service, String path) throws IndexingServiceException{
-		try{
-		FactoryResource resource = service.findResource(path);
-		FactoryResourceIdentifier fri = resource.getFactoryResourceIdentifier();
-		return fri;
-		}catch(FactoryException e){
-			logger.error("unable to retrieve resource " + path, e);
-			throw new IndexingServiceException("unable to retrieve resource "+path);
-		}
-	}
 	private IndexableDocument toIndexableDocument(FactoryService service, String path) throws IndexingServiceException{
-		FactoryResourceIdentifier fri =  getFactoryResourceIdentifier(service, path);
-
-		String resourceFRI = fri.toString();
-		String resourceService = fri.getService();
-		String resourceType  = fri.getType();
-		String resourceShortName = fri.getId();
-		
-		
-		//TODO
-		//	this implem need to be replace by the following
-		
-		//real
-		//this one mean that toIndexableContent must be in the interfaceFactoryService
-		//IndexableContent indexableContent = service.toIndexableContent(path);
-
-		
 		try{
-		//TODO remove the cast
-		IndexableContent indexableContent = new IndexableContent();
 
-		IndexableDocument doc = new IndexableDocument();
-		doc.setIndexableContent(indexableContent);
-		doc.setResourceService(resourceService);
-		doc.setResourceShortName(resourceShortName);
-		doc.setResourceType(resourceType);
-		doc.setResourceFRI(resourceFRI);
+        IndexableService is = (IndexableService) service ;
+		IndexableDocument doc = is.getIndexableDocument(path);
+
 		return doc;
 
 		}catch(Exception e){

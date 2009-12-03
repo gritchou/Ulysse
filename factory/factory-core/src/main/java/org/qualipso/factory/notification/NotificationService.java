@@ -61,6 +61,8 @@ import org.qualipso.factory.notification.entity.Rule;
  * jack or john also commits in <code>/p1/t1</code>, it will match as well.
  * 
  * @author Jean-Francois Grand
+ * @author Nicolas HENRY
+ * @author Marlène HANTZ
  * @version 11/19/2009
  */
 @Remote
@@ -128,11 +130,114 @@ public interface NotificationService extends FactoryService {
      * 
      * Lists the registered rules.
      * 
-     * @return a list of the rules already registered in the Notification
-     *         Service
+     * @return a tab of the rules registered in the Notification Service
      * @throws NotificationServiceException
      */
     @WebMethod
     public Rule[] list() throws NotificationServiceException;
+
+    /**
+     * 
+     * Lists the registered rules matching the given args. Use null
+     * instead of arg to skip it. Ex:list("toto",null,null,"/p1/q1") will return
+     * a list of the rules registered by toto on /p1/q1
+     * 
+     * @return a tab of the rules registered matching the given args
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] list(String subject, String object, String target, String queue) throws NotificationServiceException;
+    
+    /**
+     * 
+     * Lists the registered rules matching the regular expressions specified. Use null
+     * instead of arg to skip it. Ex:list("toto",null,null,"/p1/q1") will return
+     * a list of the rules registered by toto on /p1/q1
+     * 
+     * @return a tab of the rules registered matching the specified regular expressions
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listRE(String subjectre, String objectre, String targetre, String queuere) throws NotificationServiceException;
+
+    /**
+     * 
+     * Lists the rules registered to the eventqueue queue.
+     * 
+     * @return a tab of the rules registered to queue.
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listByQueue(String queue) throws NotificationServiceException;
+    
+    /**
+     * 
+     * Lists the rules registered to the eventqueues matching the regular expression queuere.
+     * 
+     * @return a tab of the rules registered to the queues matching the regular expression queuere.
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listByQueueRE(String queuere) throws NotificationServiceException;
+    
+    /**
+     * 
+     * Lists the rules registered by subject.
+     * 
+     * @return a tab of the rules registered by subject
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listBySubject(String subject) throws NotificationServiceException;
+    
+    /**
+     * 
+     * Lists the rules registered by subjects matching the regular expression subjectre.
+     * 
+     * @return a tab of the rules registered by subjects matching the regular expression subjectre
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listBySubjectRE(String subjectre) throws NotificationServiceException;
+
+    /**
+     * 
+     * Lists the registered rules of type object.
+     * 
+     * @return a tab of the rules registered of type object
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listByObject(String object) throws NotificationServiceException;
+    
+    /**
+     * 
+     * Lists the registered rules of types matching the regular expression objectre.
+     * 
+     * @return a tab of the rules registered of types matching the regular expression objectre
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listByObjectRE(String objectre) throws NotificationServiceException;
+
+    /**
+     * 
+     * Lists the rules registered on target.
+     * 
+     * @return a tab of the rules registered on target
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listByTarget(String target) throws NotificationServiceException;
+    
+    /**
+     * 
+     * Lists the rules registered on targets matching the regular expression targetre.
+     * 
+     * @return a tab of the rules registered on the targets matching the regular expression targetre
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listByTargetRE(String targetre) throws NotificationServiceException;
 
 }

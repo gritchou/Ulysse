@@ -66,6 +66,7 @@ import org.qualipso.factory.bootstrap.BootstrapServiceException;
  * @author Benjamin Dreux / Nancy UHP
  * @author Anthony Claudot / Nancy UHP
  * @author Philippe Schmucker / Nancy UHP
+ * @author cynthia FLORENTIN / Nancy UHP
  * 
  */
 public class IndexingServiceSBTest{
@@ -185,8 +186,22 @@ public class IndexingServiceSBTest{
 	}
 
 /* ****************************** TESTS ****************************** */
+	/**
+	 * ==== RIGHT ====
+	 * Test of simple case. 
+	 * @throws IndexingServiceException 
+	 */
+	@Test
+	public void testIndexingSearch() throws IndexingServiceException{
+		logger.debug("Testing search of an owned resource");
+		ArrayList<SearchResult> result = indexing.search("bug");
+		
+		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
+		assertEquals("The expected result should be the resource BUG ", friB, result.get(0).getResourceIdentifier());
+	}
 	
 	/**
+	 * ===== RIGHT =====
 	 * Test if a resource can be found by the resource owner
 	 * 
 	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
@@ -201,6 +216,7 @@ public class IndexingServiceSBTest{
 	}
 	
 	/**
+	 * ===== BOUNDARIE =====
 	 * Test if a client who doesn't have the right to read the resource can't find it
 	 * 
 	 * @throws InvalidPathException
@@ -221,6 +237,7 @@ public class IndexingServiceSBTest{
 	}
 	
 	/**
+	 * ===== BOUNDARIE =====
 	 * Test if a client who has the right to read the resource can find it. This method give the ownership to user toto,
 	 * and keep the read right for kermit.
 	 * 
@@ -242,6 +259,7 @@ public class IndexingServiceSBTest{
 	}
 	
 	/**
+	 * ===== BOUNDARIE =====
 	 * test if an inexistent resource can't be found by the caller
 	 * 
 	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
@@ -255,6 +273,7 @@ public class IndexingServiceSBTest{
 	}
 	
 	/**
+	 * ===== BOUNDARIE =====
 	 * Test if resource can be found with just a part of the content
 	 * 
 	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
@@ -275,6 +294,7 @@ public class IndexingServiceSBTest{
 	}
 
 	/**
+	 * ====== RIGHT =====
 	 * Test if resource can be found with just a part or an other of the content
 	 * 
 	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
@@ -296,6 +316,7 @@ public class IndexingServiceSBTest{
 	}
 
 	/**
+	 * ======= Right ======
 	 * Test if resource can't be found with negation of the content
 	 * 
 	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
@@ -315,7 +336,8 @@ public class IndexingServiceSBTest{
 		assertFalse("The ArrayList should not contain the resource BUG and FORGE", resources.contains(friFB));
 	}
 	
-	/**
+	/** 
+	 * ====== RIGHT ======
 	 * Test update of index when update of the resource occurs
 	 * 
 	 * @throws GreetingServiceException
@@ -335,6 +357,7 @@ public class IndexingServiceSBTest{
 	}
 	
 	/**
+	 * ====== RIGHT =====
 	 * Test search of deleted resource
 	 * 
 	 * @throws GreetingServiceException

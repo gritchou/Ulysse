@@ -11,7 +11,7 @@ import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.greeting.entity.Name;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationServiceException;
-import org.qualipso.factory.indexing.IndexableContent;
+import org.qualipso.factory.indexing.IndexableService;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -20,7 +20,7 @@ import org.qualipso.factory.indexing.IndexableContent;
 @Remote
 @WebService(name = GreetingService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + GreetingService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
-public interface GreetingService extends FactoryService {
+public interface GreetingService extends FactoryService, IndexableService{
 
     public static final String SERVICE_NAME = "greeting";
     public static final String[] RESOURCE_TYPE_LIST = new String[] { Name.RESOURCE_NAME };
@@ -57,7 +57,6 @@ public interface GreetingService extends FactoryService {
     @WebMethod
     @WebResult(name = "name")
     public void throwFacticeEvent() throws NotificationServiceException;
-	
-	public IndexableContent toIndexableContent(String path)throws GreetingServiceException;
+
 
 }
