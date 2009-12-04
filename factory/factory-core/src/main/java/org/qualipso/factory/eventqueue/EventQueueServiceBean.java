@@ -65,6 +65,8 @@ import org.qualipso.factory.security.pep.PEPServiceException;
  * Implementation of the ClockService. Provides a time service for the factory.
  * 
  * @author <a href="mailto:christophe.bouthier@loria.fr">Christophe Bouthier</a>
+ * @author Nicolas HENRY
+ * @author Marlène HANTZ
  * @date 27 July 2009
  */
 @Stateless(name = EventQueueService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + EventQueueService.SERVICE_NAME)

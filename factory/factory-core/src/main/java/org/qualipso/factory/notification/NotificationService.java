@@ -61,6 +61,8 @@ import org.qualipso.factory.notification.entity.Rule;
  * jack or john also commits in <code>/p1/t1</code>, it will match as well.
  * 
  * @author Jean-Francois Grand
+ * @author Nicolas HENRY
+ * @author Marlène HANTZ
  * @version 11/19/2009
  */
 @Remote

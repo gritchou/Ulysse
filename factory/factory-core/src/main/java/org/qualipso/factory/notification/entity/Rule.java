@@ -12,6 +12,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.qualipso.factory.eventqueue.entity.Event;
 
+/**
+ * @author Nicolas HENRY
+ * @author Marlène HANTZ
+ */
 @Entity
 @XmlType(name = "Rule", namespace = "http://org.qualipso.factory.ws/entity", propOrder = { "id", "subjectre", "objectre", "targetre", "queuePath" })
 public class Rule implements Serializable {

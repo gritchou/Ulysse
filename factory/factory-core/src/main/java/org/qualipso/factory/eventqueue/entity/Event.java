@@ -25,6 +25,8 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
+ * @author Nicolas HENRY
+ * @author Marlène HANTZ
  * @date 20 May 2009
  */
 @XmlType(name = "Event", namespace = "http://org.qualipso.factory.ws/event", propOrder = { "fromResource", "throwedBy", "resourceType", "date", "eventType",

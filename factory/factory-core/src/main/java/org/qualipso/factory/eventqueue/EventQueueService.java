@@ -36,6 +36,10 @@ import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.eventqueue.entity.EventQueue;
 
+/**
+ * @author Nicolas HENRY
+ * @author Marlène HANTZ
+ */
 @Remote
 @WebService(name = EventQueueService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + EventQueueService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)

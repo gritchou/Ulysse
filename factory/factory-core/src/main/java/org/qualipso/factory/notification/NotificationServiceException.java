@@ -24,6 +24,10 @@ package org.qualipso.factory.notification;
 
 import org.qualipso.factory.FactoryException;
 
+/**
+ * @author Nicolas HENRY
+ * @author Marlène HANTZ
+ */
 @SuppressWarnings("serial")
 public class NotificationServiceException extends FactoryException {
     public NotificationServiceException(String message, Exception rootCause) {
