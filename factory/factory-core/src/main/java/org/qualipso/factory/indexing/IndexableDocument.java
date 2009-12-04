@@ -18,6 +18,7 @@ package org.qualipso.factory.indexing;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.qualipso.factory.FactoryResourceIdentifier;
 
 
 /**
@@ -28,7 +29,7 @@ import org.apache.lucene.document.Field;
  */
 
 public class IndexableDocument implements IndexableDocumentI{
-    private String resourceFRI;
+    private FactoryResourceIdentifier resourceFRI;
     private String resourceService;
     private String resourceType;
     private String resourceShortName;
@@ -36,10 +37,10 @@ public class IndexableDocument implements IndexableDocumentI{
 
 
     /**
-     * <p>Set a Factory Resource Identifier (FRI) reference of document with a string</p>
-     * @param resourceFRI is a string
+     * <p>Set a Factory Resource Identifier (FRI) reference of document with a FactoryResourceIdentifier</p>
+     * @param resourceFRI is a FactoryResourceIdentifier
      */
-    public void setResourceFRI(String resourceFRI){
+    public void setResourceFRI(FactoryResourceIdentifier resourceFRI){
     	this.resourceFRI = resourceFRI;
     }
     
@@ -78,7 +79,7 @@ public class IndexableDocument implements IndexableDocumentI{
     /**
      * @see IndexableDocumentI#getResourceURI()
      */
-    public String getResourceFRI() {
+    public FactoryResourceIdentifier getResourceFRI() {
         return resourceFRI;
 
     }
@@ -107,7 +108,7 @@ public class IndexableDocument implements IndexableDocumentI{
     /**
      * @see IndexableDocumentI#getIndexableContent()
      */
-    public IndexableContentI getIndexableContent(){
+    public IndexableContent getIndexableContent(){
         return indexableContent;
     }
     
@@ -121,7 +122,7 @@ public class IndexableDocument implements IndexableDocumentI{
      */
 	public Document getDocument() {
 		Document document = new Document();
-        document.add(new Field("FRI", resourceFRI , Field.Store.YES, Field.Index.NOT_ANALYZED));
+        document.add(new Field("FRI", resourceFRI.serialize() , Field.Store.YES, Field.Index.NOT_ANALYZED));
         document.add(new Field("SERVICE", resourceService, Field.Store.YES, Field.Index.NO));
         document.add(new Field("TYPE", resourceType, Field.Store.YES, Field.Index.NO));
         document.add(new Field("CONTENT", indexableContent.toString(), Field.Store.YES, Field.Index.ANALYZED));

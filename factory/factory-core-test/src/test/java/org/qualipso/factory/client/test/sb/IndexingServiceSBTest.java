@@ -380,6 +380,7 @@ public class IndexingServiceSBTest{
 		
 		assertEquals("The ArrayList should contain exactly one result", 1, resources.size());
 		assertFalse("The ArrayList should not contain the resource FORGE", resources.contains(friF));
+        
 	}
 	
 }

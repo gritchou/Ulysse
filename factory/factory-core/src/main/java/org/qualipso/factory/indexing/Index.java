@@ -59,7 +59,7 @@ public class Index implements IndexI {
 	     }
 	}
 
-	public static Index getInstance() throws IndexingServiceException {
+public final synchronized static Index getInstance() throws IndexingServiceException {
 		if (instance == null) {
 			try {
 				instance = new Index();
@@ -79,13 +79,13 @@ public class Index implements IndexI {
 			synchronized (this) {
 				//IndexWriter writer = null;
 
-				try {
+				//try {
 					//writer = new IndexWriter(indexDirectory, analyzer, false);
 					writer.addDocument(doc.getDocument());
 					writer.optimize();
-				} finally {
-					writer.close();
-				}
+				//} finally {
+					writer.commit();
+				//}
 			}
 		} catch (IOException e) {
 			logger.error("unable to index document " + doc, e);
@@ -113,7 +113,7 @@ public class Index implements IndexI {
 				//IndexReader reader = IndexReader.open(indexDirectory);
 				IndexReader reader = IndexReader.open(FSDirectory.open(indexDir), true);
 				reader.deleteDocuments(term);
-				reader.close();
+				reader.flush();
 			}
 		} catch (IOException e) {
 			logger.error("unable to remove resource " + path +" from index", e);
@@ -157,7 +157,7 @@ public class Index implements IndexI {
 				SearchResult sr = new SearchResult();
 				sr.setScore(score);
 				sr.setName(name);
-				sr.setIdentifier(fri);
+				sr.setFactoryResourceIdentifier(fri);
 
 				sr.setExplain(higlighteText);
 				sr.setType(type);

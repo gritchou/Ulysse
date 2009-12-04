@@ -170,7 +170,7 @@ public class IndexingServiceBean implements IndexingService {
 			String profile = membership.getProfilePathForConnectedIdentifier();
 			while(iter.hasNext()){
 				SearchResult current = iter.next();
-				FactoryResourceIdentifier fri = current.getResourceIdentifier();
+				FactoryResourceIdentifier fri = current.getFactoryResourceIdentifier();
 				try{
 					pep.checkSecurity(profile, fri.toString(), "read");
 					checkedRes.add(current);
