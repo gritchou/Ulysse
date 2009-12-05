@@ -38,7 +38,7 @@ import org.qualipso.factory.security.pep.PEPService;
 import org.qualipso.factory.indexing.IndexingService;
 import org.qualipso.factory.indexing.IndexableContent;
 import org.qualipso.factory.indexing.IndexableDocument;
-import org.qualipso.factory.indexing.IndexableService;
+//import org.qualipso.factory.indexing.IndexableService;
 import org.qualipso.factory.indexing.IndexingServiceException;
 
 /**

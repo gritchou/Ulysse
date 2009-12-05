@@ -146,7 +146,7 @@ public interface NotificationService extends FactoryService {
      * @throws NotificationServiceException
      */
     @WebMethod
-    public Rule[] list(String subject, String object, String target, String queue) throws NotificationServiceException;
+    public Rule[] listMatchingBy(String subject, String object, String target, String queue) throws NotificationServiceException;
     
     /**
      * 

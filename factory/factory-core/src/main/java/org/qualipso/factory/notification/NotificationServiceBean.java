@@ -247,7 +247,7 @@ public class NotificationServiceBean implements NotificationService {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Rule[] list(String subject, String object, String target, String queue) throws NotificationServiceException {
+    public Rule[] listMatchingBy(String subject, String object, String target, String queue) throws NotificationServiceException {
 
         logger.debug("list(String subject, String object, String target, String queue) called");
 

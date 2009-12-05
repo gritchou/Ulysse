@@ -312,12 +312,12 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
     public void testList2() throws NotificationServiceException {
         logger.debug("testing testList2(...)");
         NotificationService service = getBeanToTest();
-        Rule[] tab = service.list("subjectre", "objectre", "targetre", "queuePath");
+        Rule[] tab = service.listMatchingBy("subjectre", "objectre", "targetre", "queuePath");
         assertEquals(tab.length, 0);
 
         service.register("subjectre", "objectre", "targetre", "queuePath");
 
-        tab = service.list("subjectre", "objectre", "targetre", "queuePath");
+        tab = service.listMatchingBy("subjectre", "objectre", "targetre", "queuePath");
         assertEquals(tab.length, 1);
         assertEquals(tab[0].getSubjectre(), "subjectre");
         assertEquals(tab[0].getObjectre(), "objectre");
@@ -326,7 +326,7 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
 
         service.unregister("subjectre", "objectre", "targetre", "queuePath");
 
-        tab = service.list("subjectre", "objectre", "targetre", "queuePath");
+        tab = service.listMatchingBy("subjectre", "objectre", "targetre", "queuePath");
         assertEquals(tab.length, 0);
         mockery.assertIsSatisfied();
     }
