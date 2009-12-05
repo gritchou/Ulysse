@@ -63,6 +63,7 @@ import org.qualipso.factory.security.pep.PEPService;
  * @author Nicolas HENRY
  * @author Marlène HANTZ
  * @author Jean-François GRAND
+ * @author Yiqing LI
  */
 @Stateless(name = NotificationService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + NotificationService.SERVICE_NAME)
 @WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE
@@ -252,7 +253,7 @@ public class NotificationServiceBean implements NotificationService {
 
         if ((subject == null) && (object == null) && (target == null) && (queue == null))
             throw new NotificationServiceException("Incorrect args, all args are null");
-        StringBuffer query = new StringBuffer("SELECT r FROM Rule r WHERE ");
+        /*StringBuffer query = new StringBuffer("SELECT r FROM Rule r WHERE ");
 
         List<String> argsTitle = new ArrayList<String>();
         argsTitle.add("subjectre");
@@ -275,8 +276,12 @@ public class NotificationServiceBean implements NotificationService {
             query.append("r." + argsTitle.get(args.indexOf(arg)) + " = " + arg + " ");
             first = false;
         }
-
-        Query q = em.createQuery(query.toString());
+        Query q = em.createQuery(query.toString());*/
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre=:subjectre AND r.objectre=:objectre AND r.targetre=:targetre AND r.queuePath =:queue");
+        q.setParameter("subjectre", subject);
+        q.setParameter("objectre", object);
+        q.setParameter("targetre", target);
+        q.setParameter("queue", queue);
         List<Rule> l = q.getResultList();
         Rule[] tab = new Rule[l.size()];
         tab = l.toArray(tab);
@@ -296,7 +301,9 @@ public class NotificationServiceBean implements NotificationService {
         logger.debug("listByQueue(String queue) called");
         if (queue == null)
             throw new NotificationServiceException("Incorrect arg, targetre should not be null");
-        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.queuePath = " + queue);
+        //Query q = em.createQuery("SELECT r FROM Rule r WHERE r.queuePath =" + queue);
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.queuePath =:queue");
+        q.setParameter("queue", queue);
         List<Rule> l = q.getResultList();
         Rule[] tab = new Rule[l.size()];
         tab = l.toArray(tab);
@@ -315,7 +322,9 @@ public class NotificationServiceBean implements NotificationService {
         logger.debug("listBySubject(String subject) called");
         if (subject == null)
             throw new NotificationServiceException("Incorrect arg, subject should not be null");
-        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre = " + subject);
+        //Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre = " + subject);
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre =:subject");
+        q.setParameter("subject", subject);
         List<Rule> l = q.getResultList();
         Rule[] tab = new Rule[l.size()];
         tab = l.toArray(tab);
@@ -334,7 +343,9 @@ public class NotificationServiceBean implements NotificationService {
         logger.debug("listByObject(String object) called");
         if (object == null)
             throw new NotificationServiceException("Incorrect arg, object should not be null");
-        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.objectre = " + object);
+        //Query q = em.createQuery("SELECT r FROM Rule r WHERE r.objectre = " + object);
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.objectre =:object");
+        q.setParameter("object", object);
         List<Rule> l = q.getResultList();
         Rule[] tab = new Rule[l.size()];
         tab = l.toArray(tab);
@@ -354,7 +365,9 @@ public class NotificationServiceBean implements NotificationService {
         logger.debug("listByTarget(String target) called");
         if (target == null)
             throw new NotificationServiceException("Incorrect arg, target should not be null");
-        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.targetre = " + target);
+        //Query q = em.createQuery("SELECT r FROM Rule r WHERE r.targetre = " + target);
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.targetre =:target");
+        q.setParameter("target", target);
         List<Rule> l = q.getResultList();
         Rule[] tab = new Rule[l.size()];
         tab = l.toArray(tab);
