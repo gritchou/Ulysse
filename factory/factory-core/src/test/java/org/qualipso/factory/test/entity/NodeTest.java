@@ -16,9 +16,9 @@
  */
 package org.qualipso.factory.test.entity;
 
-import com.bm.testsuite.BaseEntityFixture;
-
 import org.qualipso.factory.binding.entity.Node;
+
+import com.bm.testsuite.BaseEntityFixture;
 
 
 /**

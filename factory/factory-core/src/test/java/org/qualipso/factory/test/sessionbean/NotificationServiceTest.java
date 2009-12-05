@@ -1,7 +1,5 @@
 package org.qualipso.factory.test.sessionbean;
 
-import static org.qualipso.factory.test.jmock.action.SaveParamsAction.saveParams;
-
 import java.util.List;
 import java.util.Vector;
 
