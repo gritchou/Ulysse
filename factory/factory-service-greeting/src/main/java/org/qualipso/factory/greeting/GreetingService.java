@@ -64,5 +64,15 @@ public interface GreetingService extends FactoryService{
     @WebResult(name = "name")
     public IndexableDocument getIndexableDocument(String path) throws IndexingServiceException;
 
+    @WebMethod
+    @WebResult(name = "name")
+    public void createFolder(String path, String name) throws GreetingServiceException;
+    
+    @WebMethod
+    @WebResult(name = "name")
+    public void deleteFolder(String path) throws GreetingServiceException;
 
+    @WebMethod
+    @WebResult(name = "name")
+    public void giveAutorization(String path, String user, String[] action) throws GreetingServiceException;
 }

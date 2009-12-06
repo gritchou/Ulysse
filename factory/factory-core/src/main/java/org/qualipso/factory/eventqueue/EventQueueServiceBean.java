@@ -59,7 +59,6 @@ import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
-import org.qualipso.factory.security.pep.PEPServiceException;
 
 /**
  * Implementation of the ClockService. Provides a time service for the factory.

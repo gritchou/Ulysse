@@ -8,6 +8,8 @@ import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.jws.WebMethod;
+import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 import javax.jws.soap.SOAPBinding.Style;
@@ -26,20 +28,22 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.PathHelper;
+import org.qualipso.factory.core.CoreService;
+import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.greeting.entity.Name;
+import org.qualipso.factory.indexing.IndexableContent;
+import org.qualipso.factory.indexing.IndexableDocument;
+import org.qualipso.factory.indexing.IndexingService;
+import org.qualipso.factory.indexing.IndexingServiceException;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.notification.NotificationServiceException;
 import org.qualipso.factory.security.pap.PAPService;
+import org.qualipso.factory.security.pap.PAPServiceException;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
-import org.qualipso.factory.indexing.IndexingService;
-import org.qualipso.factory.indexing.IndexableContent;
-import org.qualipso.factory.indexing.IndexableDocument;
-//import org.qualipso.factory.indexing.IndexableService;
-import org.qualipso.factory.indexing.IndexingServiceException;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -66,6 +70,7 @@ public class GreetingServiceBean implements GreetingService{
     private SessionContext ctx;
     private EntityManager em;
     private IndexingService indexing;
+    private CoreService core;
 
     public GreetingServiceBean() {
     }
@@ -140,6 +145,15 @@ public class GreetingServiceBean implements GreetingService{
     public MembershipService getMembershipService() {
         return this.membership;
     }
+    
+    @EJB
+    public void setCoreService(CoreService core){
+    	this.core = core;
+    }
+    
+    public CoreService getCoreService(){
+    	return this.core;
+    }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -175,6 +189,7 @@ public class GreetingServiceBean implements GreetingService{
             //Giving the caller the Owner permission (aka all permissions)
             String policyId = UUID.randomUUID().toString();
             pap.createPolicy(policyId, PAPServiceHelper.buildOwnerPolicy(policyId, caller, path));
+            pap.createPolicy(UUID.randomUUID().toString(), PAPServiceHelper.buildPolicy(policyId, caller,path, new String[]{"read"}));
             
             //Setting security properties on the node : 
             binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
@@ -500,6 +515,38 @@ public class GreetingServiceBean implements GreetingService{
         notification.throwEvent(new Event("/unexist/path", "toto", "Name", "greeting", ""));
     }
 
+	@Override
+	public void createFolder(String path,String name) throws GreetingServiceException {
+		try {
+			core.createFolder(path, name, "greeting folder");
+		} catch (CoreServiceException e) {
+			logger.error("unable to create folder "+name+" at "+path);
+			e.printStackTrace();
+			throw new GreetingServiceException(e.getMessage());
+		}		
+	}
+	
+	@Override
+	public void giveAutorization(String path, String user, String[] actions) throws GreetingServiceException{
+		String policyId = UUID.randomUUID().toString();
+		try {
+			pap.createPolicy(policyId, PAPServiceHelper.buildPolicy(policyId, user, path, actions));
+		} catch (PAPServiceException e) {
+			logger.error("unable to build policy to "+user+" on "+path);
+			e.printStackTrace();
+			throw new GreetingServiceException(e.getMessage());
+		}
+	}
+	@Override
+    public void deleteFolder(String path) throws GreetingServiceException{
+		try {
+			core.deleteFolder(path);
+		} catch (CoreServiceException e) {
+			logger.error("unable to delete folder "+path);
+			e.printStackTrace();
+			throw new GreetingServiceException(e.getMessage());
+		}
+	}
     /*
      * public Event createEvent(String string, String caller,String name, String
      * arg1, String arg2) throws GreetingServiceException{ Event ev = new
