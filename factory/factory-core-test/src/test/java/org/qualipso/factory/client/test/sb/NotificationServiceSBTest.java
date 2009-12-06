@@ -204,12 +204,12 @@ public class NotificationServiceSBTest {
      * @throws EventQueueServiceException
      * @throws NotificationServiceException
      */
-    @Test(timeout = 10000)
+    @Test(timeout = 20000)
     public void testNotificationEventNotMatching() throws InterruptedException, GreetingServiceException, EventQueueServiceException,
             NotificationServiceException {
     	logger.info("testNotificationEventNotMatching() called");
-        greeting.createName("/name", "titi");
-        greeting.deleteName("/name/titi");
+        greeting.createName("/eventNotMatching","eventNotMatching");
+        greeting.deleteName("/eventNotMatching");
         
         Thread.sleep(1000);
         assertEquals("TestNotificationEventNotMatching : expected 0 event into queue1(" + pathQueue1 + ") but found " + eqs.getEvents(pathQueue1).length, eqs
