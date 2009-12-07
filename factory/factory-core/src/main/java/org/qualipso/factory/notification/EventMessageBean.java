@@ -114,14 +114,18 @@ public class EventMessageBean implements MessageListener {
                                 } catch (EventQueueServiceException e) {
                                     logger.error("unable to push event : " + ev + "\nin queue : " + rule.getQueuePath(), e);
                                 } catch (PEPServiceException e) {
-                                    logger.error("acces deny to push event : " + ev + "\nin queue : " + rule.getQueuePath(), e);
-                                } catch (InvalidPathException e) {
-                                    logger.error("unable to push event : " + ev + "\nin queue : " + rule.getQueuePath(), e);
-                                } catch (PathNotFoundException e) {
-                                    logger.error("unable to push event : " + ev + "\nin queue : " + rule.getQueuePath(), e);
-                                } catch (PropertyNotFoundException e) {
-                                    logger.error("unable to push event : " + ev + "\nin queue : " + rule.getQueuePath(), e);
-                                }
+                                	logger.error("acces deny to push event : " + ev + "\nin queue : " + rule.getQueuePath(), e);
+									e.printStackTrace();
+								} catch (InvalidPathException e) {
+									logger.error("Invalid path "+rule.getQueuePath()+" "+e);
+									e.printStackTrace();
+								} catch (PathNotFoundException e) {
+									logger.error("Invalid path "+rule.getQueuePath()+" "+e);
+									e.printStackTrace();
+								} catch (PropertyNotFoundException e) {
+									logger.error("property "+FactoryResourceProperty.OWNER+" not found "+e);
+									e.printStackTrace();
+								}
                             }
                         }
                     } catch (NotificationServiceException e1) {
