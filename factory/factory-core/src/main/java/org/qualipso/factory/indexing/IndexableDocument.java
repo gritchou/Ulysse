@@ -28,11 +28,11 @@ import org.apache.lucene.document.Field;
  */
 
 public class IndexableDocument implements IndexableDocumentI{
-    public String resourceFRI;
-    public String resourceService;
-    public String resourceType;
-    public String resourceShortName;
-    public IndexableContent indexableContent;
+    private String resourceFRI;
+    private String resourceService;
+    private String resourceType;
+    private String resourceShortName;
+    private IndexableContent indexableContent;
 
 
     /**
@@ -78,7 +78,7 @@ public class IndexableDocument implements IndexableDocumentI{
     /**
      * @see IndexableDocumentI#getResourceURI()
      */
-    public String getResourceFRI() throws IndexingServiceException {
+    public String getResourceFRI() {
         return resourceFRI;
 
     }
@@ -86,28 +86,28 @@ public class IndexableDocument implements IndexableDocumentI{
     /**
      * @see IndexableDocumentI#getResourceService()
      */
-    public String getResourceService() throws IndexingServiceException {
+    public String getResourceService(){
         return resourceService;
     }
     
     /**
      * @see IndexableDocumentI#getResourceType()
      */
-    public String getResourceType() throws IndexingServiceException {
+    public String getResourceType(){
         return resourceType;
     }
     
     /**
      * @see IndexableDocumentI#getResourceShortName()
      */
-    public String getResourceShortName() throws IndexingServiceException {
+    public String getResourceShortName(){
         return resourceShortName;
     }
     
     /**
      * @see IndexableDocumentI#getIndexableContent()
      */
-    public IndexableContentI getIndexableContent() throws IndexingServiceException {
+    public IndexableContentI getIndexableContent(){
         return indexableContent;
     }
     

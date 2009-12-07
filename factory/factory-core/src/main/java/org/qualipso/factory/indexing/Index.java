@@ -95,27 +95,29 @@ public class Index implements IndexI {
 	}
 
 	@Override
-	public void reindex(FactoryResourceIdentifier fri, IndexableDocument doc) throws IndexingServiceException {
-		remove(fri);
+	public void reindex(String path, IndexableDocument doc) throws IndexingServiceException {
+   	logger.info("reindex(...) called");
+    logger.debug("params :path=" + path +" doc="+doc);
+		remove(path);
 		index(doc);
 
 	}
 
 	@Override
-	public void remove(FactoryResourceIdentifier fri) throws IndexingServiceException {
+	public void remove(String path) throws IndexingServiceException {
 	logger.info("remove(...) called");
-    logger.debug("params :FactoryResourceIdentfier=" + fri);
+    logger.debug("params :path=" + path);
 		try {
 			synchronized (this) {
-				Term term = new Term("FRI", fri.toString());
+				Term term = new Term("path", path);
 				//IndexReader reader = IndexReader.open(indexDirectory);
 				IndexReader reader = IndexReader.open(FSDirectory.open(indexDir), true);
 				reader.deleteDocuments(term);
 				reader.close();
 			}
 		} catch (IOException e) {
-			logger.error("unable to remove resource " + fri +" from index", e);
-			throw new IndexingServiceException("Can't remove resource" + fri +" from index", e);
+			logger.error("unable to remove resource " + path +" from index", e);
+			throw new IndexingServiceException("Can't remove resource" + path +" from index", e);
 		}
 
 	}

@@ -89,6 +89,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.AUTHOR)), with(equal("/profiles/jayblanc"))); inSequence(sequence1);
 					oneOf(pap).createPolicy(with(any(String.class)), with(containsString("/names/sheldon"))); inSequence(sequence1);
+					oneOf(pap).createPolicy(with(any(String.class)), with(containsString("/names/sheldon"))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.OWNER)), with(equal("/profiles/jayblanc"))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("greeting.name.create"))); inSequence(sequence1);
@@ -101,6 +102,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.AUTHOR)), with(equal("/profiles/jayblanc"))); inSequence(sequence1);
+					oneOf(pap).createPolicy(with(any(String.class)), with(containsString("/names/howard"))); inSequence(sequence1);
 					oneOf(pap).createPolicy(with(any(String.class)), with(containsString("/names/howard"))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.OWNER)), with(equal("/profiles/jayblanc"))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class))); inSequence(sequence1);

@@ -9,14 +9,27 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
+import javax.xml.ws.Binding;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.Depends;
+import org.qualipso.factory.binding.BindingService;
+import org.qualipso.factory.binding.InvalidPathException;
+import org.qualipso.factory.binding.PathNotFoundException;
+import org.qualipso.factory.binding.PropertyNotFoundException;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.membership.MembershipService;
+import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.entity.Rule;
+import org.qualipso.factory.security.pap.PAPService;
+import org.qualipso.factory.security.pap.PAPServiceHelper;
+import org.qualipso.factory.security.pep.PEPService;
+import org.qualipso.factory.security.pep.PEPServiceException;
+import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.FactoryResourceProperty;
 
 /**
  * The message driven bean which distributes events to the event queues
@@ -34,6 +47,9 @@ public class EventMessageBean implements MessageListener {
     private static Log logger = LogFactory.getLog(EventMessageBean.class);
     private EventQueueService eventQueue;
     private NotificationService notification;
+    private PEPService pep;
+    private MembershipService membership;
+    private BindingService binding;
 
     public EventMessageBean() {
     }
@@ -55,10 +71,45 @@ public class EventMessageBean implements MessageListener {
     public NotificationService getNotificationService() {
         return this.notification;
     }
+    
+    @EJB
+    public void setPEPService(PEPService pep) {
+        this.pep = pep;
+    }
 
+    public PEPService getPEPService() {
+        return this.pep;
+    }    
+
+	@EJB
+	public void setMembershipService(MembershipService membership) {
+		this.membership = membership;
+	}
+
+	public MembershipService getMembershipService() {
+		return this.membership;
+	}
+	
+	@EJB
+	public void setBindingService(BindingService binding) {
+		this.binding = binding;
+	}
+
+	public BindingService getBindingService() {
+		return binding;
+	}
+
+	
     @Override
     public void onMessage(Message message){
     	logger.info("onMessage() called");
+    	String caller="";
+		try {
+			caller = membership.getProfilePathForConnectedIdentifier();
+		} catch (MembershipServiceException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
         if (message instanceof ObjectMessage) {
             try {
                 Serializable o = ((ObjectMessage) message).getObject();
@@ -69,11 +120,25 @@ public class EventMessageBean implements MessageListener {
                         for (Rule rule : l) {
                             if (rule.match(ev)) {
                                 try {
-                                	logger.debug("will go pushEvent");
+                                	String owner = binding.getProperty(rule.getQueuePath(),FactoryResourceProperty.OWNER, false);
+                                	pep.checkSecurity(owner,rule.getQueuePath() , "read");
+                                	
                                     eventQueue.pushEvent(rule.getQueuePath(), ev);
                                 } catch (EventQueueServiceException e) {
                                     logger.error("unable to push event : " + ev + "\nin queue : " + rule.getQueuePath(), e);
-                                }
+                                } catch (PEPServiceException e) {
+                                	logger.error("acces deny to push event : " + ev + "\nin queue : " + rule.getQueuePath(), e);
+									e.printStackTrace();
+								} catch (InvalidPathException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} catch (PathNotFoundException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} catch (PropertyNotFoundException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
                             }
                         }
                     } catch (NotificationServiceException e1) {
@@ -89,5 +154,6 @@ public class EventMessageBean implements MessageListener {
             logger.warn("bad message type : " + message);
         }
     }
+
 
 }

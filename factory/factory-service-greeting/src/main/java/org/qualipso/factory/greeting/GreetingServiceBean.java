@@ -8,6 +8,8 @@ import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.jws.WebMethod;
+import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 import javax.jws.soap.SOAPBinding.Style;
@@ -26,17 +28,22 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.PathHelper;
+import org.qualipso.factory.core.CoreService;
+import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.greeting.entity.Name;
+import org.qualipso.factory.indexing.IndexableContent;
+import org.qualipso.factory.indexing.IndexableDocument;
+import org.qualipso.factory.indexing.IndexingService;
+import org.qualipso.factory.indexing.IndexingServiceException;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.notification.NotificationServiceException;
 import org.qualipso.factory.security.pap.PAPService;
+import org.qualipso.factory.security.pap.PAPServiceException;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
-import org.qualipso.factory.indexing.IndexingService;
-import org.qualipso.factory.indexing.IndexableContent;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -51,7 +58,7 @@ import org.qualipso.factory.indexing.IndexableContent;
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
-public class GreetingServiceBean implements GreetingService {
+public class GreetingServiceBean implements GreetingService{
 
     private static Log logger = LogFactory.getLog(GreetingServiceBean.class);
 
@@ -63,6 +70,7 @@ public class GreetingServiceBean implements GreetingService {
     private SessionContext ctx;
     private EntityManager em;
     private IndexingService indexing;
+    private CoreService core;
 
     public GreetingServiceBean() {
     }
@@ -137,6 +145,15 @@ public class GreetingServiceBean implements GreetingService {
     public MembershipService getMembershipService() {
         return this.membership;
     }
+    
+    @EJB
+    public void setCoreService(CoreService core){
+    	this.core = core;
+    }
+    
+    public CoreService getCoreService(){
+    	return this.core;
+    }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -172,6 +189,7 @@ public class GreetingServiceBean implements GreetingService {
             //Giving the caller the Owner permission (aka all permissions)
             String policyId = UUID.randomUUID().toString();
             pap.createPolicy(policyId, PAPServiceHelper.buildOwnerPolicy(policyId, caller, path));
+            pap.createPolicy(UUID.randomUUID().toString(), PAPServiceHelper.buildPolicy(policyId, caller,path, new String[]{"read"}));
             
             //Setting security properties on the node : 
             binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
@@ -189,15 +207,20 @@ public class GreetingServiceBean implements GreetingService {
         }
     }
 
-    @Override
+    /**
+    * Give name at the given path.
+    * @param pepCheck true to make the check.
+    * @param path the path to the name.
+    * @throws GreetingServiceException if the name can't be find.
+    */
+
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Name readName(String path) throws GreetingServiceException {
-        logger.info("readName(...) called");
-        logger.debug("params : path=" + path);
-        
-        try {
+    private Name readName(String path, boolean pepCheck) throws GreetingServiceException {
+    try {
             //Checking if the connected user has the permission to read the resource giving pep : 
             String caller = membership.getProfilePathForConnectedIdentifier();
+            
+            if(pepCheck)
             pep.checkSecurity(caller, path, "read");
             
             //Performing a lookup in the naming to recover the Resource Identifier 
@@ -222,6 +245,15 @@ public class GreetingServiceBean implements GreetingService {
             logger.error("unable to read the name at path " + path, e);
             throw new GreetingServiceException("unable to read the name at path " + path, e);
         }
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Name readName(String path) throws GreetingServiceException {
+        logger.info("readName(...) called");
+        logger.debug("params : path=" + path);
+        return readName(path, true);
+        
     }
 
     @Override
@@ -369,13 +401,15 @@ public class GreetingServiceBean implements GreetingService {
     public String getServiceName() {
         return SERVICE_NAME;
     }
-    
-    @Override
+
+   /** 
+    * Read name with an optional pep check.
+    * @param path path to the given resource.
+    * @param pepCheck  true to make the check.
+    * @return a factoryResource if it can be find.
+    */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public FactoryResource findResource(String path) throws FactoryException {
-        logger.info("findResource(...) called");
-        logger.debug("params : path=" + path);
-        
+    private FactoryResource findResource (String path, boolean pepCheck) throws FactoryException {
         try {
             FactoryResourceIdentifier identifier = binding.lookup(path);
             
@@ -384,7 +418,7 @@ public class GreetingServiceBean implements GreetingService {
             }
             
             if ( identifier.getType().equals(Name.RESOURCE_NAME) ) {
-                return readName(path);
+                return readName(path, pepCheck);
             } 
             
             throw new GreetingServiceException("Resource " + identifier + " is not managed by Greeting Service");
@@ -393,6 +427,15 @@ public class GreetingServiceBean implements GreetingService {
             logger.error("unable to find the resource at path " + path, e);
             throw new GreetingServiceException("unable to find the resource at path " + path, e);
         }
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public FactoryResource findResource(String path) throws FactoryException {
+        logger.info("findResource(...) called");
+        logger.debug("params : path=" + path);
+        
+        return findResource(path, true);
     }
     
     
@@ -430,16 +473,27 @@ public class GreetingServiceBean implements GreetingService {
     }
 
 	@Override
-	public IndexableContent toIndexableContent(String path) throws GreetingServiceException{
+	public IndexableDocument getIndexableDocument(String path) throws IndexingServiceException{
 	try{
-		Name name = (Name)findResource(path);
+        // use internal findResource
+		Name name = (Name)findResource(path, false);
 		IndexableContent content = new IndexableContent();
 		content.addContentPart(name.getValue());
-		return content;
+
+ 
+        IndexableDocument doc = new IndexableDocument();
+
+		doc.setIndexableContent(content);
+		doc.setResourceService(getServiceName());
+		doc.setResourceShortName(name.getValue());
+		doc.setResourceType(name.RESOURCE_NAME);
+		doc.setResourceFRI(name.getFactoryResourceIdentifier().toString());
+
+		return doc;
 	} catch (Exception e) {
             ctx.setRollbackOnly();
             logger.error("unable to convert name to IndexableContent " + path, e);
-            throw new GreetingServiceException("unable to convert name to IndexableContent" + path, e);
+            throw new IndexingServiceException("unable to convert name to IndexableContent" + path, e);
         }
 	}
 
@@ -461,6 +515,38 @@ public class GreetingServiceBean implements GreetingService {
         notification.throwEvent(new Event("/unexist/path", "toto", "Name", "greeting", ""));
     }
 
+	@Override
+	public void createFolder(String path,String name) throws GreetingServiceException {
+		try {
+			core.createFolder(path, name, "greeting folder");
+		} catch (CoreServiceException e) {
+			logger.error("unable to create folder "+name+" at "+path);
+			e.printStackTrace();
+			throw new GreetingServiceException(e.getMessage());
+		}		
+	}
+	
+	@Override
+	public void giveAutorization(String path, String user, String[] actions) throws GreetingServiceException{
+		String policyId = UUID.randomUUID().toString();
+		try {
+			pap.createPolicy(policyId, PAPServiceHelper.buildPolicy(policyId, user, path, actions));
+		} catch (PAPServiceException e) {
+			logger.error("unable to build policy to "+user+" on "+path);
+			e.printStackTrace();
+			throw new GreetingServiceException(e.getMessage());
+		}
+	}
+	@Override
+    public void deleteFolder(String path) throws GreetingServiceException{
+		try {
+			core.deleteFolder(path);
+		} catch (CoreServiceException e) {
+			logger.error("unable to delete folder "+path);
+			e.printStackTrace();
+			throw new GreetingServiceException(e.getMessage());
+		}
+	}
     /*
      * public Event createEvent(String string, String caller,String name, String
      * arg1, String arg2) throws GreetingServiceException{ Event ev = new
