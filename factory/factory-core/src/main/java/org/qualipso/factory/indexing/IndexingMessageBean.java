@@ -53,7 +53,7 @@ public class IndexingMessageBean implements MessageListener{
 	private Index index;
 	
 	public void onMessage(Message msg){
-	/*	logger.info("onMessage(...) called");
+		logger.info("onMessage(...) called");
         logger.debug("params : message=" + msg);
 		try{
 				FactoryService service = getService(msg.getStringProperty("service"));
@@ -67,12 +67,12 @@ public class IndexingMessageBean implements MessageListener{
 			
 		}catch(Exception e){
 			e.printStackTrace();
-		}*/
+		}
 		
 	}
 
 	
-/*	private void index(FactoryService service, String path) throws IndexingServiceException {
+	private void index(FactoryService service, String path) throws IndexingServiceException {
 		logger.info("index(...) called");
         logger.debug("params : service=" + service+" path="+path);
 		index = Index.getInstance();
@@ -118,6 +118,6 @@ public class IndexingMessageBean implements MessageListener{
 		}
 		
 	}
-*/
+
 
 }
