@@ -54,8 +54,8 @@ import org.qualipso.factory.binding.PathNotFoundException;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
-import org.qualipso.factory.indexing.IndexingService;
-import org.qualipso.factory.indexing.IndexingServiceException;
+import org.qualipso.factory.search.SearchService;
+import org.qualipso.factory.search.SearchServiceException;
 import org.qualipso.factory.indexing.SearchResult;
 import org.qualipso.factory.greeting.GreetingService;
 import org.qualipso.factory.greeting.GreetingServiceException;
@@ -65,7 +65,7 @@ import org.qualipso.factory.bootstrap.BootstrapServiceException;
 
 /**
  * 
- * Functionnal tests for the indexing service bean
+ * Functionnal tests for the search-indexing service bean
  * 
  * @author Benjamin Dreux / Nancy UHP
  * @author Anthony Claudot / Nancy UHP
@@ -78,7 +78,7 @@ public class IndexingServiceSBTest{
 	private static Log logger = LogFactory.getLog(IndexingServiceSBTest.class);
 	private static Context context;
 	private static LoginContext loginContext;
-	private static IndexingService indexing;
+	private static SearchService search;
 	private static MembershipService membership;
 	private static GreetingService greeting; 
 	private static BindingService binding;
@@ -121,7 +121,7 @@ public class IndexingServiceSBTest{
         //we need to login in just to delete things created by the quest user
         loginContext.login();
 
-		indexing = (IndexingService) context.lookup(FactoryNamingConvention.getJNDINameForService(IndexingService.SERVICE_NAME));
+		search = (SearchService) context.lookup(FactoryNamingConvention.getJNDINameForService(SearchService.SERVICE_NAME));
 		//binding = (BindingService) context.lookup(BindingService.SERVICE_NAME);
 		browser = (BrowserService) context.lookup(FactoryNamingConvention.getJNDINameForService(BrowserService.SERVICE_NAME));
 		greeting=(GreetingService) context.lookup(FactoryNamingConvention.getJNDINameForService(GreetingService.SERVICE_NAME));
@@ -193,12 +193,12 @@ public class IndexingServiceSBTest{
 	/**
 	 * ==== RIGHT ====
 	 * Test of simple case. 
-	 * @throws IndexingServiceException 
+	 * @throws SearchServiceException 
 	 */
 	@Test
-	public void testIndexingSearch() throws IndexingServiceException{
+	public void testSearch() throws SearchServiceException{
 		logger.info("Testing search of an owned resource");
-		ArrayList<SearchResult> result = indexing.search("bug");
+		ArrayList<SearchResult> result = search.searchResource("bug");
 		
 		assertEquals("The ArrayList should contain exactly two results", 2, result.size());
                                                                                    
@@ -211,12 +211,12 @@ public class IndexingServiceSBTest{
 	 * ===== RIGHT =====
 	 * Test if a resource can be found by the resource owner
 	 * 
-	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
+	 * @throws SearchServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
-	public void testIndexingSearchOwnedResource() throws IndexingServiceException{
+	public void testSearchOwnedResource() throws SearchServiceException{
 		logger.info("Testing search of an owned resource");
-		ArrayList<SearchResult> result = indexing.search("bug AND forge");
+		ArrayList<SearchResult> result = search.searchResource("bug AND forge");
 		
 		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
 		assertThat("The expected result should be the resource FORGE_BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));
@@ -230,14 +230,14 @@ public class IndexingServiceSBTest{
 	 * @throws InvalidPathException
 	 * @throws PathNotFoundException
 	 * @throws BindingServiceException
-	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
+	 * @throws SearchServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
-	public void testIndexingSearchReadNotAllowedResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, IndexingServiceException{
+	public void testSearchReadNotAllowedResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, SearchServiceException{
 		logger.info("Testing search of a resource on which we don't have the right to read");
 		String policy = PAPServiceHelper.buildPolicy("1", "/profiles/kermit", "/profiles/kermit/friFB", new String[]{""});
 		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
-		ArrayList<SearchResult> result = indexing.search("bug AND forge");
+		ArrayList<SearchResult> result = search.searchResource("bug AND forge");
 		
 		assertEquals("The ArrayList should be empty", 0, result.size());
 		
@@ -252,15 +252,15 @@ public class IndexingServiceSBTest{
 	 * @throws InvalidPathException
 	 * @throws PathNotFoundException
 	 * @throws BindingServiceException
-	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
+	 * @throws SearchServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
-	public void testIndexingSearchReadableResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, IndexingServiceException{
+	public void testSearchReadableResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, SearchServiceException{
 		logger.info("Testing search of a readable resource");
 		String policy = PAPServiceHelper.buildPolicy("1", profilePath+"kermit", profilePath+"friFB", new String[]{"read"});
 		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.OWNER, "/profiles/toto");
 		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
-		ArrayList<SearchResult> result = indexing.search("bug AND forge");
+		ArrayList<SearchResult> result = search.searchResource("bug AND forge");
 		
 		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
 		assertThat("The expected result should be the resource FORGE_BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));
@@ -271,12 +271,12 @@ public class IndexingServiceSBTest{
 	 * ===== BOUNDARIE =====
 	 * test if an inexistent resource can't be found by the caller
 	 * 
-	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
+	 * @throws SearchServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
-	public void testIndexingSearchInexistantResource() throws IndexingServiceException {
+	public void testSearchInexistantResource() throws SearchServiceException {
 		logger.info("Testing search of an inexistant resource");
-		ArrayList<SearchResult> result = indexing.search("titi");
+		ArrayList<SearchResult> result = search.searchResource("titi");
 		
 		assertEquals("The ArrayList should be empty", 0, result.size());
 	}
@@ -285,12 +285,12 @@ public class IndexingServiceSBTest{
 	 * ===== BOUNDARIE =====
 	 * Test if resource can be found with just a part of the content
 	 * 
-	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
+	 * @throws SearchServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
-	public void testIndexingSearchHalfContent() throws IndexingServiceException {
+	public void testSearchHalfContent() throws SearchServiceException {
 		logger.info("Testing search of a resource with one keyword");
-		ArrayList<SearchResult> result = indexing.search("bug");
+		ArrayList<SearchResult> result = search.searchResource("bug");
 		
 		assertEquals("The ArrayList should contain exactly two results", 2, result.size());
 		assertThat("The expected result should be the resource BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friB)));
@@ -302,12 +302,12 @@ public class IndexingServiceSBTest{
 	 * ====== RIGHT =====
 	 * Test if resource can be found with just a part or an other of the content
 	 * 
-	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
+	 * @throws SearchServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
-	public void testIndexingSearchOr() throws IndexingServiceException {
+	public void testSearchOr() throws SearchServiceException {
 		logger.info("Testing search with operator OR");
-		ArrayList<SearchResult> result = indexing.search("bug OR forge");
+		ArrayList<SearchResult> result = search.searchResource("bug OR forge");
 
 		
 		assertEquals("The ArrayList should contains exactly three results", 3, result.size());
@@ -321,12 +321,12 @@ public class IndexingServiceSBTest{
 	 * ======= Right ======
 	 * Test if resource can't be found with negation of the content
 	 * 
-	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
+	 * @throws SearchServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
-	public void testIndexingNotContent() throws IndexingServiceException{
+	public void testSearchNotContent() throws SearchServiceException{
 		logger.info("Testing search with operator NOT");
-		ArrayList<SearchResult> result = indexing.search("NOT bug");
+		ArrayList<SearchResult> result = search.searchResource("NOT bug");
 
 		
 		assertEquals("The ArrayList should contains exactly three results", 2, result.size());
@@ -339,16 +339,16 @@ public class IndexingServiceSBTest{
 	 * Test update of index when update of the resource occurs
 	 * 
 	 * @throws GreetingServiceException
-	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
+	 * @throws SearchServiceException exception thrown when a problem occurs in the search method
 	 * @throws InterruptedException
 	 */
 	@Test
-	public void testUpdateIndex() throws GreetingServiceException, IndexingServiceException, InterruptedException {
+	public void testUpdateIndex() throws GreetingServiceException, SearchServiceException, InterruptedException {
 		logger.info("Testing update index");
 		greeting.updateName(profilePath+"forge", "egrof");
 		// Waiting 1 second for the asynchronous call of the reindexation
 		Thread.sleep(1000);
-		ArrayList<SearchResult> result = indexing.search("egrof");
+		ArrayList<SearchResult> result = search.searchResource("egrof");
 		
 		assertEquals("The ArrayList should contains exactly one result", 1, result.size());
 		assertThat("The expected result should be the resource FORGE",result,hasItem(searchResultWithFactoryResourceIdentifier(friF)));
@@ -360,18 +360,18 @@ public class IndexingServiceSBTest{
 	 * Test search of deleted resource
 	 * 
 	 * @throws GreetingServiceException
-	 * @throws IndexingServiceException exception thrown when a problem occurs in the search method
+	 * @throws SearchServiceException exception thrown when a problem occurs in the search method
 	 * @throws InterruptedException
 	 */
 	@Test
-	public void testDeletedSearch() throws GreetingServiceException, IndexingServiceException, InterruptedException{
+	public void testDeletedSearch() throws GreetingServiceException, SearchServiceException, InterruptedException{
 		logger.info("Testing delete index");
 
 		greeting.deleteName(profilePath+"forge");
 
 		// Waiting 1 second for the asynchronous call of the deletion in index
 		Thread.sleep(1000);
-		ArrayList<SearchResult> result = indexing.search("forge");
+		ArrayList<SearchResult> result = search.searchResource("forge");
 		
 		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
 		assertThat("The expected result should be the resource FORGE",result,hasItem(searchResultWithFactoryResourceIdentifier(friF)));	

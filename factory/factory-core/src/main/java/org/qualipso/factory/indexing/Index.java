@@ -52,14 +52,16 @@ public class Index implements IndexI {
 			writer = new IndexWriter(indexDirectory, analyzer, true);
 			writer.close();
 		}*/
-		if (indexDir.exists()) {
-			 writer = new IndexWriter(FSDirectory.open(indexDir), analyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
-	     }else{
-	    	 writer = new IndexWriter(FSDirectory.open(indexDir), analyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
-	     }
+		synchronized(this){
+		if (!indexDir.exists()){ 
+	   	 writer = new IndexWriter(FSDirectory.open(indexDir), analyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+	   	 writer.close();
+	   	 }
+	   	 }
+	     
 	}
 
-	public static Index getInstance() throws IndexingServiceException {
+	public static synchronized Index getInstance() throws IndexingServiceException {
 			try {
 				if (instance == null) 
 					instance = new Index();
@@ -78,7 +80,7 @@ public class Index implements IndexI {
 		try {
 
 				//IndexWriter writer = null;
-
+				synchronized(this){
 				try {
 					writer = new IndexWriter(FSDirectory.open(indexDir), analyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
 					writer.addDocument(doc.getDocument());
@@ -86,7 +88,7 @@ public class Index implements IndexI {
 				} finally {
 					writer.close();
 				}
-
+				}
 		} catch (IOException e) {
 			logger.error("unable to index document " + doc, e);
 			throw new IndexingServiceException("Can't index a document", e);
@@ -108,14 +110,14 @@ public class Index implements IndexI {
 	logger.info("remove(...) called");
     logger.debug("params :path=" + path);
 		try {
-			
+			synchronized(this){
 				Term term = new Term("PATH", path);
 				//IndexReader reader = IndexReader.open(indexDirectory);
 				IndexReader reader = IndexReader.open(FSDirectory.open(indexDir), false);
 				int nbDoc = reader.deleteDocuments(term);
 				logger.info("Nd document deleted "+nbDoc);
 				reader.close();
-			
+			}
 		} catch (IOException e) {
 			logger.error("unable to remove resource " + path +" from index", e);
 			throw new IndexingServiceException("Can't remove resource" + path +" from index", e);
@@ -127,7 +129,7 @@ public class Index implements IndexI {
 	public ArrayList<SearchResult> search(String queryString)
 			throws IndexingServiceException {
 		try {
-
+			synchronized(this){
 			QueryParser queryParser = new QueryParser("CONTENT", analyzer);
 			//queryParser.parse(queryString);
 
@@ -167,12 +169,13 @@ public class Index implements IndexI {
 
 				listRs.add(sr);
 
-			}
-			reader.close();
-
+			
 			searcher.close();
-
+			reader.close();
+		
+			}
 			return listRs;
+		}
 		} catch (Exception e) {
 			logger.error("unable search in index using " + queryString, e);
 			throw new IndexingServiceException("Can't search in index using" + queryString+ "\n", e);
