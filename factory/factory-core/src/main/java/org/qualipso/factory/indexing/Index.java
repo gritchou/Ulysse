@@ -26,7 +26,6 @@ import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.apache.lucene.store.FSDirectory;
-import org.qualipso.factory.FactoryResourceIdentifier;
 
 public class Index implements IndexI {
 	private static Index instance;
@@ -178,7 +177,7 @@ public class Index implements IndexI {
 		}
 		} catch (Exception e) {
 			logger.error("unable search in index using " + queryString, e);
-			throw new IndexingServiceException("Can't search in index using" + queryString+ "\n", e);
+			throw new IndexingServiceException("Can't search in index using '" + queryString+ "'\n", e);
 		}
 
 	}

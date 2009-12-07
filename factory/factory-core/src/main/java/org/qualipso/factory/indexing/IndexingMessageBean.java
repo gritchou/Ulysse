@@ -114,7 +114,7 @@ public class IndexingMessageBean implements MessageListener{
 
 		}catch(Exception e){
 			logger.error("unable to convert resource " +path, e);
-			throw new IndexingServiceException("unable to convert resource"+e);
+			throw new IndexingServiceException("unable to convert resource "+e);
 		}
 		
 	}
