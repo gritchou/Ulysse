@@ -18,7 +18,7 @@ package org.qualipso.factory.indexing;
 
 
 
-import javax.ejb.Remote;
+import javax.ejb.Local;
 import java.util.ArrayList;
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryService;
@@ -29,7 +29,7 @@ import org.qualipso.factory.FactoryService;
  * @author Jerome Blanchard jayblanc@gmail.com
  * @date 20 May 2009
  */
-@Remote
+@Local
 
 
 public interface IndexingService extends FactoryService{

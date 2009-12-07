@@ -2,7 +2,7 @@
 package org.qualipso.factory.indexing;
 
 import org.apache.lucene.document.Document;
-
+import org.qualipso.factory.FactoryResourceIdentifier;
 /**
  * <p>Interface which specify the property of indexable document. 
  * Documents are the unit of indexing. 
@@ -16,7 +16,7 @@ public interface IndexableDocumentI {
    * <p>Give a Factory Resource Identifier (FRI) reference of document. </p>
    * @return The string form of this URI
    */
-  public String getResourceFRI();
+  public FactoryResourceIdentifier getResourceFRI();
 
   /**
    * <p>Give the service of document</p>
@@ -39,16 +39,16 @@ public interface IndexableDocumentI {
     
   /**
    * <p>Give an object of type IndexableContent</p>
-   * @see IndexableContentI 
+   * @see IndexableContent 
    * @return an indexable content
    */
-  public IndexableContentI getIndexableContent();
+  public IndexableContent getIndexableContent();
   
   /**
-   * <p>Set a Factory Resource Identifier (FRI) reference of document with a string</p>
+   * <p>Set a Factory Resource Identifier (FRI) reference of resource with a string</p>
    * @param resourceFRI is a string
    */
-  public void setResourceFRI(String resourceFRI);
+  public void setResourceFRI(FactoryResourceIdentifier resourceFRI);
   
   /**
    * <p>Set the service of document with the string</p>
@@ -74,6 +74,16 @@ public interface IndexableDocumentI {
    */
   public void setIndexableContent(IndexableContent indexableContent);
   
+  /**
+  * <p>Set the path to the resource</p>
+  *@param path the path to the resource
+  */
+  public void setResourcePath(String path);
+  /**
+  *<p>Give the path to the corresponding resource</p>
+  * @result the path to the resource
+  **/
+  public String getResourcePath();
   /**
    * <p> Give a document. 
    * A Document has a list of fields; each field has a name and a textual value.  

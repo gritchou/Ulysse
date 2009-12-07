@@ -197,7 +197,7 @@ public class GreetingServiceBean implements GreetingService{
             notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "create"), ""));
 
             //Using the indexing service to index the name newly created
-            //indexing.index(getServiceName(), path);
+            indexing.index(getServiceName(), path);
         } catch ( Exception e ) {
             ctx.setRollbackOnly();
             logger.error("unable to create the name at path " + path, e);
@@ -287,7 +287,7 @@ public class GreetingServiceBean implements GreetingService{
             notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "update"), ""));
             
             //Using the indexing service to reindex the name newly updated
-            //indexing.reindex(getServiceName(), path);
+            indexing.reindex(getServiceName(), path);
 
         } catch ( Exception e ) {
          //   ctx.setRollbackOnly();
@@ -331,8 +331,8 @@ public class GreetingServiceBean implements GreetingService{
             //Using the notification service to throw an event : 
             notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "delete"), ""));
 
-        //Using the indexing service to unindex the name 
-        //indexing.remove(getServiceName(), path);
+            //Using the indexing service to unindex the name 
+            indexing.remove(getServiceName(), path);
 
         } catch ( Exception e ) {
            // ctx.setRollbackOnly();
@@ -485,7 +485,8 @@ public class GreetingServiceBean implements GreetingService{
 		doc.setResourceService(getServiceName());
 		doc.setResourceShortName(name.getValue());
 		doc.setResourceType(Name.RESOURCE_NAME);
-		doc.setResourceFRI(name.getFactoryResourceIdentifier().toString());
+		doc.setResourcePath(path);
+		doc.setResourceFRI(name.getFactoryResourceIdentifier());
 
 		return doc;
 	} catch (Exception e) {

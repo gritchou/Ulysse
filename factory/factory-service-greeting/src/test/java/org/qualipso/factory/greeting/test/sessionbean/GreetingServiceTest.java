@@ -59,13 +59,13 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 		pep = mockery.mock(PEPService.class);
 		pap = mockery.mock(PAPService.class);
 		notification = mockery.mock(NotificationService.class);
-		//indexing = mockery.mock(IndexingService.class);
+		indexing = mockery.mock(IndexingService.class);
 		getBeanToTest().setMembershipService(membership);
 		getBeanToTest().setNotificationService(notification);
 		getBeanToTest().setBindingService(binding);
 		getBeanToTest().setPEPService(pep);
 		getBeanToTest().setPAPService(pap);
-		//getBeanToTest().setIndexingService(indexing);
+		getBeanToTest().setIndexingService(indexing);
 	}
     
     public void testCRUDName() {
@@ -93,7 +93,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.OWNER)), with(equal("/profiles/jayblanc"))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("greeting.name.create"))); inSequence(sequence1);
-					//oneOf(indexing).index(with(any(String.class)),with(any(String.class)));inSequence(sequence1);
+					oneOf(indexing).index(with(any(String.class)),with(any(String.class)));inSequence(sequence1);
 					
 					//Second time for second name : 
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
@@ -107,7 +107,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.OWNER)), with(equal("/profiles/jayblanc"))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("greeting.name.create"))); inSequence(sequence1);
-					//oneOf(indexing).index(with(any(String.class)),with(any(String.class)));inSequence(sequence1);
+					oneOf(indexing).index(with(any(String.class)),with(any(String.class)));inSequence(sequence1);
 				}
 			});
 			
@@ -142,7 +142,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(binding).lookup(with(equal("/names/sheldon"))); will(returnValue(params1.get(0))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("greeting.name.update"))); inSequence(sequence1);
-                 //   oneOf(indexing).reindex(with(any(String.class)),with(any(String.class)));inSequence(sequence1);
+                    oneOf(indexing).reindex(with(any(String.class)),with(any(String.class)));inSequence(sequence1);
 					
 					//Update the second name : 
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
@@ -150,7 +150,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(binding).lookup(with(equal("/names/howard"))); will(returnValue(params2.get(0))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("greeting.name.update"))); inSequence(sequence1);
-                   // oneOf(indexing).reindex(with(any(String.class)),with(any(String.class)));inSequence(sequence1);
+                    oneOf(indexing).reindex(with(any(String.class)),with(any(String.class)));inSequence(sequence1);
 					
 					//Reading the first name : 
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
@@ -181,7 +181,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(pap).deletePolicy(with(any(String.class))); inSequence(sequence1);
 					oneOf(binding).unbind(with(equal("/names/sheldon"))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("greeting.name.delete"))); inSequence(sequence1);
-                //    oneOf(indexing).remove(with(any(String.class)),with(any(String.class)));inSequence(sequence1);
+                    oneOf(indexing).remove(with(any(String.class)),with(any(String.class)));inSequence(sequence1);
 					
 					//Update the second name : 
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
@@ -191,7 +191,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					oneOf(pap).deletePolicy(with(any(String.class))); inSequence(sequence1);
 					oneOf(binding).unbind(with(equal("/names/howard"))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("greeting.name.delete"))); inSequence(sequence1);
-                //    oneOf(indexing).remove(with(any(String.class)),with(any(String.class)));inSequence(sequence1);
+                    oneOf(indexing).remove(with(any(String.class)),with(any(String.class)));inSequence(sequence1);
 				}
 			});
             

@@ -163,6 +163,7 @@ public class IndexingServiceBean implements IndexingService {
 
 	private ArrayList<SearchResult> filter(ArrayList<SearchResult> uncheckedRes) throws IndexingServiceException {
 		logger.info("filter(...) called ");
+		try{logger.info("profile "+membership.getProfilePathForConnectedIdentifier() );	}catch(Exception e){}
 		logger.debug("params : UnchedSearchResult= " + uncheckedRes);
 		Iterator<SearchResult> iter = uncheckedRes.iterator();
 		ArrayList<SearchResult> checkedRes = new ArrayList<SearchResult>();
@@ -170,13 +171,12 @@ public class IndexingServiceBean implements IndexingService {
 			String profile = membership.getProfilePathForConnectedIdentifier();
 			while(iter.hasNext()){
 				SearchResult current = iter.next();
-				FactoryResourceIdentifier fri = current.getResourceIdentifier();
-				try{
-					pep.checkSecurity(profile, fri.toString(), "read");
-					checkedRes.add(current);
-				}catch(PEPServiceException e){}
+				String path = current.getPath();
+				logger.info("filter(...) called current resource path"+path);
+				pep.checkSecurity(profile, path, "read");
+				checkedRes.add(current);
 			}
-		}catch(MembershipServiceException e){
+		}catch(Exception e){
 			logger.error("Error in indexingservice when filtring searchResult", e);
             ctx.setRollbackOnly();
             throw new IndexingServiceException("Error in indexingservice when filtring searchResult", e);  

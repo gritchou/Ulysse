@@ -18,6 +18,7 @@ package org.qualipso.factory.indexing;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.qualipso.factory.FactoryResourceIdentifier;
 
 
 /**
@@ -28,18 +29,19 @@ import org.apache.lucene.document.Field;
  */
 
 public class IndexableDocument implements IndexableDocumentI{
-    private String resourceFRI;
+    private FactoryResourceIdentifier resourceFRI;
     private String resourceService;
     private String resourceType;
     private String resourceShortName;
+  	private String path;
     private IndexableContent indexableContent;
 
 
     /**
-     * <p>Set a Factory Resource Identifier (FRI) reference of document with a string</p>
-     * @param resourceFRI is a string
+     * <p>Set a Factory Resource Identifier (FRI) reference of document with a FactoryResourceIdentifier</p>
+     * @param resourceFRI is a FactoryResourceIdentifier
      */
-    public void setResourceFRI(String resourceFRI){
+    public void setResourceFRI(FactoryResourceIdentifier resourceFRI){
     	this.resourceFRI = resourceFRI;
     }
     
@@ -74,11 +76,17 @@ public class IndexableDocument implements IndexableDocumentI{
     public void setIndexableContent(IndexableContent indexableContent){
     	this.indexableContent = indexableContent;
     }
+    /**
+    *@see IndexableDocumentI#setResourcePath()
+    **/
+    public void setResourcePath(String path){
+    	this.path = path;
+    }
     
     /**
      * @see IndexableDocumentI#getResourceURI()
      */
-    public String getResourceFRI() {
+    public FactoryResourceIdentifier getResourceFRI() {
         return resourceFRI;
 
     }
@@ -107,8 +115,14 @@ public class IndexableDocument implements IndexableDocumentI{
     /**
      * @see IndexableDocumentI#getIndexableContent()
      */
-    public IndexableContentI getIndexableContent(){
+    public IndexableContent getIndexableContent(){
         return indexableContent;
+    }
+    /**
+    * @see  IndexableDocumentI#getResourcePath()
+    **/
+    public String getResourcePath(){
+    	return path;
     }
     
     /**
@@ -121,9 +135,10 @@ public class IndexableDocument implements IndexableDocumentI{
      */
 	public Document getDocument() {
 		Document document = new Document();
-        document.add(new Field("FRI", resourceFRI , Field.Store.YES, Field.Index.NOT_ANALYZED));
+        document.add(new Field("FRI", resourceFRI.serialize() , Field.Store.YES, Field.Index.NOT_ANALYZED));
         document.add(new Field("SERVICE", resourceService, Field.Store.YES, Field.Index.NO));
         document.add(new Field("TYPE", resourceType, Field.Store.YES, Field.Index.NO));
+		document.add(new Field("PATH", path, Field.Store.YES, Field.Index.NOT_ANALYZED ));
         document.add(new Field("CONTENT", indexableContent.toString(), Field.Store.YES, Field.Index.ANALYZED));
         document.add(new Field("NAME", resourceShortName, Field.Store.YES, Field.Index.ANALYZED));
         return document;

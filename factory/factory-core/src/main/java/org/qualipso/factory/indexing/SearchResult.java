@@ -41,7 +41,7 @@ public class SearchResult implements SearchResultI {
     private String explain;
     private String name;
     private String type;
-    private FactoryResourceIdentifier resourceIdentifier;
+    private FactoryResourceIdentifier resourceFRI;
 
     /**
      * @see SearchResultI#getPath()
@@ -122,29 +122,23 @@ public class SearchResult implements SearchResultI {
      * @see SearchResultI#getResourceIdentifier()
      */
     @XmlTransient
-    public FactoryResourceIdentifier getResourceIdentifier() {
-        return resourceIdentifier;
+    public FactoryResourceIdentifier getFactoryResourceIdentifier() {
+        return resourceFRI;
     }
     
     /**
-     * @see SearchResultI#setResourceIdentifier(FactoryResourceIdentifier)
+     * @see SearchResultI#setResourceIdentifier(FactoryResourceIdentfier Identifier)
      */
-    public void setResourceIdentifier(FactoryResourceIdentifier resourceIdentifier) {
-        this.resourceIdentifier = resourceIdentifier;
-    }
-    
-    /**
-     * @see SearchResultI#getIdentifier()
-     */
-    @XmlAttribute(name = "factory-resource-identifier", required = true)
-    public String getIdentifier() {
-        return resourceIdentifier.serialize();
+    public void setFactoryResourceIdentifier(FactoryResourceIdentifier resourceIdentifier) {
+        this.resourceFRI = resourceIdentifier;
     }
 
     /**
-     * @see SearchResultI#setIdentifier(String)
+     * @see SearchResultI#setResourceIdentifier(String Identifier)
      */
-    public void setIdentifier(String identifier) {
-        this.resourceIdentifier = FactoryResourceIdentifier.deserialize(identifier);
+    public void setFactoryResourceIdentifier(String resourceIdentifier) {
+        this.resourceFRI = FactoryResourceIdentifier.deserialize(resourceIdentifier);
     }
+    
+    
 }

@@ -80,25 +80,22 @@ public interface SearchResultI extends Serializable{
      * @return an object FactoryResourceIdentifier
      * @see org.qualipso.factory.FactoryResourceIdentifier
      */
-    public FactoryResourceIdentifier getResourceIdentifier() ;
+    public FactoryResourceIdentifier getFactoryResourceIdentifier() ;
     
     /**
      * <p>Set a object FactoryResourceIdentifier</p>
      * @param resourceIdentifier is an object FactoryResourceIdentifier
      * @see org.qualipso.factory.FactoryResourceIdentifier
      */
-    public void setResourceIdentifier(FactoryResourceIdentifier resourceIdentifier) ;
-    
+    public void setFactoryResourceIdentifier(FactoryResourceIdentifier resourceIdentifier) ;
+   
     /**
-     * <p>Give a string which represent the identifier of document</p>
-     * @return a string of identifier
+     * <p>Set a object FactoryResourceIdentifier</p>
+     * @param resourceIdentifier is a String
+     * @see org.qualipso.factory.FactoryResourceIdentifier
      */
-    public String getIdentifier() ;
+    public void setFactoryResourceIdentifier(String resourceIdentifier) ;
     
-    /**
-     * <p>Set a identifier of document</p>
-     * @param identifier, a string of identifier's document 
-     */
-    public void setIdentifier(String identifier) ;
+    
     
 }
