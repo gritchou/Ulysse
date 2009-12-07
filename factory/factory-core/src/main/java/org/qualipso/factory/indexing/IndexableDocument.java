@@ -33,6 +33,7 @@ public class IndexableDocument implements IndexableDocumentI{
     private String resourceService;
     private String resourceType;
     private String resourceShortName;
+  	private String path;
     private IndexableContent indexableContent;
 
 
@@ -75,6 +76,12 @@ public class IndexableDocument implements IndexableDocumentI{
     public void setIndexableContent(IndexableContent indexableContent){
     	this.indexableContent = indexableContent;
     }
+    /**
+    *@see IndexableDocumentI#setResourcePath()
+    **/
+    public void setResourcePath(String path){
+    	this.path = path;
+    }
     
     /**
      * @see IndexableDocumentI#getResourceURI()
@@ -111,6 +118,12 @@ public class IndexableDocument implements IndexableDocumentI{
     public IndexableContent getIndexableContent(){
         return indexableContent;
     }
+    /**
+    * @see  IndexableDocumentI#getResourcePath()
+    **/
+    public String getResourcePath(){
+    	return path;
+    }
     
     /**
      * <p> Give a document. 
@@ -125,6 +138,7 @@ public class IndexableDocument implements IndexableDocumentI{
         document.add(new Field("FRI", resourceFRI.serialize() , Field.Store.YES, Field.Index.NOT_ANALYZED));
         document.add(new Field("SERVICE", resourceService, Field.Store.YES, Field.Index.NO));
         document.add(new Field("TYPE", resourceType, Field.Store.YES, Field.Index.NO));
+		document.add(new Field("PATH", path, Field.Store.YES, Field.Index.NOT_ANALYZED ));
         document.add(new Field("CONTENT", indexableContent.toString(), Field.Store.YES, Field.Index.ANALYZED));
         document.add(new Field("NAME", resourceShortName, Field.Store.YES, Field.Index.ANALYZED));
         return document;

@@ -19,6 +19,9 @@ package org.qualipso.factory.client.test.sb;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThat;
+import static org.qualipso.factory.client.test.matcher.SearchResultWithFactoryResourceIdentfier.searchResultWithFactoryResourceIdentifier;
+import static org.junit.matchers.JUnitMatchers.hasItem;
 
 import java.util.ArrayList;
 import java.util.Properties;
@@ -58,6 +61,7 @@ import org.qualipso.factory.greeting.GreetingService;
 import org.qualipso.factory.greeting.GreetingServiceException;
 import org.qualipso.factory.bootstrap.BootstrapService;
 import org.qualipso.factory.bootstrap.BootstrapServiceException;
+
 
 /**
  * 
@@ -193,11 +197,14 @@ public class IndexingServiceSBTest{
 	 */
 	@Test
 	public void testIndexingSearch() throws IndexingServiceException{
-		logger.debug("Testing search of an owned resource");
+		logger.info("Testing search of an owned resource");
 		ArrayList<SearchResult> result = indexing.search("bug");
 		
-		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
-		assertEquals("The expected result should be the resource BUG ", friB, result.get(0).getResourceIdentifier());
+		assertEquals("The ArrayList should contain exactly two results", 2, result.size());
+                                                                                   
+		assertThat("The expected result should be the resource BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friB)));
+		assertThat("The expected result should be the resource FORGE_BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));
+		
 	}
 	
 	/**
@@ -208,11 +215,12 @@ public class IndexingServiceSBTest{
 	 */
 	@Test
 	public void testIndexingSearchOwnedResource() throws IndexingServiceException{
-		logger.debug("Testing search of an owned resource");
+		logger.info("Testing search of an owned resource");
 		ArrayList<SearchResult> result = indexing.search("bug AND forge");
 		
 		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
-		assertEquals("The expected result should be the resource BUG and FORGE", friFB, result.get(0).getResourceIdentifier());
+		assertThat("The expected result should be the resource FORGE_BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));
+
 	}
 	
 	/**
@@ -226,7 +234,7 @@ public class IndexingServiceSBTest{
 	 */
 	@Test
 	public void testIndexingSearchReadNotAllowedResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, IndexingServiceException{
-		logger.debug("Testing search of a resource on which we don't have the right to read");
+		logger.info("Testing search of a resource on which we don't have the right to read");
 		String policy = PAPServiceHelper.buildPolicy("1", "/profiles/kermit", "/profiles/kermit/friFB", new String[]{""});
 		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
 		ArrayList<SearchResult> result = indexing.search("bug AND forge");
@@ -248,14 +256,15 @@ public class IndexingServiceSBTest{
 	 */
 	@Test
 	public void testIndexingSearchReadableResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, IndexingServiceException{
-		logger.debug("Testing search of a readable resource");
+		logger.info("Testing search of a readable resource");
 		String policy = PAPServiceHelper.buildPolicy("1", profilePath+"kermit", profilePath+"friFB", new String[]{"read"});
 		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.OWNER, "/profiles/toto");
 		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
 		ArrayList<SearchResult> result = indexing.search("bug AND forge");
 		
 		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
-		assertEquals("The expected result should be the resource BUG and FORGE", friFB, result.get(0).getResourceIdentifier());
+		assertThat("The expected result should be the resource FORGE_BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));
+
 	}
 	
 	/**
@@ -266,7 +275,7 @@ public class IndexingServiceSBTest{
 	 */
 	@Test
 	public void testIndexingSearchInexistantResource() throws IndexingServiceException {
-		logger.debug("Testing search of an inexistant resource");
+		logger.info("Testing search of an inexistant resource");
 		ArrayList<SearchResult> result = indexing.search("titi");
 		
 		assertEquals("The ArrayList should be empty", 0, result.size());
@@ -280,17 +289,13 @@ public class IndexingServiceSBTest{
 	 */
 	@Test
 	public void testIndexingSearchHalfContent() throws IndexingServiceException {
-		logger.debug("Testing search of a resource with one keyword");
+		logger.info("Testing search of a resource with one keyword");
 		ArrayList<SearchResult> result = indexing.search("bug");
-		// build the list of FactoryResourceIdentifier from the SearchResult list
-		ArrayList<FactoryResourceIdentifier> resources = new ArrayList<FactoryResourceIdentifier>();
-		for (SearchResult res : result){
-			resources.add(res.getResourceIdentifier());
-		}
 		
-		assertEquals("The ArrayList should contain exactly two results", 2, resources.size());
-		assertTrue("The ArrayList should contain the resource BUG", resources.contains(friB));
-		assertTrue("The ArrayList should contain the resource BUG and FORGE", resources.contains(friFB));
+		assertEquals("The ArrayList should contain exactly two results", 2, result.size());
+		assertThat("The expected result should be the resource BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friB)));
+		assertThat("The expected result should be the resource FORGE_BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));
+
 	}
 
 	/**
@@ -301,18 +306,15 @@ public class IndexingServiceSBTest{
 	 */
 	@Test
 	public void testIndexingSearchOr() throws IndexingServiceException {
-		logger.debug("Testing search with operator OR");
+		logger.info("Testing search with operator OR");
 		ArrayList<SearchResult> result = indexing.search("bug OR forge");
-		// build the list of FactoryResourceIdentifier from the SearchResult list
-		ArrayList<FactoryResourceIdentifier> resources = new ArrayList<FactoryResourceIdentifier>();
-		for (SearchResult res : result){
-			resources.add(res.getResourceIdentifier());
-		}
+
 		
-		assertEquals("The ArrayList should contains exactly three results", 3, resources.size());
-		assertTrue("The ArrayList should contain the resource BUG", resources.contains(friB));
-		assertTrue("The ArrayList should contain the resource FORGE", resources.contains(friF));
-		assertTrue("The ArrayList should contain the resource BUG and FORGE", resources.contains(friFB));
+		assertEquals("The ArrayList should contains exactly three results", 3, result.size());
+		assertThat("The expected result should be the resource FORGE_BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));
+		assertThat("The expected result should be the resource FORGE",result,hasItem(searchResultWithFactoryResourceIdentifier(friF)));
+		assertThat("The expected result should be the resource BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friB)));
+
 	}
 
 	/**
@@ -323,17 +325,13 @@ public class IndexingServiceSBTest{
 	 */
 	@Test
 	public void testIndexingNotContent() throws IndexingServiceException{
-		logger.debug("Testing search with operator NOT");
+		logger.info("Testing search with operator NOT");
 		ArrayList<SearchResult> result = indexing.search("NOT bug");
-		// build the list of FactoryResourceIdentifier from the SearchResult list
-		ArrayList<FactoryResourceIdentifier> resources = new ArrayList<FactoryResourceIdentifier>();
-		for (SearchResult res : result){
-			resources.add(res.getResourceIdentifier());
-		}
+
 		
-		assertEquals("The ArrayList should contains exactly three results", 2, resources.size());
-		assertFalse("The ArrayList should not contain the resource BUG", resources.contains(friB));
-		assertFalse("The ArrayList should not contain the resource BUG and FORGE", resources.contains(friFB));
+		assertEquals("The ArrayList should contains exactly three results", 2, result.size());
+		assertThat("The expected result should be the resource FORGE and BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));
+		assertThat("The expected result should be the resource FORGE",result,hasItem(searchResultWithFactoryResourceIdentifier(friF)));
 	}
 	
 	/** 
@@ -346,14 +344,15 @@ public class IndexingServiceSBTest{
 	 */
 	@Test
 	public void testUpdateIndex() throws GreetingServiceException, IndexingServiceException, InterruptedException {
-		logger.debug("Testing update index");
+		logger.info("Testing update index");
 		greeting.updateName(profilePath+"forge", "egrof");
 		// Waiting 1 second for the asynchronous call of the reindexation
 		Thread.sleep(1000);
 		ArrayList<SearchResult> result = indexing.search("egrof");
 		
 		assertEquals("The ArrayList should contains exactly one result", 1, result.size());
-		assertEquals("The expected result should be the resource FORGE", friF, result.get(0).getResourceIdentifier());
+		assertThat("The expected result should be the resource FORGE",result,hasItem(searchResultWithFactoryResourceIdentifier(friF)));
+
 	}
 	
 	/**
@@ -366,20 +365,16 @@ public class IndexingServiceSBTest{
 	 */
 	@Test
 	public void testDeletedSearch() throws GreetingServiceException, IndexingServiceException, InterruptedException{
-		logger.debug("Testing delete index");
+		logger.info("Testing delete index");
 
 		greeting.deleteName(profilePath+"forge");
 
 		// Waiting 1 second for the asynchronous call of the deletion in index
 		Thread.sleep(1000);
 		ArrayList<SearchResult> result = indexing.search("forge");
-        ArrayList<FactoryResourceIdentifier> resources = new ArrayList<FactoryResourceIdentifier>();
-        for (SearchResult res : result){
-            resources.add(res.getResourceIdentifier());
-        }
 		
-		assertEquals("The ArrayList should contain exactly one result", 1, resources.size());
-		assertFalse("The ArrayList should not contain the resource FORGE", resources.contains(friF));
+		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
+		assertThat("The expected result should be the resource FORGE",result,hasItem(searchResultWithFactoryResourceIdentifier(friF)));	
         
 	}
 	

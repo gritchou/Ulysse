@@ -59,16 +59,16 @@ public class Index implements IndexI {
 	     }
 	}
 
-public final synchronized static Index getInstance() throws IndexingServiceException {
-		if (instance == null) {
+	public static Index getInstance() throws IndexingServiceException {
 			try {
-				instance = new Index();
-			} catch (Exception e) {
+				if (instance == null) 
+					instance = new Index();
+				return instance;
+				}
+			 catch (Exception e) {
 				logger.error("can't get instance of index " , e);
 				throw new IndexingServiceException("Can't get instance of index");
 			}
-		}
-		return instance;
 	}
 
 	@Override
@@ -76,17 +76,17 @@ public final synchronized static Index getInstance() throws IndexingServiceExcep
 	logger.info("index(...) called");
     logger.debug("params : IndexableDocument=" + doc);
 		try {
-			synchronized (this) {
+
 				//IndexWriter writer = null;
 
-				//try {
-					//writer = new IndexWriter(indexDirectory, analyzer, false);
+				try {
+					writer = new IndexWriter(FSDirectory.open(indexDir), analyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
 					writer.addDocument(doc.getDocument());
 					writer.optimize();
-				//} finally {
-					writer.commit();
-				//}
-			}
+				} finally {
+					writer.close();
+				}
+
 		} catch (IOException e) {
 			logger.error("unable to index document " + doc, e);
 			throw new IndexingServiceException("Can't index a document", e);
@@ -108,13 +108,14 @@ public final synchronized static Index getInstance() throws IndexingServiceExcep
 	logger.info("remove(...) called");
     logger.debug("params :path=" + path);
 		try {
-			synchronized (this) {
-				Term term = new Term("path", path);
+			
+				Term term = new Term("PATH", path);
 				//IndexReader reader = IndexReader.open(indexDirectory);
-				IndexReader reader = IndexReader.open(FSDirectory.open(indexDir), true);
-				reader.deleteDocuments(term);
-				reader.flush();
-			}
+				IndexReader reader = IndexReader.open(FSDirectory.open(indexDir), false);
+				int nbDoc = reader.deleteDocuments(term);
+				logger.info("Nd document deleted "+nbDoc);
+				reader.close();
+			
 		} catch (IOException e) {
 			logger.error("unable to remove resource " + path +" from index", e);
 			throw new IndexingServiceException("Can't remove resource" + path +" from index", e);
@@ -128,7 +129,7 @@ public final synchronized static Index getInstance() throws IndexingServiceExcep
 		try {
 
 			QueryParser queryParser = new QueryParser("CONTENT", analyzer);
-			queryParser.parse(queryString);
+			//queryParser.parse(queryString);
 
 			Query query = queryParser.parse(queryString);
 
@@ -154,13 +155,15 @@ public final synchronized static Index getInstance() throws IndexingServiceExcep
 				String name = hits.doc(i).get("NAME");
 				String type = hits.doc(i).get("SERVICE") + "/"
 						+ hits.doc(i).get("TYPE");
+				String path = hits.doc(i).get("PATH");
 				SearchResult sr = new SearchResult();
 				sr.setScore(score);
 				sr.setName(name);
 				sr.setFactoryResourceIdentifier(fri);
-
-				sr.setExplain(higlighteText);
 				sr.setType(type);
+				sr.setPath(path);
+				sr.setExplain(higlighteText);
+
 
 				listRs.add(sr);
 

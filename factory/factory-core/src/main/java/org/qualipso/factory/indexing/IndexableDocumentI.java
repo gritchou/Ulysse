@@ -75,6 +75,16 @@ public interface IndexableDocumentI {
   public void setIndexableContent(IndexableContent indexableContent);
   
   /**
+  * <p>Set the path to the resource</p>
+  *@param path the path to the resource
+  */
+  public void setResourcePath(String path);
+  /**
+  *<p>Give the path to the corresponding resource</p>
+  * @result the path to the resource
+  **/
+  public String getResourcePath();
+  /**
    * <p> Give a document. 
    * A Document has a list of fields; each field has a name and a textual value.  
    * A field Index specifies whether and how a field should be indexed. 

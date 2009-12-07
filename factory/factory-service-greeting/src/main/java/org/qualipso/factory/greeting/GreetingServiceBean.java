@@ -490,6 +490,7 @@ public class GreetingServiceBean implements GreetingService{
 		doc.setResourceService(getServiceName());
 		doc.setResourceShortName(name.getValue());
 		doc.setResourceType(name.RESOURCE_NAME);
+		doc.setResourcePath(path);
 		doc.setResourceFRI(name.getFactoryResourceIdentifier());
 
 		return doc;
