@@ -217,7 +217,7 @@ public class GreetingServiceTest extends BaseSessionBeanFixture<GreetingServiceB
 					allowing(pep);
 					allowing(pap);
 					allowing(notification);
-                   // allowing(indexing);
+                    allowing(indexing);
 					allowing(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); 
 					allowing(binding).bind(with(any(FactoryResourceIdentifier.class)), with(any(String.class))); will(saveParams(params));
 					allowing(binding).setProperty(with(any(String.class)), with(any(String.class)), with(any(String.class))); 
