@@ -1,10 +1,12 @@
 package org.qualipso.factory.test.sessionbean;
 
 import java.util.ArrayList;
+
 import javax.ejb.SessionContext;
 import javax.jms.Message;
 import javax.jms.Queue;
 import javax.jms.QueueConnectionFactory;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jmock.Expectations;
@@ -12,16 +14,14 @@ import org.jmock.Mockery;
 import org.jmock.Sequence;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qualipso.factory.FactoryResourceIdentifier;
-import org.qualipso.factory.indexing.Index;
 import org.qualipso.factory.indexing.IndexI;
 import org.qualipso.factory.indexing.IndexingService;
 import org.qualipso.factory.indexing.IndexingServiceBean;
 import org.qualipso.factory.indexing.SearchResult;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.security.pep.PEPService;
+
 import com.bm.testsuite.BaseSessionBeanFixture;
-import org.qualipso.factory.FactoryService;
 
 public class IndexingServiceTest extends BaseSessionBeanFixture<IndexingServiceBean> {
 

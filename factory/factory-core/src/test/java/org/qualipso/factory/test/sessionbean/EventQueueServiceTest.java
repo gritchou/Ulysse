@@ -40,15 +40,16 @@ import com.bm.testsuite.BaseSessionBeanFixture;
 
 /**
  * 
- * @authors Amrou Mohanned Khalifa Yiqing Li
+ * @author Amrou Mohanned
+ * @author Khalifa Yiqing Li
+ * @author Philippe Schmucker
  * 
  */
 public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServiceBean> {
     private static Log logger = LogFactory.getLog(EventQueueServiceTest.class);
 
     @SuppressWarnings("unchecked")
-    // private static final Class[] usedBeans = {Event.class, EventQueue.class
-    // };
+    // private static final Class[] usedBeans = {Event.class, EventQueue.class};
     private static final Class[] usedBeans = { EventQueue.class };
     private Mockery mockery;
     private EntityManager em;
@@ -61,11 +62,13 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     public static int auto_ack = Session.AUTO_ACKNOWLEDGE;
 
     public EventQueueServiceTest() {
-        // super(EventQueueServiceBean.class, usedBeans);
         super(EventQueueServiceBean.class, usedBeans);
 
     }
 
+    /**
+     * Set up mock objects for unit tests
+     */
     public void setUp() throws Exception {
         super.setUp();
         logger.debug("Session beans");
@@ -85,7 +88,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test la creation d'une eventqueue
+     * Test the creation of an eventqueue
      * 
      * @throws MembershipServiceException
      * @throws PEPServiceException
@@ -137,7 +140,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test la creation d'une queue dont le nom a ete deja utilise
+     * Test the creation of a queue which name was already used
      * 
      * @throws MembershipServiceException
      * @throws PEPServiceException
@@ -185,7 +188,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test de l'insertion d'un event dans une liste
+     * Test insertion of an event in an eventqueue
      * 
      * @throws MembershipServiceException
      * @throws PEPServiceException
@@ -247,7 +250,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         // ajout d'un autre event dans la queue
 
-        logger.info(" deuxieme ajout d'evnet dans la liste ");
+        logger.info("Second push of an event in the eventqueue ");
         mockery.checking(new Expectations() {
             {
 
@@ -288,7 +291,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test la suppression d'un event qui n'existe pas dans une eventqueue.
+     * Test the deletion of an event which doesn't exist in an eventqueue.
      * 
      * @throws MembershipServiceException
      * @throws PEPServiceException
@@ -348,7 +351,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test la suppression d'un event qui existe pas dans une eventqueue.
+     * Test the deletion of an event which exist in an eventqueue.
      * 
      * @throws MembershipServiceException
      * @throws PEPServiceException
@@ -410,7 +413,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * suppression d'une queue qui existe
+     * Test deletion of an existing queue
      * 
      * @throws MembershipServiceException
      * @throws PEPServiceException
@@ -497,7 +500,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * suppression d'une queue qui n'existe pas
+     * Test deletion of an inexistant queue
      * 
      * @throws InvalidPathException
      * @throws PathNotFoundException
@@ -557,7 +560,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * recherche d'event dans une event queue par date
+     * Test search by date of an event in an eventqueue
      * 
      * @throws InvalidPathException
      * @throws PathNotFoundException
@@ -619,7 +622,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test la recherche d'event dans une queue , dans un interval de temps
+     * Test search of an event in a queue, using a time interval
      * 
      * @throws InvalidPathException
      * @throws PathNotFoundException
@@ -725,7 +728,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test la recherche d'event avant une date donnée
+     * Test search of an event before a given date
      * 
      * @throws InvalidPathException
      * @throws PathNotFoundException
@@ -830,7 +833,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test la recherche d'event après une date donnée
+     * Test search of an event after a given date
      * 
      * @throws InvalidPathException
      * @throws PathNotFoundException
@@ -932,7 +935,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test de recherche par eventType
+     * Test search of an event by eventType
      * 
      * @throws InvalidPathException
      * @throws PathNotFoundException
@@ -1053,7 +1056,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test des cas exceptionnelle de la recherche des events par leurs types
+     * Test exceptionnal cases of events searches with their types
      * 
      * @throws InvalidPathException
      * @throws PathNotFoundException
@@ -1091,7 +1094,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test de recherche par type de ressource
+     * Test search of an event by type of resource
      * 
      * @throws InvalidPathException
      * @throws PathNotFoundException
@@ -1193,8 +1196,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test des cas exceptionnelle de la recherche des events a partir de types
-     * de ressources
+     * Test exceptionnal cases of events searches with their type of resource
      * 
      * @throws InvalidPathException
      * @throws PathNotFoundException
@@ -1232,7 +1234,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test de recherche par ressource
+     * Test search of an event by resource
      * 
      * @throws InvalidPathException
      * @throws PathNotFoundException
@@ -1334,8 +1336,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test des cas exceptionnelle de la recherche des events a partir des
-     * ressources
+     * Test exceptionnal cases of events searches from resources
      * 
      * @throws InvalidPathException
      * @throws PathNotFoundException
@@ -1373,7 +1374,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test si un event est dans une EventQueue
+     * Test if an event is in an EventQueue
      * 
      * @throws InvalidPathException
      * @throws PathNotFoundException
@@ -1462,7 +1463,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     }
 
     /**
-     * test de recherche de thrower d'un event dans une queue
+     * Test search of an event by thrower in a queue
      * 
      * @throws InvalidPathException
      * @throws PathNotFoundException

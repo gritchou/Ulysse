@@ -261,6 +261,18 @@ public class EventQueueServiceBean implements EventQueueService {
                 }
 
                 Event[] evs = new Event[eventqueue.getEvents().size()];
+                
+                /*ArrayList<Event> evts = new ArrayList<Event>();
+                ArrayList<Event> allEvts = eventqueue.getEvents();
+                for (Event event : allEvts) {
+                	try{
+                		pep.checkSecurity(caller,event.getFromResource(), "read");
+                		evts.add(event);
+                	}catch(PEPServiceException e){
+                		
+                	}
+				}*/
+                
                 return eventqueue.getEvents().toArray(evs);
 
             } else {

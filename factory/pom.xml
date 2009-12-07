@@ -34,7 +34,7 @@ Date 20 May 2009
 		</mailingList>
 	</mailingLists>
 	<distributionManagement>
-		<repository>
+			<repository>
 			<id>radis.loria.fr</id>
 			<name>radis</name>
 			<url>http://radis.loria.fr/maven2/libs-releases-local/</url>
@@ -44,7 +44,7 @@ Date 20 May 2009
 			<name>radis</name>
 			<url>http://radis.loria.fr/maven2/libs-snapshots-local/</url>
 		</snapshotRepository>
-		<!-- 
+		<!--
 		<site>
 			<id>qualipso.gforge.inria.fr</id>
 			<name>QualipsoFactory@INRIA</name>
@@ -123,10 +123,10 @@ Date 20 May 2009
 			<id>radis.loria.fr</id>
 			<url>http://radis.loria.fr/maven2/repo/</url>
 			<releases>
-				<enabled>true</enabled>
+				<enabled>false</enabled>
 			</releases>
 			<snapshots>
-				<enabled>true</enabled>
+				<enabled>false</enabled>
 			</snapshots>
 		</repository>
 	</repositories>
@@ -135,10 +135,10 @@ Date 20 May 2009
 			<id>radis.loria.fr</id>
 			<url>http://radis.loria.fr/maven2/repo/</url>
 			<releases>
-				<enabled>true</enabled>
+				<enabled>false</enabled>
 			</releases>
 			<snapshots>
-				<enabled>true</enabled>
+				<enabled>false</enabled>
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>

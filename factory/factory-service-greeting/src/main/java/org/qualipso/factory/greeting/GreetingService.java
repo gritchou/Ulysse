@@ -11,7 +11,9 @@ import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.greeting.entity.Name;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationServiceException;
-import org.qualipso.factory.indexing.IndexableService;
+import org.qualipso.factory.indexing.IndexableDocument;
+//import org.qualipso.factory.indexing.IndexableService;
+import org.qualipso.factory.indexing.IndexingServiceException;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -20,7 +22,7 @@ import org.qualipso.factory.indexing.IndexableService;
 @Remote
 @WebService(name = GreetingService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + GreetingService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
-public interface GreetingService extends FactoryService, IndexableService{
+public interface GreetingService extends FactoryService{
 
     public static final String SERVICE_NAME = "greeting";
     public static final String[] RESOURCE_TYPE_LIST = new String[] { Name.RESOURCE_NAME };
@@ -44,7 +46,7 @@ public interface GreetingService extends FactoryService, IndexableService{
 
     @WebMethod
     @WebResult(name = "name")
-    public void createNameWithUser(String path, String value, String caller) throws GreetingServiceException;
+    public void readNameWithUser(String path, String caller) throws GreetingServiceException;
 
     @WebMethod
     @WebResult(name = "name")
@@ -57,6 +59,20 @@ public interface GreetingService extends FactoryService, IndexableService{
     @WebMethod
     @WebResult(name = "name")
     public void throwFacticeEvent() throws NotificationServiceException;
+    
+    @WebMethod
+    @WebResult(name = "name")
+    public IndexableDocument getIndexableDocument(String path) throws IndexingServiceException;
 
+    @WebMethod
+    @WebResult(name = "name")
+    public void createFolder(String path, String name) throws GreetingServiceException;
+    
+    @WebMethod
+    @WebResult(name = "name")
+    public void deleteFolder(String path) throws GreetingServiceException;
 
+    @WebMethod
+    @WebResult(name = "name")
+    public void giveAutorization(String path, String user, String[] action) throws GreetingServiceException;
 }
