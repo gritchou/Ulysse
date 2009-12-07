@@ -22,7 +22,6 @@
  */
 package org.qualipso.factory.notification;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -178,7 +177,7 @@ public class NotificationServiceBean implements NotificationService {
 
     @Override
     public void register(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException {
-    	logger.info("register(...) called");
+        logger.info("register(...) called");
         if ((subjectre == null) || (objectre == null) || (targetre == null) || (queuePath == null))
             throw new NotificationServiceException("Incorrect arg, should not be null");
         Rule[] tmp = list();
@@ -216,7 +215,8 @@ public class NotificationServiceBean implements NotificationService {
     @Override
     public void throwEvent(Event event) throws NotificationServiceException {
         logger.info("throwEvent(Event event) called");
-        if(event==null) throw new NotificationServiceException("impossible to throw a null event");
+        if (event == null)
+            throw new NotificationServiceException("impossible to throw a null event");
         Connection connection;
         try {
             connection = connectionFactory.createConnection();
@@ -253,30 +253,23 @@ public class NotificationServiceBean implements NotificationService {
 
         if ((subject == null) && (object == null) && (target == null) && (queue == null))
             throw new NotificationServiceException("Incorrect args, all args are null");
-        /*StringBuffer query = new StringBuffer("SELECT r FROM Rule r WHERE ");
-
-        List<String> argsTitle = new ArrayList<String>();
-        argsTitle.add("subjectre");
-        argsTitle.add("objectre");
-        argsTitle.add("targetre");
-        argsTitle.add("queuePath");
-
-        List<String> args = new ArrayList<String>();
-        args.add(subject);
-        args.add(object);
-        args.add(target);
-        args.add(queue);
-
-        boolean first = true;
-
-        for (String arg : args) {
-            if (arg != null)
-                if (!first)
-                    query.append("AND ");
-            query.append("r." + argsTitle.get(args.indexOf(arg)) + " = " + arg + " ");
-            first = false;
-        }
-        Query q = em.createQuery(query.toString());*/
+        /*
+         * StringBuffer query = new StringBuffer("SELECT r FROM Rule r WHERE ");
+         * 
+         * List<String> argsTitle = new ArrayList<String>();
+         * argsTitle.add("subjectre"); argsTitle.add("objectre");
+         * argsTitle.add("targetre"); argsTitle.add("queuePath");
+         * 
+         * List<String> args = new ArrayList<String>(); args.add(subject);
+         * args.add(object); args.add(target); args.add(queue);
+         * 
+         * boolean first = true;
+         * 
+         * for (String arg : args) { if (arg != null) if (!first)
+         * query.append("AND "); query.append("r." +
+         * argsTitle.get(args.indexOf(arg)) + " = " + arg + " "); first = false;
+         * } Query q = em.createQuery(query.toString());
+         */
         Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre=:subjectre AND r.objectre=:objectre AND r.targetre=:targetre AND r.queuePath =:queue");
         q.setParameter("subjectre", subject);
         q.setParameter("objectre", object);
@@ -288,10 +281,10 @@ public class NotificationServiceBean implements NotificationService {
         return tab;
 
     }
-    
+
     @Override
     public Rule[] listRE(String subjectre, String objectre, String targetre, String queuere) throws NotificationServiceException {
-        //TODO or to remove
+        // TODO or to remove
         return null;
     }
 
@@ -301,7 +294,8 @@ public class NotificationServiceBean implements NotificationService {
         logger.debug("listByQueue(String queue) called");
         if (queue == null)
             throw new NotificationServiceException("Incorrect arg, targetre should not be null");
-        //Query q = em.createQuery("SELECT r FROM Rule r WHERE r.queuePath =" + queue);
+        // Query q = em.createQuery("SELECT r FROM Rule r WHERE r.queuePath =" +
+        // queue);
         Query q = em.createQuery("SELECT r FROM Rule r WHERE r.queuePath =:queue");
         q.setParameter("queue", queue);
         List<Rule> l = q.getResultList();
@@ -309,10 +303,10 @@ public class NotificationServiceBean implements NotificationService {
         tab = l.toArray(tab);
         return tab;
     }
-    
+
     @Override
     public Rule[] listByQueueRE(String queuere) throws NotificationServiceException {
-        //TODO or to remove
+        // TODO or to remove
         return null;
     }
 
@@ -322,7 +316,8 @@ public class NotificationServiceBean implements NotificationService {
         logger.debug("listBySubject(String subject) called");
         if (subject == null)
             throw new NotificationServiceException("Incorrect arg, subject should not be null");
-        //Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre = " + subject);
+        // Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre = "
+        // + subject);
         Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre =:subject");
         q.setParameter("subject", subject);
         List<Rule> l = q.getResultList();
@@ -330,10 +325,10 @@ public class NotificationServiceBean implements NotificationService {
         tab = l.toArray(tab);
         return tab;
     }
-    
+
     @Override
     public Rule[] listBySubjectRE(String subjectre) throws NotificationServiceException {
-        //TODO or to remove
+        // TODO or to remove
         return null;
     }
 
@@ -343,7 +338,8 @@ public class NotificationServiceBean implements NotificationService {
         logger.debug("listByObject(String object) called");
         if (object == null)
             throw new NotificationServiceException("Incorrect arg, object should not be null");
-        //Query q = em.createQuery("SELECT r FROM Rule r WHERE r.objectre = " + object);
+        // Query q = em.createQuery("SELECT r FROM Rule r WHERE r.objectre = " +
+        // object);
         Query q = em.createQuery("SELECT r FROM Rule r WHERE r.objectre =:object");
         q.setParameter("object", object);
         List<Rule> l = q.getResultList();
@@ -355,7 +351,7 @@ public class NotificationServiceBean implements NotificationService {
     @Override
     public Rule[] listByObjectRE(String objectre) throws NotificationServiceException {
         logger.debug("listByObjectRE(String objectre) called");
-        //TODO or to remove
+        // TODO or to remove
         return null;
     }
 
@@ -365,7 +361,8 @@ public class NotificationServiceBean implements NotificationService {
         logger.debug("listByTarget(String target) called");
         if (target == null)
             throw new NotificationServiceException("Incorrect arg, target should not be null");
-        //Query q = em.createQuery("SELECT r FROM Rule r WHERE r.targetre = " + target);
+        // Query q = em.createQuery("SELECT r FROM Rule r WHERE r.targetre = " +
+        // target);
         Query q = em.createQuery("SELECT r FROM Rule r WHERE r.targetre =:target");
         q.setParameter("target", target);
         List<Rule> l = q.getResultList();
@@ -373,10 +370,10 @@ public class NotificationServiceBean implements NotificationService {
         tab = l.toArray(tab);
         return tab;
     }
-    
+
     @Override
     public Rule[] listByTargetRE(String targetre) throws NotificationServiceException {
-        //TODO or to remove
+        // TODO or to remove
         return null;
     }
 }

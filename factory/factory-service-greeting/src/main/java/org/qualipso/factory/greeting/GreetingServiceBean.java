@@ -8,8 +8,6 @@ import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.jws.WebMethod;
-import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 import javax.jws.soap.SOAPBinding.Style;
@@ -486,7 +484,7 @@ public class GreetingServiceBean implements GreetingService{
 		doc.setIndexableContent(content);
 		doc.setResourceService(getServiceName());
 		doc.setResourceShortName(name.getValue());
-		doc.setResourceType(name.RESOURCE_NAME);
+		doc.setResourceType(Name.RESOURCE_NAME);
 		doc.setResourceFRI(name.getFactoryResourceIdentifier().toString());
 
 		return doc;
