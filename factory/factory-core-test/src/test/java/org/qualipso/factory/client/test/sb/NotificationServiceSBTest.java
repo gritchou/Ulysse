@@ -82,12 +82,12 @@ public class NotificationServiceSBTest {
         eqs = (EventQueueService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + EventQueueService.SERVICE_NAME);
         greeting = (GreetingService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + GreetingService.SERVICE_NAME);
         membership = (MembershipService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + MembershipService.SERVICE_NAME);
-        
+
     }
-    
+
     @AfterClass
-    public static void after() throws Exception{
-        
+    public static void after() throws Exception {
+
     }
 
     @Before
@@ -97,14 +97,15 @@ public class NotificationServiceSBTest {
         eqs.createEventQueue(pathQueue2);
 
         notification.register("/profiles/.*", "greeting.name.say-hello", "/m2log.*", pathQueue1);
-       
-        assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.say-hello,/m2log.*, pathQueue1)",notification.list().length==1);
-        
+
+        assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.say-hello,/m2log.*, pathQueue1)", notification.list().length == 1);
+
         notification.register("/profiles/.*", "greeting.name.read", "/m2log.*", pathQueue2);
         Rule[] t = notification.list();
         Rule r = t[0];
-        
-        assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.read,/m2log.*, pathQueue2) "+r.getQueuePath()+" "+r.getObjectre()+" "+r.getSubjectre()+" "+r.getTargetre()+" "+notification.list().length,notification.list().length==2);
+
+        assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.read,/m2log.*, pathQueue2) " + r.getQueuePath() + " "
+                + r.getObjectre() + " " + r.getSubjectre() + " " + r.getTargetre() + " " + notification.list().length, notification.list().length == 2);
         greeting.createName(pathResource, valueResource);
     }
 
@@ -129,7 +130,7 @@ public class NotificationServiceSBTest {
 
     @Test(timeout = 30000)
     public void testNotificationSimple() throws Exception {
-    	logger.info("testNotificationSimple() called");
+        logger.info("testNotificationSimple() called");
         String caller = membership.getProfilePathForConnectedIdentifier();
 
         greeting.sayHello(pathResource);
@@ -158,39 +159,36 @@ public class NotificationServiceSBTest {
      * 10 events
      * 
      * @throws Exception
-     *
-    @Test(timeout = 10000)
-    public void testNotificationOrderEvent() throws Exception {
-    	logger.info("testNotificationOrderEvent() called");
-        greeting.createName("/name", "toto");
-
-        Date beginThrow = new Date();
-        for (int i = 0; i < 10; i++) {
-            greeting.readName("/name");
-        }
-        Date endThrow = new Date();
-
-        Event[] lEvent2 = new Event[] {};
-        while (lEvent2.length < 9) {
-            lEvent2 = eqs.getEvents(pathQueue2);
-        }
-
-        assertEquals(lEvent2.length, 9);
-        Date d = lEvent2[0].getDate();
-        int i = 1;
-        while (i < lEvent2.length) {
-            assertTrue("TestNotificationOrderEvent : date event " + (i - 1) + " must be before event " + i, d.before(lEvent2[i].getDate()));
-            assertTrue("TestNotificationOrderEvent : event" + i + " must be after the begin of throw ", d.after(beginThrow));
-            assertTrue("TestNotificationOrderEvent : event" + i + " must be after the begin of throw ", d.before(endThrow));
-            d = lEvent2[i].getDate();
-            i++;
-        }
-        
-        Event[] lEvent1 = eqs.getEvents(pathQueue1);
-        assertEquals("TestNotificationOrderEvent : expected 1 event into queue1(" + pathQueue1 + ") but found " + lEvent1.length + " events", lEvent1.length, 1);
-
-        greeting.deleteName("/name");
-    }*/
+     * 
+     @Test(timeout = 10000) public void testNotificationOrderEvent() throws
+     *               Exception {
+     *               logger.info("testNotificationOrderEvent() called");
+     *               greeting.createName("/name", "toto");
+     * 
+     *               Date beginThrow = new Date(); for (int i = 0; i < 10; i++)
+     *               { greeting.readName("/name"); } Date endThrow = new Date();
+     * 
+     *               Event[] lEvent2 = new Event[] {}; while (lEvent2.length <
+     *               9) { lEvent2 = eqs.getEvents(pathQueue2); }
+     * 
+     *               assertEquals(lEvent2.length, 9); Date d =
+     *               lEvent2[0].getDate(); int i = 1; while (i < lEvent2.length)
+     *               { assertTrue("TestNotificationOrderEvent : date event " +
+     *               (i - 1) + " must be before event " + i,
+     *               d.before(lEvent2[i].getDate()));
+     *               assertTrue("TestNotificationOrderEvent : event" + i +
+     *               " must be after the begin of throw ", d.after(beginThrow));
+     *               assertTrue("TestNotificationOrderEvent : event" + i +
+     *               " must be after the begin of throw ", d.before(endThrow));
+     *               d = lEvent2[i].getDate(); i++; }
+     * 
+     *               Event[] lEvent1 = eqs.getEvents(pathQueue1); assertEquals(
+     *               "TestNotificationOrderEvent : expected 1 event into queue1("
+     *               + pathQueue1 + ") but found " + lEvent1.length + " events",
+     *               lEvent1.length, 1);
+     * 
+     *               greeting.deleteName("/name"); }
+     */
 
     /**
      * Test Right Throw one event matching by 0 queue
@@ -203,10 +201,10 @@ public class NotificationServiceSBTest {
     @Test(timeout = 20000)
     public void testNotificationEventNotMatching() throws InterruptedException, GreetingServiceException, EventQueueServiceException,
             NotificationServiceException {
-    	logger.info("testNotificationEventNotMatching() called");
-        greeting.createName("/eventNotMatching","eventNotMatching");
+        logger.info("testNotificationEventNotMatching() called");
+        greeting.createName("/eventNotMatching", "eventNotMatching");
         greeting.deleteName("/eventNotMatching");
-        
+
         Thread.sleep(1000);
         assertEquals("TestNotificationEventNotMatching : expected 0 event into queue1(" + pathQueue1 + ") but found " + eqs.getEvents(pathQueue1).length, eqs
                 .getEvents(pathQueue1).length, 0);
@@ -223,33 +221,34 @@ public class NotificationServiceSBTest {
      * @throws GreetingServiceException
      * @throws EventQueueServiceException
      * @throws InterruptedException
-     * @throws LoginException 
+     * @throws LoginException
      */
     @Test(timeout = 50000)
-    public void testNotificationRightEvent() throws MembershipServiceException, GreetingServiceException, EventQueueServiceException, InterruptedException, LoginException {
-    	logger.info("testNotificationRightEvent() called");
+    public void testNotificationRightEvent() throws MembershipServiceException, GreetingServiceException, EventQueueServiceException, InterruptedException,
+            LoginException {
+        logger.info("testNotificationRightEvent() called");
         String caller = membership.getProfilePathForConnectedIdentifier();
-        
-        //root permit to kermit to create something on /
-        greeting.giveAutorization("/", "/profiles/kermit",new String[]{"create"});
-        
+
+        // root permit to kermit to create something on /
+        greeting.giveAutorization("/", "/profiles/kermit", new String[] { "create" });
+
         loginContext.logout();
-        
-        //login kermit
+
+        // login kermit
         UsernamePasswordHandler uph = new UsernamePasswordHandler("kermit", "thefrog");
         loginContext = new LoginContext("qualipso", uph);
         loginContext.login();
-        
-        //kermit create a folder and a resource on this folder and
-        //create a read event on this name
+
+        // kermit create a folder and a resource on this folder and
+        // create a read event on this name
         greeting.createFolder("/kermitFolder", "kermitFolder");
         greeting.createName("/kermitFolder/kermitName", "kermitName");
         greeting.readName("/kermitFolder/kermitName");
         greeting.deleteName("/kermitFolder/kermitName");
         greeting.deleteFolder("/kermitFolder");
-        
+
         loginContext.logout();
-        
+
         uph = new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS);
         loginContext = new LoginContext("qualipso", uph);
         loginContext.login();
@@ -264,7 +263,8 @@ public class NotificationServiceSBTest {
 
         assertTrue("TestNotificationRighEvent : expected 1 events into queue2(" + pathQueue2 + ") but found " + lEvent2.length, lEvent2.length == 1);
         Event e = lEvent2[0];
-        assertEquals("TestNotificationRighEvent : event resource expected "+pathResource+" but found " + e.getFromResource(), e.getFromResource(), pathResource);
+        assertEquals("TestNotificationRighEvent : event resource expected " + pathResource + " but found " + e.getFromResource(), e.getFromResource(),
+                pathResource);
         assertEquals("TestNotificationRighEvent : event type expected greeting.name.create but found " + e.getEventType(), e.getEventType(),
                 "greeting.name.read");
         assertEquals("TestNotificationRighEvent : event throwedBy expected " + caller + " but found" + e.getThrowedBy(), e.getThrowedBy(), caller);
@@ -273,7 +273,7 @@ public class NotificationServiceSBTest {
 
         assertTrue("TestNotificationRighEvent : expected 1 event into queue1 but found " + eqs.getEvents(pathQueue2).length,
                 eqs.getEvents(pathQueue2).length == 1);
-        
+
     }
 
     /**
@@ -283,7 +283,7 @@ public class NotificationServiceSBTest {
      */
     @Test(expected = NotificationServiceException.class)
     public void testNotificationThrowNull() throws NotificationServiceException {
-    	logger.info("testNotificationThrowNull() called");
+        logger.info("testNotificationThrowNull() called");
         greeting.throwNullEvent();
     }
 
