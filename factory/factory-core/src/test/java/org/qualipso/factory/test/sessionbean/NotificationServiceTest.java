@@ -1,8 +1,5 @@
 package org.qualipso.factory.test.sessionbean;
 
-import java.util.List;
-import java.util.Vector;
-
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
@@ -10,8 +7,6 @@ import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Queue;
 import javax.jms.Session;
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,15 +40,12 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
     private static final Class[] usedBeans = { Rule.class, Node.class, Profile.class };
 
     private Mockery mockery;
-    private EntityManager em;
-    private Query query;
     private Connection connection;
     private ConnectionFactory connectionfactory;
     private Session session;
     private ObjectMessage om;
     private MessageProducer mp;
     private Queue queue;
-    private List<Rule> list;
     private EventQueueService eventqueueservice;
 
     public static int auto_ack = Session.AUTO_ACKNOWLEDGE;
@@ -62,7 +54,6 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         super(NotificationServiceBean.class, usedBeans);
     }
 
-    @SuppressWarnings("unchecked")
     public void setUp() throws Exception {
         super.setUp();
         logger.debug("Session beans");
@@ -249,8 +240,6 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
     public void testthrowEvent() throws NotificationServiceException, JMSException, EventQueueServiceException, MembershipServiceException,
             PEPServiceException, BindingServiceException, PAPServiceException {
         logger.debug("testing testunregister(...)");
-        final Rule[] tab = new Rule[] {};
-        final Vector<Object> params1 = new Vector<Object>();
         /*
          * mockery.checking(new Expectations() { {
          * oneOf(em).createQuery(with(any(String.class)));
@@ -374,7 +363,7 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         assertEquals(tab.length, 0);
         mockery.assertIsSatisfied();
     }
-    
+
     public void testlistByObject() throws NotificationServiceException {
         logger.debug("testing testlistByObject(...)");
 
@@ -397,7 +386,7 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         assertEquals(tab.length, 0);
         mockery.assertIsSatisfied();
     }
-    
+
     public void testlistByTarget() throws NotificationServiceException {
         logger.debug("testing testlistByTarget(...)");
 
@@ -420,5 +409,5 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         assertEquals(tab.length, 0);
         mockery.assertIsSatisfied();
     }
-    
+
 }
