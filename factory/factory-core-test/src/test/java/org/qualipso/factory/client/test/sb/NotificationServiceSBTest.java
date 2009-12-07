@@ -3,9 +3,7 @@ package org.qualipso.factory.client.test.sb;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Date;
 import java.util.Properties;
-import java.util.UUID;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -21,11 +19,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qualipso.factory.FactoryNamingConvention;
-import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.bootstrap.BootstrapService;
 import org.qualipso.factory.bootstrap.BootstrapServiceException;
 import org.qualipso.factory.client.test.AllTests;
-import org.qualipso.factory.core.entity.Folder;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
@@ -36,11 +32,12 @@ import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.notification.NotificationServiceException;
 import org.qualipso.factory.notification.entity.Rule;
-import org.qualipso.factory.security.pap.PAPServiceHelper;
 
 /**
- * @author Jerome Blanchard (jayblanc@gmail.com)
- * @date 7 october 2009
+ * @author HANTZ Marlène
+ * @author HENRY Nicolas
+ * 
+ * @date 6 december 2009
  */
 public class NotificationServiceSBTest {
     private static Log logger = LogFactory.getLog(NotificationServiceSBTest.class);
