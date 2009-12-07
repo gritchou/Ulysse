@@ -103,13 +103,6 @@ public class EventMessageBean implements MessageListener {
     @Override
     public void onMessage(Message message){
     	logger.info("onMessage() called");
-    	String caller="";
-		try {
-			caller = membership.getProfilePathForConnectedIdentifier();
-		} catch (MembershipServiceException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		}
         if (message instanceof ObjectMessage) {
             try {
                 Serializable o = ((ObjectMessage) message).getObject();
@@ -130,13 +123,13 @@ public class EventMessageBean implements MessageListener {
                                 	logger.error("acces deny to push event : " + ev + "\nin queue : " + rule.getQueuePath(), e);
 									e.printStackTrace();
 								} catch (InvalidPathException e) {
-									// TODO Auto-generated catch block
+									logger.error("Invalid path "+rule.getQueuePath()+" "+e);
 									e.printStackTrace();
 								} catch (PathNotFoundException e) {
-									// TODO Auto-generated catch block
+									logger.error("Invalid path "+rule.getQueuePath()+" "+e);
 									e.printStackTrace();
 								} catch (PropertyNotFoundException e) {
-									// TODO Auto-generated catch block
+									logger.error("property "+FactoryResourceProperty.OWNER+" not found "+e);
 									e.printStackTrace();
 								}
                             }

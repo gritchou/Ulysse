@@ -34,8 +34,10 @@ import org.qualipso.factory.notification.NotificationServiceException;
 import org.qualipso.factory.notification.entity.Rule;
 
 /**
- * @author Jerome Blanchard (jayblanc@gmail.com)
- * @date 7 october 2009
+ * @author HANTZ Marlène
+ * @author HENRY Nicolas
+ * 
+ * @date 6 december 2009
  */
 public class NotificationServiceSBTest {
     private static Log logger = LogFactory.getLog(NotificationServiceSBTest.class);
