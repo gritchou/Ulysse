@@ -311,9 +311,11 @@ public class EventQueueServiceBean implements EventQueueService {
 
             String policyId = UUID.randomUUID().toString();
             pap.createPolicy(policyId, PAPServiceHelper.addRuleToPolicy(PAPServiceHelper.buildOwnerPolicy(policyId, caller, path), "", new String[] { "create",
-                    "read", "update" }));
+                    "read", "update","addRule" }));
             binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
             binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
+            
+            
 
         } catch (Exception e) {
             logger.error("unable to create an event queue", e);

@@ -74,7 +74,7 @@ public class NotificationServiceSBTest {
             logger.error(e);
         }
 
-        UsernamePasswordHandler uph = new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS);
+        UsernamePasswordHandler uph = new UsernamePasswordHandler("kermit", "thefrog");
         loginContext = new LoginContext("qualipso", uph);
         loginContext.login();
 
@@ -100,7 +100,7 @@ public class NotificationServiceSBTest {
 
         assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.say-hello,/m2log.*, pathQueue1)", notification.list().length == 1);
 
-        notification.register("/profiles/.*", "greeting.name.read", "/m2log.*", pathQueue2);
+        notification.register("/profiles/kermit", "greeting.name.read", "/m2log.*", pathQueue2);
         Rule[] t = notification.list();
         Rule r = t[0];
 
@@ -113,7 +113,7 @@ public class NotificationServiceSBTest {
     public void tearDown() throws Exception {
 
         notification.unregister("/profiles/.*", "greeting.name.say-hello", "/m2log.*", pathQueue1);
-        notification.unregister("/profiles/.*", "greeting.name.read", "/m2log.*", pathQueue2);
+        notification.unregister("/profiles/kermit", "greeting.name.read", "/m2log.*", pathQueue2);
 
         eqs.removeQueue(pathQueue1);
         eqs.removeQueue(pathQueue2);

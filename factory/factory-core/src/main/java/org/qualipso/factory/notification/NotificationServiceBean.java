@@ -53,10 +53,11 @@ import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.notification.entity.Rule;
-import org.qualipso.factory.security.auth.AuthenticationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
+import org.qualipso.factory.security.pep.PEPServiceException;
 
 /**
  * @author Nicolas HENRY
@@ -76,12 +77,13 @@ public class NotificationServiceBean implements NotificationService {
 
     private static Log logger = LogFactory.getLog(NotificationServiceBean.class);
 
+    private BindingService binding;
     private PEPService pep;
     private PAPService pap;
-    private BindingService binding;
-    private AuthenticationService authentication;
     private SessionContext ctx;
     private EntityManager em;
+    private MembershipService membership;
+    
     @Resource(mappedName = "ConnectionFactory")
     private static ConnectionFactory connectionFactory;
     @Resource(mappedName = "queue/EventMessageQueue")
@@ -113,17 +115,14 @@ public class NotificationServiceBean implements NotificationService {
         this.binding = binding;
     }
 
+    /**
+     * 
+     *cette methode retourne le Binding Service
+     * 
+     * @return le Binding Service
+     */
     public BindingService getBindingService() {
         return this.binding;
-    }
-
-    @EJB
-    public void setPEPService(PEPService pep) {
-        this.pep = pep;
-    }
-
-    public PEPService getPEPService() {
-        return this.pep;
     }
 
     @EJB
@@ -134,14 +133,15 @@ public class NotificationServiceBean implements NotificationService {
     public PAPService getPAPService() {
         return this.pap;
     }
-
+    
+    
     @EJB
-    public void setAuthenticationService(AuthenticationService authentication) {
-        this.authentication = authentication;
+    public void setPEPService(PEPService pep) {
+        this.pep = pep;
     }
 
-    public AuthenticationService getAuthenticationService() {
-        return this.authentication;
+    public PEPService getPEPService() {
+        return this.pep;
     }
 
     public static void setConnectionFactory(ConnectionFactory c) {
@@ -174,10 +174,38 @@ public class NotificationServiceBean implements NotificationService {
     public String getServiceName() {
         return SERVICE_NAME;
     }
+    @EJB
+    public void setMembershipService(MembershipService membership) {
+        this.membership = membership;
+    }
+
+    /**
+     * cette methode retourne le Membership Service
+     * 
+     * @return le Membership Service
+     */
+    public MembershipService getMembershipService() {
+        return this.membership;
+    }
 
     @Override
     public void register(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException {
         logger.info("register(...) called");
+        
+        String caller="";
+        try {
+          //  caller = membership.getProfilePathForConnectedIdentifier();
+            pep.checkSecurity(caller, queuePath, "addRule");
+       /*} catch (MembershipServiceException e) {
+            e.printStackTrace();
+            throw new NotificationServiceException("unable to know the connected profil");*/
+        } catch (PEPServiceException e) {
+            e.printStackTrace();
+            throw new NotificationServiceException("unable to add rule on the queue "+queuePath);
+        }
+        
+        
+        
         if ((subjectre == null) || (objectre == null) || (targetre == null) || (queuePath == null))
             throw new NotificationServiceException("Incorrect arg, should not be null");
         Rule[] tmp = list();
