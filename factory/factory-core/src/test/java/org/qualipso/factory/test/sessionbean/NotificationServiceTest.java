@@ -341,16 +341,16 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         mockery.assertIsSatisfied();
     }
 
-    public void testlistBySubject() throws NotificationServiceException {
-        logger.debug("testing testlistBySubject(...)");
+    public void testlistBySubjectRE() throws NotificationServiceException {
+        logger.debug("testing testlistBySubjectRE(...)");
 
         NotificationService service = getBeanToTest();
-        Rule[] tab = service.listBySubject("subjectre");
+        Rule[] tab = service.listBySubjectRE("subjectre");
         assertEquals(tab.length, 0);
 
         service.register("subjectre", "objectre", "targetre", "/li");
 
-        tab = service.listBySubject("subjectre");
+        tab = service.listBySubjectRE("subjectre");
         assertEquals(tab.length, 1);
         assertEquals(tab[0].getSubjectre(), "subjectre");
         assertEquals(tab[0].getObjectre(), "objectre");
@@ -359,21 +359,21 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
 
         service.unregister("subjectre", "objectre", "targetre", "/li");
 
-        tab = service.listBySubject("subjectre");
+        tab = service.listBySubjectRE("subjectre");
         assertEquals(tab.length, 0);
         mockery.assertIsSatisfied();
     }
 
-    public void testlistByObject() throws NotificationServiceException {
-        logger.debug("testing testlistByObject(...)");
+    public void testlistByObjectRE() throws NotificationServiceException {
+        logger.debug("testing testlistByObjectRE(...)");
 
         NotificationService service = getBeanToTest();
-        Rule[] tab = service.listByObject("objectre");
+        Rule[] tab = service.listByObjectRE("objectre");
         assertEquals(tab.length, 0);
 
         service.register("subjectre", "objectre", "targetre", "/li");
 
-        tab = service.listByObject("objectre");
+        tab = service.listByObjectRE("objectre");
         assertEquals(tab.length, 1);
         assertEquals(tab[0].getSubjectre(), "subjectre");
         assertEquals(tab[0].getObjectre(), "objectre");
@@ -382,21 +382,21 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
 
         service.unregister("subjectre", "objectre", "targetre", "/li");
 
-        tab = service.listByObject("objectre");
+        tab = service.listByObjectRE("objectre");
         assertEquals(tab.length, 0);
         mockery.assertIsSatisfied();
     }
 
-    public void testlistByTarget() throws NotificationServiceException {
-        logger.debug("testing testlistByTarget(...)");
+    public void testlistByTargetRE() throws NotificationServiceException {
+        logger.debug("testing testlistByTargetRE(...)");
 
         NotificationService service = getBeanToTest();
-        Rule[] tab = service.listByTarget("targetre");
+        Rule[] tab = service.listByTargetRE("targetre");
         assertEquals(tab.length, 0);
 
         service.register("subjectre", "objectre", "targetre", "/li");
 
-        tab = service.listByTarget("targetre");
+        tab = service.listByTargetRE("targetre");
         assertEquals(tab.length, 1);
         assertEquals(tab[0].getSubjectre(), "subjectre");
         assertEquals(tab[0].getObjectre(), "objectre");
@@ -405,7 +405,7 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
 
         service.unregister("subjectre", "objectre", "targetre", "/li");
 
-        tab = service.listByTarget("targetre");
+        tab = service.listByTargetRE("targetre");
         assertEquals(tab.length, 0);
         mockery.assertIsSatisfied();
     }

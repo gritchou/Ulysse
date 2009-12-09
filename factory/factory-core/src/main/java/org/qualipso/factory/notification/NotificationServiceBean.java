@@ -312,7 +312,7 @@ public class NotificationServiceBean implements NotificationService {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Rule[] listBySubject(String subject) throws NotificationServiceException {
+    public Rule[] listBySubjectRE(String subject) throws NotificationServiceException {
         logger.debug("listBySubject(String subject) called");
         if (subject == null)
             throw new NotificationServiceException("Incorrect arg, subject should not be null");
@@ -327,14 +327,14 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     @Override
-    public Rule[] listBySubjectRE(String subjectre) throws NotificationServiceException {
+    public Rule[] listBySubject(String subjectre) throws NotificationServiceException {
         // TODO or to remove
         return null;
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public Rule[] listByObject(String object) throws NotificationServiceException {
+    public Rule[] listByObjectRE(String object) throws NotificationServiceException {
         logger.debug("listByObject(String object) called");
         if (object == null)
             throw new NotificationServiceException("Incorrect arg, object should not be null");
@@ -349,7 +349,7 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     @Override
-    public Rule[] listByObjectRE(String objectre) throws NotificationServiceException {
+    public Rule[] listByObject(String objectre) throws NotificationServiceException {
         logger.debug("listByObjectRE(String objectre) called");
         // TODO or to remove
         return null;
@@ -357,7 +357,7 @@ public class NotificationServiceBean implements NotificationService {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Rule[] listByTarget(String target) throws NotificationServiceException {
+    public Rule[] listByTargetRE(String target) throws NotificationServiceException {
         logger.debug("listByTarget(String target) called");
         if (target == null)
             throw new NotificationServiceException("Incorrect arg, target should not be null");
@@ -372,7 +372,7 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     @Override
-    public Rule[] listByTargetRE(String targetre) throws NotificationServiceException {
+    public Rule[] listByTarget(String targetre) throws NotificationServiceException {
         // TODO or to remove
         return null;
     }
