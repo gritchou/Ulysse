@@ -29,9 +29,10 @@ import org.qualipso.factory.security.pep.PEPServiceException;
 import com.bm.testsuite.BaseSessionBeanFixture;
 
 /**
- * 
- * @author yiqing LI
+ * @author Yiqing LI
  * @author Marlène HANTZ
+ * @author Nicolas HENRY
+ * @author Philippe SCHMUCKER
  */
 public class NotificationServiceTest extends BaseSessionBeanFixture<NotificationServiceBean> {
     private static Log logger = LogFactory.getLog(NotificationServiceTest.class);
@@ -299,12 +300,12 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
     public void testList2() throws NotificationServiceException {
         logger.debug("testing testList2(...)");
         NotificationService service = getBeanToTest();
-        Rule[] tab = service.listMatchingBy("subjectre", "objectre", "targetre", "queuePath");
+        Rule[] tab = service.listByRE("subjectre", "objectre", "targetre", "queuePath");
         assertEquals(tab.length, 0);
 
         service.register("subjectre", "objectre", "targetre", "queuePath");
 
-        tab = service.listMatchingBy("subjectre", "objectre", "targetre", "queuePath");
+        tab = service.listByRE("subjectre", "objectre", "targetre", "queuePath");
         assertEquals(tab.length, 1);
         assertEquals(tab[0].getSubjectre(), "subjectre");
         assertEquals(tab[0].getObjectre(), "objectre");
@@ -313,7 +314,7 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
 
         service.unregister("subjectre", "objectre", "targetre", "queuePath");
 
-        tab = service.listMatchingBy("subjectre", "objectre", "targetre", "queuePath");
+        tab = service.listByRE("subjectre", "objectre", "targetre", "queuePath");
         assertEquals(tab.length, 0);
         mockery.assertIsSatisfied();
     }

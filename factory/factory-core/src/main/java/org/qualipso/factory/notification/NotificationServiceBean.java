@@ -22,6 +22,7 @@
  */
 package org.qualipso.factory.notification;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -63,6 +64,7 @@ import org.qualipso.factory.security.pep.PEPService;
  * @author Marlène HANTZ
  * @author Jean-François GRAND
  * @author Yiqing LI
+ * @author Philippe SCHMUCKER
  */
 @Stateless(name = NotificationService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + NotificationService.SERVICE_NAME)
 @WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE
@@ -234,48 +236,30 @@ public class NotificationServiceBean implements NotificationService {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Rule[] list() throws NotificationServiceException {
         logger.debug("list() called");
         Query q = em.createQuery("select r from Rule r");
-        List<Rule> l = q.getResultList();
+        List<?> l = q.getResultList();
         Rule[] tab = new Rule[l.size()];
         tab = l.toArray(tab);
         return tab;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Rule[] listMatchingBy(String subject, String object, String target, String queue) throws NotificationServiceException {
+    public Rule[] listByRE(String subjectre, String objectre, String targetre, String queue) throws NotificationServiceException {
+        logger.debug("listByRE(...) called");
 
-        logger.debug("list(String subject, String object, String target, String queue) called");
-
-        if ((subject == null) && (object == null) && (target == null) && (queue == null))
+        if ((subjectre == null) && (objectre == null) && (targetre == null) && (queue == null))
             throw new NotificationServiceException("Incorrect args, all args are null");
-        /*
-         * StringBuffer query = new StringBuffer("SELECT r FROM Rule r WHERE ");
-         * 
-         * List<String> argsTitle = new ArrayList<String>();
-         * argsTitle.add("subjectre"); argsTitle.add("objectre");
-         * argsTitle.add("targetre"); argsTitle.add("queuePath");
-         * 
-         * List<String> args = new ArrayList<String>(); args.add(subject);
-         * args.add(object); args.add(target); args.add(queue);
-         * 
-         * boolean first = true;
-         * 
-         * for (String arg : args) { if (arg != null) if (!first)
-         * query.append("AND "); query.append("r." +
-         * argsTitle.get(args.indexOf(arg)) + " = " + arg + " "); first = false;
-         * } Query q = em.createQuery(query.toString());
-         */
-        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre=:subjectre AND r.objectre=:objectre AND r.targetre=:targetre AND r.queuePath =:queue");
-        q.setParameter("subjectre", subject);
-        q.setParameter("objectre", object);
-        q.setParameter("targetre", target);
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE 0=0 " + (subjectre != null ? "AND r.subjectre=:subjectre" : "") + " "
+                + (objectre != null ? "AND r.objectre=:objectre" : "") + " " + (targetre != null ? "AND r.targetre=:targetre" : "") + " "
+                + (queue != null ? "AND r.queuePath =:queue" : ""));
+        q.setParameter("subjectre", subjectre);
+        q.setParameter("objectre", objectre);
+        q.setParameter("targetre", targetre);
         q.setParameter("queue", queue);
-        List<Rule> l = q.getResultList();
+        List<?> l = q.getResultList();
         Rule[] tab = new Rule[l.size()];
         tab = l.toArray(tab);
         return tab;
@@ -283,22 +267,37 @@ public class NotificationServiceBean implements NotificationService {
     }
 
     @Override
-    public Rule[] listRE(String subjectre, String objectre, String targetre, String queuere) throws NotificationServiceException {
-        // TODO or to remove
-        return null;
+    public Rule[] listBy(String subject, String object, String target, String queuere) throws NotificationServiceException {
+        logger.debug("listRE(...) called");
+        if (queuere == null)
+            throw new NotificationServiceException("Incorrect arg, queuere should not be null");
+        Query q = em.createQuery("SELECT r FROM Rule r");
+        List<?> l = q.getResultList();
+        List<Rule> lres = new ArrayList<Rule>();
+        for (Object r : l) {
+            Rule rule = (Rule) r;
+            boolean b1, b2, b3, b4;
+            b1 = subject == null || rule.matchBySubjectRE(subject);
+            b2 = object == null || rule.matchByObjectRE(object);
+            b3 = target == null || rule.matchByTargetRE(target);
+            b4 = rule.matchByQueue(queuere);
+            if (b1 && b2 && b3 && b4) {
+                lres.add(rule);
+            }
+        }
+        Rule[] tab = new Rule[lres.size()];
+        tab = lres.toArray(tab);
+        return tab;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Rule[] listByQueue(String queue) throws NotificationServiceException {
         logger.debug("listByQueue(String queue) called");
         if (queue == null)
             throw new NotificationServiceException("Incorrect arg, targetre should not be null");
-        // Query q = em.createQuery("SELECT r FROM Rule r WHERE r.queuePath =" +
-        // queue);
         Query q = em.createQuery("SELECT r FROM Rule r WHERE r.queuePath =:queue");
         q.setParameter("queue", queue);
-        List<Rule> l = q.getResultList();
+        List<?> l = q.getResultList();
         Rule[] tab = new Rule[l.size()];
         tab = l.toArray(tab);
         return tab;
@@ -306,74 +305,116 @@ public class NotificationServiceBean implements NotificationService {
 
     @Override
     public Rule[] listByQueueRE(String queuere) throws NotificationServiceException {
-        // TODO or to remove
-        return null;
+        logger.debug("listByQueueRE(String queuere) called");
+        if (queuere == null)
+            throw new NotificationServiceException("Incorrect arg, queuere should not be null");
+        Query q = em.createQuery("SELECT r FROM Rule r");
+        List<?> l = q.getResultList();
+        List<Rule> lres = new ArrayList<Rule>();
+        for (Object r : l) {
+            Rule rule = (Rule) r;
+            if (rule.matchByQueue(queuere)) {
+                lres.add(rule);
+            }
+        }
+        Rule[] tab = new Rule[lres.size()];
+        tab = lres.toArray(tab);
+        return tab;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Rule[] listBySubjectRE(String subject) throws NotificationServiceException {
+    public Rule[] listBySubjectRE(String subjectre) throws NotificationServiceException {
+        logger.debug("listBySubjectRE(String subjectre) called");
+        if (subjectre == null)
+            throw new NotificationServiceException("Incorrect arg, subject should not be null");
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre =:subject");
+        q.setParameter("subject", subjectre);
+        List<?> l = q.getResultList();
+        Rule[] tab = new Rule[l.size()];
+        tab = l.toArray(tab);
+        return tab;
+    }
+
+    @Override
+    public Rule[] listBySubject(String subject) throws NotificationServiceException {
         logger.debug("listBySubject(String subject) called");
         if (subject == null)
             throw new NotificationServiceException("Incorrect arg, subject should not be null");
-        // Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre = "
-        // + subject);
-        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre =:subject");
-        q.setParameter("subject", subject);
-        List<Rule> l = q.getResultList();
+        Query q = em.createQuery("SELECT r FROM Rule r");
+        List<?> l = q.getResultList();
+        List<Rule> lres = new ArrayList<Rule>();
+        for (Object r : l) {
+            Rule rule = (Rule) r;
+            if (rule.matchBySubjectRE(subject)) {
+                lres.add(rule);
+            }
+        }
+        Rule[] tab = new Rule[lres.size()];
+        tab = lres.toArray(tab);
+        return tab;
+    }
+
+    @Override
+    public Rule[] listByObjectRE(String objectre) throws NotificationServiceException {
+        logger.debug("listByObjectRE(String objectre) called");
+        if (objectre == null)
+            throw new NotificationServiceException("Incorrect arg, object should not be null");
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.objectre =:object");
+        q.setParameter("object", objectre);
+        List<?> l = q.getResultList();
         Rule[] tab = new Rule[l.size()];
         tab = l.toArray(tab);
         return tab;
     }
 
     @Override
-    public Rule[] listBySubject(String subjectre) throws NotificationServiceException {
-        // TODO or to remove
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Rule[] listByObjectRE(String object) throws NotificationServiceException {
+    public Rule[] listByObject(String object) throws NotificationServiceException {
         logger.debug("listByObject(String object) called");
         if (object == null)
             throw new NotificationServiceException("Incorrect arg, object should not be null");
-        // Query q = em.createQuery("SELECT r FROM Rule r WHERE r.objectre = " +
-        // object);
-        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.objectre =:object");
-        q.setParameter("object", object);
-        List<Rule> l = q.getResultList();
+        Query q = em.createQuery("SELECT r FROM Rule r");
+        List<?> l = q.getResultList();
+        List<Rule> lres = new ArrayList<Rule>();
+        for (Object r : l) {
+            Rule rule = (Rule) r;
+            if (rule.matchByObjectRE(object)) {
+                lres.add(rule);
+            }
+        }
+        Rule[] tab = new Rule[lres.size()];
+        tab = lres.toArray(tab);
+        return tab;
+    }
+
+    @Override
+    public Rule[] listByTargetRE(String targetre) throws NotificationServiceException {
+        logger.debug("listByTargetRE(String targetre) called");
+        if (targetre == null)
+            throw new NotificationServiceException("Incorrect arg, target should not be null");
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.targetre =:target");
+        q.setParameter("target", targetre);
+        List<?> l = q.getResultList();
         Rule[] tab = new Rule[l.size()];
         tab = l.toArray(tab);
         return tab;
     }
 
     @Override
-    public Rule[] listByObject(String objectre) throws NotificationServiceException {
-        logger.debug("listByObjectRE(String objectre) called");
-        // TODO or to remove
-        return null;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Rule[] listByTargetRE(String target) throws NotificationServiceException {
+    public Rule[] listByTarget(String target) throws NotificationServiceException {
         logger.debug("listByTarget(String target) called");
         if (target == null)
             throw new NotificationServiceException("Incorrect arg, target should not be null");
-        // Query q = em.createQuery("SELECT r FROM Rule r WHERE r.targetre = " +
-        // target);
-        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.targetre =:target");
-        q.setParameter("target", target);
-        List<Rule> l = q.getResultList();
-        Rule[] tab = new Rule[l.size()];
-        tab = l.toArray(tab);
+        Query q = em.createQuery("SELECT r FROM Rule r");
+        List<?> l = q.getResultList();
+        List<Rule> lres = new ArrayList<Rule>();
+        for (Object r : l) {
+            Rule rule = (Rule) r;
+            if (rule.matchByTargetRE(target)) {
+                lres.add(rule);
+            }
+        }
+        Rule[] tab = new Rule[lres.size()];
+        tab = lres.toArray(tab);
         return tab;
-    }
-
-    @Override
-    public Rule[] listByTarget(String targetre) throws NotificationServiceException {
-        // TODO or to remove
-        return null;
     }
 }
