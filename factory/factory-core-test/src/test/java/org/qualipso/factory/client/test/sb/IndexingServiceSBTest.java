@@ -378,6 +378,7 @@ public class IndexingServiceSBTest{
 		assertThat("The expected result should be the resource BUG_FORGE",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));	
         
         greeting.createName(profilePath+"forge","forge");
+		Thread.sleep(waitingTime);
 	}
 	
 }

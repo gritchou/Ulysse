@@ -114,18 +114,13 @@ public class IndexingMessageBean implements MessageListener{
 		}
 	}
 
-   	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
 	private IndexableDocument toIndexableDocument(FactoryService service, String path) throws IndexingServiceException{
 		try{
 
         IndexableService is = (IndexableService) service ;     
-		IndexableDocument doc = null;
-            while(doc == null){
-             Thread.sleep(waitingTime);
-             try{
-                doc = is.getIndexableDocument(path);
-             }catch(Exception e){}
-            }
+        Thread.sleep(10);
+        IndexableDocument doc = is.getIndexableDocument(path);
 
 		return doc;
 
