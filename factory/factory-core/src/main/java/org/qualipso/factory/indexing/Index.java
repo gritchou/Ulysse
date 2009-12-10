@@ -168,13 +168,12 @@ public class Index implements IndexI {
 
 				listRs.add(sr);
 
-			
+			}
 			searcher.close();
 			reader.close();
-		
+    		return listRs;
 			}
-			return listRs;
-		}
+			
 		} catch (Exception e) {
 			logger.error("unable search in index using " + queryString, e);
 			throw new IndexingServiceException("Can't search in index using '" + queryString+ "'\n", e);
