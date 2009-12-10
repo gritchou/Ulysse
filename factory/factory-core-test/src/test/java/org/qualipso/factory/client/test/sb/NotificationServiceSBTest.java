@@ -25,13 +25,12 @@ import org.qualipso.factory.client.test.AllTests;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.eventqueue.entity.Rule;
 import org.qualipso.factory.greeting.GreetingService;
 import org.qualipso.factory.greeting.GreetingServiceException;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
-import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.notification.NotificationServiceException;
-import org.qualipso.factory.notification.entity.Rule;
 
 /**
  * @author HANTZ Marlène
@@ -42,7 +41,6 @@ import org.qualipso.factory.notification.entity.Rule;
 public class NotificationServiceSBTest {
     private static Log logger = LogFactory.getLog(NotificationServiceSBTest.class);
     private static Context context;
-    private static NotificationService notification;
     private static GreetingService greeting;
     private static EventQueueService eqs;
     private static LoginContext loginContext;
@@ -78,7 +76,6 @@ public class NotificationServiceSBTest {
         loginContext = new LoginContext("qualipso", uph);
         loginContext.login();
 
-        notification = (NotificationService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + NotificationService.SERVICE_NAME);
         eqs = (EventQueueService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + EventQueueService.SERVICE_NAME);
         greeting = (GreetingService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + GreetingService.SERVICE_NAME);
         membership = (MembershipService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + MembershipService.SERVICE_NAME);
@@ -96,24 +93,24 @@ public class NotificationServiceSBTest {
         eqs.createEventQueue(pathQueue1);
         eqs.createEventQueue(pathQueue2);
 
-        notification.register("/profiles/.*", "greeting.name.say-hello", "/m2log.*", pathQueue1);
+        eqs.register("/profiles/.*", "greeting.name.say-hello", "/m2log.*", pathQueue1);
 
-        assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.say-hello,/m2log.*, pathQueue1)", notification.list().length == 1);
+        assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.say-hello,/m2log.*, pathQueue1)", eqs.list().length == 1);
 
-        notification.register("/profiles/kermit", "greeting.name.read", "/m2log.*", pathQueue2);
-        Rule[] t = notification.list();
+        eqs.register("/profiles/kermit", "greeting.name.read", "/m2log.*", pathQueue2);
+        Rule[] t = eqs.list();
         Rule r = t[0];
 
         assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.read,/m2log.*, pathQueue2) " + r.getQueuePath() + " "
-                + r.getObjectre() + " " + r.getSubjectre() + " " + r.getTargetre() + " " + notification.list().length, notification.list().length == 2);
+                + r.getObjectre() + " " + r.getSubjectre() + " " + r.getTargetre() + " " + eqs.list().length, eqs.list().length == 2);
         greeting.createName(pathResource, valueResource);
     }
 
     @After
     public void tearDown() throws Exception {
 
-        notification.unregister("/profiles/.*", "greeting.name.say-hello", "/m2log.*", pathQueue1);
-        notification.unregister("/profiles/kermit", "greeting.name.read", "/m2log.*", pathQueue2);
+        eqs.unregister("/profiles/.*", "greeting.name.say-hello", "/m2log.*", pathQueue1);
+        eqs.unregister("/profiles/kermit", "greeting.name.read", "/m2log.*", pathQueue2);
 
         eqs.removeQueue(pathQueue1);
         eqs.removeQueue(pathQueue2);

@@ -17,13 +17,13 @@ import org.qualipso.factory.binding.entity.Node;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.eventqueue.entity.Rule;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.membership.entity.Profile;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.notification.NotificationServiceBean;
 import org.qualipso.factory.notification.NotificationServiceException;
-import org.qualipso.factory.notification.entity.Rule;
 import org.qualipso.factory.security.pap.PAPServiceException;
 import org.qualipso.factory.security.pep.PEPService;
 import org.qualipso.factory.security.pep.PEPServiceException;
@@ -79,8 +79,6 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         eventqueueservice = mockery.mock(EventQueueService.class);
         // getBeanToTest().setEntityManager(em);
 
-   //     getBeanToTest().setMembershipService(membership);
-        getBeanToTest().setPEPService(pep);
         NotificationServiceBean.setConnectionFactory(connectionfactory);
         NotificationServiceBean.setQueue(queue);
     }

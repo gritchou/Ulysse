@@ -26,6 +26,7 @@ package org.qualipso.factory.eventqueue;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Resource;
@@ -38,6 +39,7 @@ import javax.jws.soap.SOAPBinding;
 import javax.jws.soap.SOAPBinding.Style;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -54,11 +56,14 @@ import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.eventqueue.entity.EventQueue;
+import org.qualipso.factory.eventqueue.entity.Rule;
 import org.qualipso.factory.membership.MembershipService;
+import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
+import org.qualipso.factory.security.pep.PEPServiceException;
 
 /**
  * Implementation of the ClockService. Provides a time service for the factory.
@@ -311,7 +316,7 @@ public class EventQueueServiceBean implements EventQueueService {
 
             String policyId = UUID.randomUUID().toString();
             pap.createPolicy(policyId, PAPServiceHelper.addRuleToPolicy(PAPServiceHelper.buildOwnerPolicy(policyId, caller, path), "", new String[] { "create",
-                    "read", "update","addRule" }));
+                    "read", "update" }));
             binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
             binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
             
@@ -1108,6 +1113,201 @@ public class EventQueueServiceBean implements EventQueueService {
     public void generateXML(String path) {
         // TODO Auto-generated method stub
 
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Rule[] list() throws EventQueueServiceException {
+        logger.debug("list() called");
+        Query q = em.createQuery("select r from Rule r");
+        List<Rule> l = q.getResultList();
+        Rule[] tab = new Rule[l.size()];
+        tab = l.toArray(tab);
+        return tab;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Rule[] listByObject(String object) throws EventQueueServiceException {
+        logger.debug("listByObject(String object) called");
+        if (object == null)
+            throw new EventQueueServiceException("Incorrect arg, object should not be null");
+        // Query q = em.createQuery("SELECT r FROM Rule r WHERE r.objectre = " +
+        // object);
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.objectre =:object");
+        q.setParameter("object", object);
+        List<Rule> l = q.getResultList();
+        Rule[] tab = new Rule[l.size()];
+        tab = l.toArray(tab);
+        return tab;
+    }
+
+    @Override
+    public Rule[] listByObjectRE(String objectre) throws EventQueueServiceException {
+        logger.debug("listByObjectRE(String objectre) called");
+        // TODO or to remove
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Rule[] listByQueue(String queue) throws EventQueueServiceException {
+        logger.debug("listByQueue(String queue) called");
+        if (queue == null)
+            throw new EventQueueServiceException("Incorrect arg, targetre should not be null");
+        // Query q = em.createQuery("SELECT r FROM Rule r WHERE r.queuePath =" +
+        // queue);
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.queuePath =:queue");
+        q.setParameter("queue", queue);
+        List<Rule> l = q.getResultList();
+        Rule[] tab = new Rule[l.size()];
+        tab = l.toArray(tab);
+        return tab;
+    }
+
+    @Override
+    public Rule[] listByQueueRE(String queuere) throws EventQueueServiceException {
+        // TODO or to remove
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Rule[] listBySubject(String subject) throws EventQueueServiceException {
+        logger.debug("listBySubject(String subject) called");
+        if (subject == null)
+            throw new EventQueueServiceException("Incorrect arg, subject should not be null");
+        // Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre = "
+        // + subject);
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre =:subject");
+        q.setParameter("subject", subject);
+        List<Rule> l = q.getResultList();
+        Rule[] tab = new Rule[l.size()];
+        tab = l.toArray(tab);
+        return tab;
+    }
+
+    @Override
+    public Rule[] listBySubjectRE(String subjectre) throws EventQueueServiceException {
+        // TODO or to remove
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Rule[] listByTarget(String target) throws EventQueueServiceException {
+        logger.debug("listByTarget(String target) called");
+        if (target == null)
+            throw new EventQueueServiceException("Incorrect arg, target should not be null");
+        // Query q = em.createQuery("SELECT r FROM Rule r WHERE r.targetre = " +
+        // target);
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.targetre =:target");
+        q.setParameter("target", target);
+        List<Rule> l = q.getResultList();
+        Rule[] tab = new Rule[l.size()];
+        tab = l.toArray(tab);
+        return tab;
+    }
+
+    @Override
+    public Rule[] listByTargetRE(String targetre) throws EventQueueServiceException {
+        // TODO or to remove
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Rule[] listMatchingBy(String subject, String object, String target, String queue) throws EventQueueServiceException {
+    
+        logger.debug("list(String subject, String object, String target, String queue) called");
+    
+        if ((subject == null) && (object == null) && (target == null) && (queue == null))
+            throw new EventQueueServiceException("Incorrect args, all args are null");
+        /*
+         * StringBuffer query = new StringBuffer("SELECT r FROM Rule r WHERE ");
+         * 
+         * List<String> argsTitle = new ArrayList<String>();
+         * argsTitle.add("subjectre"); argsTitle.add("objectre");
+         * argsTitle.add("targetre"); argsTitle.add("queuePath");
+         * 
+         * List<String> args = new ArrayList<String>(); args.add(subject);
+         * args.add(object); args.add(target); args.add(queue);
+         * 
+         * boolean first = true;
+         * 
+         * for (String arg : args) { if (arg != null) if (!first)
+         * query.append("AND "); query.append("r." +
+         * argsTitle.get(args.indexOf(arg)) + " = " + arg + " "); first = false;
+         * } Query q = em.createQuery(query.toString());
+         */
+        Query q = em.createQuery("SELECT r FROM Rule r WHERE r.subjectre=:subjectre AND r.objectre=:objectre AND r.targetre=:targetre AND r.queuePath =:queue");
+        q.setParameter("subjectre", subject);
+        q.setParameter("objectre", object);
+        q.setParameter("targetre", target);
+        q.setParameter("queue", queue);
+        List<Rule> l = q.getResultList();
+        Rule[] tab = new Rule[l.size()];
+        tab = l.toArray(tab);
+        return tab;
+    
+    }
+
+    @Override
+    public Rule[] listRE(String subjectre, String objectre, String targetre, String queuere) throws EventQueueServiceException {
+        // TODO or to remove
+        return null;
+    }
+
+    @Override
+    public void register(String subjectre, String objectre, String targetre, String queuePath) throws EventQueueServiceException {
+        logger.info("register(...) called");
+        
+        String caller="";
+        try {
+            caller = membership.getProfilePathForConnectedIdentifier();
+            pep.checkSecurity(caller, queuePath, "update");
+       } catch (MembershipServiceException e) {
+            e.printStackTrace();
+            throw new EventQueueServiceException("unable to know the connected profil");
+        } catch (PEPServiceException e) {
+            e.printStackTrace();
+            throw new EventQueueServiceException("unable to add rule on the queue "+queuePath);
+        }
+        
+        
+        
+        if ((subjectre == null) || (objectre == null) || (targetre == null) || (queuePath == null))
+            throw new EventQueueServiceException("Incorrect arg, should not be null");
+        Rule[] tmp = list();
+        if (tmp.length != 0) {
+            for (int i = 0; i < tmp.length; i++) {
+                if ((tmp[i].getObjectre().equals(objectre)) && (tmp[i].getQueuePath().equals(queuePath)) && (tmp[i].getSubjectre().equals(subjectre))
+                        && (tmp[i].getTargetre().equals(targetre)))
+                    throw new EventQueueServiceException("Resource already exists in base");
+            }
+        }
+        Rule r = new Rule();
+        r.setSubjectre(subjectre);
+        r.setObjectre(objectre);
+        r.setTargetre(targetre);
+        r.setQueuePath(queuePath);
+        r.setId(UUID.randomUUID().toString());
+        em.persist(r);
+    }
+
+    @Override
+    public void unregister(String subjectre, String objectre, String targetre, String queuePath) throws EventQueueServiceException {
+        if ((subjectre == null) || (objectre == null) || (targetre == null) || (queuePath == null))
+            throw new EventQueueServiceException("Incorrect arg, should not be null");
+        Query q = em.createQuery("delete from Rule where subjectre=:subjectre and objectre=:objectre and targetre=:targetre and queuePath=:queuePath");
+        q.setParameter("subjectre", subjectre);
+        q.setParameter("objectre", objectre);
+        q.setParameter("targetre", targetre);
+        q.setParameter("queuePath", queuePath);
+        int n = q.executeUpdate();
+        if (n != 1) {
+            logger.warn("can't unregister " + subjectre + "/" + objectre + "/" + queuePath);
+        }
     }
 
 }
