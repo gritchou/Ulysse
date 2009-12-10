@@ -123,10 +123,10 @@ Date 20 May 2009
 			<id>radis.loria.fr</id>
 			<url>http://radis.loria.fr/maven2/repo/</url>
 			<releases>
-				<enabled>false</enabled>
+				<enabled>true</enabled>
 			</releases>
 			<snapshots>
-				<enabled>false</enabled>
+				<enabled>true</enabled>
 			</snapshots>
 		</repository>
 	</repositories>
@@ -135,10 +135,10 @@ Date 20 May 2009
 			<id>radis.loria.fr</id>
 			<url>http://radis.loria.fr/maven2/repo/</url>
 			<releases>
-				<enabled>false</enabled>
+				<enabled>true</enabled>
 			</releases>
 			<snapshots>
-				<enabled>false</enabled>
+				<enabled>true</enabled>
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
