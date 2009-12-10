@@ -130,7 +130,7 @@ public interface NotificationService extends FactoryService {
      * 
      * Lists the registered rules.
      * 
-     * @return a tab of the rules registered in the Notification Service
+     * @return an array of the rules registered in the Notification Service
      * @throws NotificationServiceException
      */
     @WebMethod
@@ -142,30 +142,30 @@ public interface NotificationService extends FactoryService {
      * arg to skip it. Ex:list("toto",null,null,"/p1/q1") will return a list of
      * the rules registered by toto on /p1/q1
      * 
-     * @return a tab of the rules registered matching the given args
+     * @return an array of rules registered matching the given args
      * @throws NotificationServiceException
      */
     @WebMethod
-    public Rule[] listMatchingBy(String subject, String object, String target, String queue) throws NotificationServiceException;
+    public Rule[] listByRE(String subject, String object, String target, String queue) throws NotificationServiceException;
 
     /**
      * 
-     * Lists the registered rules matching the regular expressions specified.
+     * Lists the registered rules equaling the regular expressions specified.
      * Use null instead of arg to skip it. Ex:list("toto",null,null,"/p1/q1")
-     * will return a list of the rules registered by toto on /p1/q1
+     * will return a list of the rules equaling toto subjectre on /p1/q1 queue
      * 
-     * @return a tab of the rules registered matching the specified regular
+     * @return an array of rules registered matching the specified regular
      *         expressions
      * @throws NotificationServiceException
      */
     @WebMethod
-    public Rule[] listRE(String subjectre, String objectre, String targetre, String queuere) throws NotificationServiceException;
+    public Rule[] listBy(String subjectre, String objectre, String targetre, String queuere) throws NotificationServiceException;
 
     /**
      * 
-     * Lists the rules registered to the eventqueue queue.
+     * Lists the rules registered to the eventqueue.
      * 
-     * @return a tab of the rules registered to queue.
+     * @return an array of rules registered to queue.
      * @throws NotificationServiceException
      */
     @WebMethod
@@ -173,10 +173,10 @@ public interface NotificationService extends FactoryService {
 
     /**
      * 
-     * Lists the rules registered to the eventqueues matching the regular
+     * Lists the rules registered to the eventqueues equaling the regular
      * expression queuere.
      * 
-     * @return a tab of the rules registered to the queues matching the regular
+     * @return an array of rules registered to the queues equaling the regular
      *         expression queuere.
      * @throws NotificationServiceException
      */
@@ -185,9 +185,9 @@ public interface NotificationService extends FactoryService {
 
     /**
      * 
-     * Lists the rules registered by subject.
+     * Lists the rules matching the subject.
      * 
-     * @return a tab of the rules registered by subject
+     * @return an array of rules matching the subject.
      * @throws NotificationServiceException
      */
     @WebMethod
@@ -195,10 +195,10 @@ public interface NotificationService extends FactoryService {
 
     /**
      * 
-     * Lists the rules registered by subjects matching the regular expression
+     * Lists the rules registered by subjects equaling the regular expression
      * subjectre.
      * 
-     * @return a tab of the rules registered by subjects matching the regular
+     * @return an array of rules registered by subjects equaling the regular
      *         expression subjectre
      * @throws NotificationServiceException
      */
@@ -207,9 +207,9 @@ public interface NotificationService extends FactoryService {
 
     /**
      * 
-     * Lists the registered rules of type object.
+     * Lists the registered rules matching the object.
      * 
-     * @return a tab of the rules registered of type object
+     * @return an array of rules matching the object
      * @throws NotificationServiceException
      */
     @WebMethod
@@ -217,10 +217,10 @@ public interface NotificationService extends FactoryService {
 
     /**
      * 
-     * Lists the registered rules of types matching the regular expression
+     * Lists the registered rules of types equaling the regular expression
      * objectre.
      * 
-     * @return a tab of the rules registered of types matching the regular
+     * @return an array of rules registered of types equaling the regular
      *         expression objectre
      * @throws NotificationServiceException
      */
@@ -229,9 +229,9 @@ public interface NotificationService extends FactoryService {
 
     /**
      * 
-     * Lists the rules registered on target.
+     * Lists the rules matching the target.
      * 
-     * @return a tab of the rules registered on target
+     * @return an array of rules matching the target.
      * @throws NotificationServiceException
      */
     @WebMethod
@@ -239,10 +239,10 @@ public interface NotificationService extends FactoryService {
 
     /**
      * 
-     * Lists the rules registered on targets matching the regular expression
+     * Lists the rules registered on targets equaling the regular expression
      * targetre.
      * 
-     * @return a tab of the rules registered on the targets matching the regular
+     * @return an array of rules registered on targets equaling the regular
      *         expression targetre
      * @throws NotificationServiceException
      */
