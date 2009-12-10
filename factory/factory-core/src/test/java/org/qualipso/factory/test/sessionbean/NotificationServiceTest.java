@@ -59,20 +59,12 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         super.setUp();
         logger.debug("Session beans");
         mockery = new Mockery();
-        /*
-         * em = mockery.mock(EntityManager.class); query =
-         * mockery.mock(Query.class);
-         */
         connection = mockery.mock(Connection.class);
         connectionfactory = mockery.mock(ConnectionFactory.class);
         session = mockery.mock(Session.class);
         om = mockery.mock(ObjectMessage.class);
         mp = mockery.mock(MessageProducer.class);
-        /*
-         * queue = mockery.mock(Queue.class); list = mockery.mock(List.class);
-         */
         eventqueueservice = mockery.mock(EventQueueService.class);
-        // getBeanToTest().setEntityManager(em);
 
         NotificationServiceBean.setConnectionFactory(connectionfactory);
         NotificationServiceBean.setQueue(queue);
@@ -101,155 +93,44 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         mockery.assertIsSatisfied();
     }
 
-    // public void testRegister() throws NotificationServiceException {
-    // logger.debug("testing testRegister(...)");
-    // final Rule[] tab = new Rule[] {};
-    // final Vector<Object> params1 = new Vector<Object>();
-    // mockery.checking(new Expectations() {
-    // {
-    // oneOf(em).createQuery(with(any(String.class)));
-    // will(returnValue(query));
-    // oneOf(query).getResultList();
-    // will(returnValue(list));
-    // oneOf(list).size();
-    // oneOf(list).toArray(with(any(Rule[].class)));
-    // will(returnValue(tab));
-    // oneOf(em).persist(with(any(Rule.class)));
-    // will(saveParams(params1));
-    // }
-    // });
-    // NotificationService service = getBeanToTest();
-    // service.register("subjectre", "objectre", "targetre", "/li");
-    // assertEquals(((Rule) params1.get(0)).getSubjectre(), "subjectre");
-    // assertEquals(((Rule) params1.get(0)).getObjectre(), "objectre");
-    // assertEquals(((Rule) params1.get(0)).getTargetre(), "targetre");
-    // assertEquals(((Rule) params1.get(0)).getQueuePath(), "/li");
-    // mockery.assertIsSatisfied();
-    // }
-    //
-    // public void testRegister2() throws NotificationServiceException {
-    // logger.debug("testing testRegister2(...)");
-    // final Rule[] tab = new Rule[] {};
-    // try {
-    // NotificationService service = getBeanToTest();
-    // service.register(null, "objectre", "targetre", "/li");
-    // service.register("subjectre", null, "targetre", "/li");
-    // service.register("subjectre", "objectre", null, "/li");
-    // service.register("subjectre", "objectre", "targetre", null);
-    // } catch (NotificationServiceException e) {
-    //
-    // }
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    // oneOf(em).createQuery(with(any(String.class)));
-    // will(returnValue(query));
-    // oneOf(query).getResultList();
-    // will(returnValue(list));
-    // oneOf(list).size();
-    // oneOf(list).toArray(with(any(Rule[].class)));
-    // will(returnValue(tab));
-    // }
-    // });
-    // NotificationService service = getBeanToTest();
-    // Rule[] tab2 = service.list();
-    // assertEquals(tab2.length, 0);
-    // mockery.assertIsSatisfied();
-    // }
-    //
-    // public void testUnregister() throws NotificationServiceException {
-    // logger.debug("testing testunregister(...)");
-    // final Rule[] tab = new Rule[] {};
-    // mockery.checking(new Expectations() {
-    // {
-    // oneOf(em).createQuery(with(any(String.class)));
-    // will(returnValue(query));
-    // oneOf(query).getResultList();
-    // will(returnValue(list));
-    // oneOf(list).size();
-    // oneOf(list).toArray(with(any(Rule[].class)));
-    // will(returnValue(tab));
-    // oneOf(em).persist(with(any(Rule.class)));
-    //
-    // }
-    // });
-    // NotificationService service = getBeanToTest();
-    // service.register("subjectre", "objectre", "targetre", "/li");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    // oneOf(em).createQuery(with(any(String.class)));
-    // will(returnValue(query));
-    // oneOf(query).setParameter(with(equal("subjectre")),
-    // with(any(String.class)));
-    // oneOf(query).setParameter(with(equal("objectre")),
-    // with(any(String.class)));
-    // oneOf(query).setParameter(with(equal("targetre")),
-    // with(any(String.class)));
-    // oneOf(query).setParameter(with(equal("queuePath")),
-    // with(any(String.class)));
-    // oneOf(query).executeUpdate();
-    // will(returnValue(1));
-    // }
-    // });
-    // service.unregister("subjectre", "objectre", "targetre", "/li");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    // oneOf(em).createQuery(with(any(String.class)));
-    // will(returnValue(query));
-    // oneOf(query).getResultList();
-    // will(returnValue(list));
-    // oneOf(list).size();
-    // oneOf(list).toArray(with(any(Rule[].class)));
-    // will(returnValue(tab));
-    // }
-    // });
-    // Rule[] tab1 = service.list();
-    // assertEquals(tab1.length, 0);
-    // mockery.assertIsSatisfied();
-    // }
-    //
-    // public void testUnregister2() throws NotificationServiceException {
-    // final Rule[] tab = new Rule[] {};
-    // mockery.checking(new Expectations() {
-    // {
-    // oneOf(em).createQuery(with(any(String.class)));
-    // will(returnValue(query));
-    // oneOf(query).getResultList();
-    // will(returnValue(list));
-    // oneOf(list).size();
-    // oneOf(list).toArray(with(any(Rule[].class)));
-    // will(returnValue(tab));
-    // oneOf(em).persist(with(any(Rule.class)));
-    //
-    // }
-    // });
-    // NotificationService service = getBeanToTest();
-    // service.register("subjectre", "objectre", "targetre", "/li");
-    // try {
-    // service.unregister(null, "objectre", "targetre", "/li");
-    // service.unregister("subjectre", null, "targetre", "/li");
-    // service.unregister("subjectre", "objectre", null, "/li");
-    // service.unregister("subjectre", "objectre", "targetre", null);
-    // } catch (NotificationServiceException e) {
-    //
-    // }
-    // mockery.assertIsSatisfied();
-    // }
+    public void testRegisterNullParameter() throws NotificationServiceException {
+        logger.debug("testing testRegisterNullParameter(...)");
+        NotificationService service = getBeanToTest();
+        try {
+            service.register(null, "objectre", "targetre", "/li");
+            service.register("subjectre", null, "targetre", "/li");
+            service.register("subjectre", "objectre", null, "/li");
+            service.register("subjectre", "objectre", "targetre", null);
+        } catch (NotificationServiceException e) {
+
+        }
+        Rule[] tab2 = service.list();
+        assertEquals(tab2.length, 0);
+        mockery.assertIsSatisfied();
+    }
+
+    public void testUnregisterNullParameter() throws NotificationServiceException {
+        logger.debug("testing testUnregisterNullParameter(...)");
+        NotificationService service = getBeanToTest();
+        service.register("subjectre", "objectre", "targetre", "/li");
+        try {
+            service.unregister(null, "objectre", "targetre", "/li");
+            service.unregister("subjectre", null, "targetre", "/li");
+            service.unregister("subjectre", "objectre", null, "/li");
+            service.unregister("subjectre", "objectre", "targetre", null);
+        } catch (NotificationServiceException e) {
+
+        }
+        Rule[] tab = service.list();
+        assertEquals(tab.length, 1);
+        // Pour tester les autres méthode à partir d'une base vide
+        service.unregister("subjectre", "objectre", "targetre", "/li");
+        mockery.assertIsSatisfied();
+    }
 
     public void testthrowEvent() throws NotificationServiceException, JMSException, EventQueueServiceException, MembershipServiceException,
             PEPServiceException, BindingServiceException, PAPServiceException {
         logger.debug("testing testunregister(...)");
-        /*
-         * mockery.checking(new Expectations() { {
-         * oneOf(em).createQuery(with(any(String.class)));
-         * will(returnValue(query)); oneOf(query).getResultList();
-         * will(returnValue(list)); oneOf(list).size();
-         * oneOf(list).toArray(with(any(Rule[].class))); will(returnValue(tab));
-         * oneOf(em).persist(with(any(Rule.class))); will(saveParams(params1));
-         * } });
-         */
         NotificationService service = getBeanToTest();
         service.register("subjectre", "objectre", "targetre", "/li");
 
@@ -297,14 +178,15 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         mockery.assertIsSatisfied();
     }
 
-    public void testList2() throws NotificationServiceException {
-        logger.debug("testing testList2(...)");
+    public void testlistByRE() throws NotificationServiceException {
+        logger.debug("testing testlistByRE(...)");
         NotificationService service = getBeanToTest();
         Rule[] tab = service.listByRE("subjectre", "objectre", "targetre", "queuePath");
         assertEquals(tab.length, 0);
 
         service.register("subjectre", "objectre", "targetre", "queuePath");
-
+        service.register("subj.*", "objectre", "targetre", "queuePath");
+        
         tab = service.listByRE("subjectre", "objectre", "targetre", "queuePath");
         assertEquals(tab.length, 1);
         assertEquals(tab[0].getSubjectre(), "subjectre");
@@ -313,11 +195,35 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         assertEquals(tab[0].getQueuePath(), "queuePath");
 
         service.unregister("subjectre", "objectre", "targetre", "queuePath");
-
+        
         tab = service.listByRE("subjectre", "objectre", "targetre", "queuePath");
         assertEquals(tab.length, 0);
+        service.unregister("subj.*", "objectre", "targetre", "queuePath");
         mockery.assertIsSatisfied();
     }
+    
+    public void testlistBy() throws NotificationServiceException {
+        logger.debug("testing testlistBy(...)");
+        NotificationService service = getBeanToTest();
+        Rule[] tab = service.listBy("subjectre", "objectre", "targetre", "queuePath");
+        assertEquals(tab.length, 0);
+
+        service.register("subjectre", "objectre", "targetre", "queuePath");
+        service.register("subj.*", ".*tre", "targetre", "queuePath");
+        service.register("t.*", "obje.*", "targetre", "queuePath");
+        
+        tab = service.listBy("subjectre", "objectre", "targetre", "queuePath");
+        assertEquals(tab.length, 2);
+
+        service.unregister("subjectre", "objectre", "targetre", "queuePath");
+        service.unregister("subj.*", ".*tre", "targetre", "queuePath");
+        
+        tab = service.listBy("subjectre", "objectre", "targetre", "queuePath");
+        assertEquals(tab.length, 0);
+        service.unregister("t.*", "obje.*", "targetre", "queuePath");
+        mockery.assertIsSatisfied();
+    }
+    
 
     public void testlistByQueue() throws NotificationServiceException {
         logger.debug("testing testlistByQueue(...)");
@@ -327,6 +233,7 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         assertEquals(tab.length, 0);
 
         service.register("subjectre", "objectre", "targetre", "/li");
+        service.register("subjectre", "objectre", "targetre", "queuePath");
 
         tab = service.listByQueue("/li");
         assertEquals(tab.length, 1);
@@ -339,9 +246,32 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
 
         tab = service.listByQueue("/li");
         assertEquals(tab.length, 0);
+        // Pour tester les autres méthode à partir d'une base vide
+        service.unregister("subjectre", "objectre", "targetre", "queuePath");
         mockery.assertIsSatisfied();
     }
+    
+    public void testlistByQueueRE() throws NotificationServiceException {
+        logger.debug("testing testlistByQueueRE(...)");
 
+        NotificationService service = getBeanToTest();
+        Rule[] tab = service.listByQueue("/li");
+        assertEquals(tab.length, 0);
+
+        service.register("subjectre", "objectre", "targetre", "/li");
+        service.register("subj.*", ".*tre", "targetre", "/l");
+
+        tab = service.listByQueue("/li");
+        assertEquals(tab.length, 1);
+
+        service.unregister("subjectre", "objectre", "targetre", "/li");
+        tab = service.listByQueue("/li");
+        assertEquals(tab.length, 0);
+        // Pour tester les autres méthode à partir d'une base vide
+        service.unregister("subj.*", ".*tre", "targetre", "/l");
+        mockery.assertIsSatisfied();
+    }
+    
     public void testlistBySubjectRE() throws NotificationServiceException {
         logger.debug("testing testlistBySubjectRE(...)");
 
@@ -350,6 +280,7 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         assertEquals(tab.length, 0);
 
         service.register("subjectre", "objectre", "targetre", "/li");
+        service.register("subject", "objectre", "targetre", "/li");
 
         tab = service.listBySubjectRE("subjectre");
         assertEquals(tab.length, 1);
@@ -362,9 +293,35 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
 
         tab = service.listBySubjectRE("subjectre");
         assertEquals(tab.length, 0);
+        // Pour tester les autres méthode à partir d'une base vide
+        service.unregister("subject", "objectre", "targetre", "/li");
         mockery.assertIsSatisfied();
     }
 
+    public void testlistBySubject() throws NotificationServiceException {
+        logger.debug("testing testlistBySubject(...)");
+        
+        NotificationService service = getBeanToTest();
+        Rule[] tab = service.listBySubject("subjectre");
+        assertEquals(tab.length, 0);
+
+        service.register("subjectre", "objectre", "targetre", "/li");
+        service.register("subj.*", ".*tre", "targetre", "/l");
+        service.register("t.*", "obje.*", "targetre", "queuePath");
+        
+        tab = service.listBySubject("subjectre");
+        assertEquals(tab.length, 2);
+
+        service.unregister("subjectre", "objectre", "targetre", "/li");
+        service.unregister("subj.*", ".*tre", "targetre", "/l");
+        tab = service.listBySubject("subjectre");
+        assertEquals(tab.length, 0);
+        
+        // Pour tester les autres méthode à partir d'une base vide
+        service.unregister("t.*", "obje.*", "targetre", "queuePath");
+        mockery.assertIsSatisfied();
+    }
+    
     public void testlistByObjectRE() throws NotificationServiceException {
         logger.debug("testing testlistByObjectRE(...)");
 
@@ -373,6 +330,7 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         assertEquals(tab.length, 0);
 
         service.register("subjectre", "objectre", "targetre", "/li");
+        service.register("subjectre", "object", "targetre", "/li");
 
         tab = service.listByObjectRE("objectre");
         assertEquals(tab.length, 1);
@@ -385,9 +343,35 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
 
         tab = service.listByObjectRE("objectre");
         assertEquals(tab.length, 0);
+        // Pour tester les autres méthode à partir d'une base vide
+        service.unregister("subjectre", "object", "targetre", "/li");
         mockery.assertIsSatisfied();
     }
 
+    public void testlistByObject() throws NotificationServiceException {
+        logger.debug("testing testlistByObject(...)");
+        
+        NotificationService service = getBeanToTest();
+        Rule[] tab = service.listByObject("objectre");
+        assertEquals(tab.length, 0);
+
+        service.register("subjectre", "objectre", "targetre", "/li");
+        service.register("subj.*", ".*tre", "targetre", "/l");
+        service.register("t.*", "t.*", "targetre", "/li");
+        
+        tab = service.listByObject("objectre");
+        assertEquals(tab.length, 2);
+
+        service.unregister("subjectre", "objectre", "targetre", "/li");
+        service.unregister("subj.*", ".*tre", "targetre", "/l");
+        tab = service.listByObject("objectre");
+        assertEquals(tab.length, 0);
+        
+        // Pour tester les autres méthode à partir d'une base vide
+        service.unregister("t.*", "t.*", "targetre", "/li");
+        mockery.assertIsSatisfied();
+    }
+    
     public void testlistByTargetRE() throws NotificationServiceException {
         logger.debug("testing testlistByTargetRE(...)");
 
@@ -396,6 +380,7 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         assertEquals(tab.length, 0);
 
         service.register("subjectre", "objectre", "targetre", "/li");
+        service.register("subjectre", "objectre", "target", "/li");
 
         tab = service.listByTargetRE("targetre");
         assertEquals(tab.length, 1);
@@ -405,10 +390,35 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         assertEquals(tab[0].getQueuePath(), "/li");
 
         service.unregister("subjectre", "objectre", "targetre", "/li");
-
+        // Pour tester les autres méthode à partir d'une base vide
+        service.unregister("subjectre", "objectre", "target", "/li");
         tab = service.listByTargetRE("targetre");
         assertEquals(tab.length, 0);
+
         mockery.assertIsSatisfied();
     }
 
+    public void testlistByTarget() throws NotificationServiceException {
+        logger.debug("testing testlistByTarget(...)");
+        
+        NotificationService service = getBeanToTest();
+        Rule[] tab = service.listByTarget("targetre");
+        assertEquals(tab.length, 0);
+
+        service.register("subjectre", "objectre", "targetre", "/li");
+        service.register("subj.*", ".*tre", "tar.*", "/l");
+        service.register("t.*", "t.*", "re.*", "/li");
+        
+        tab = service.listByTarget("targetre");
+        assertEquals(tab.length, 2);
+
+        service.unregister("subjectre", "objectre", "targetre", "/li");
+        service.unregister("subj.*", ".*tre", "tar.*", "/l");
+        tab = service.listByTarget("targetre");
+        assertEquals(tab.length, 0);
+        
+        // Pour tester les autres méthode à partir d'une base vide
+        service.unregister("t.*", "t.*", "re.*", "/li");
+        mockery.assertIsSatisfied();
+    }
 }
