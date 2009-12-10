@@ -85,6 +85,7 @@ public class IndexingServiceSBTest{
 	private static BrowserService browser;
 	private FactoryResourceIdentifier friB, friF, friFB;
     private String profilePath;
+    private static int waitingTime = 1000;
 
 
 	/**
@@ -160,14 +161,14 @@ public class IndexingServiceSBTest{
         profilePath = membership.getProfilePathForConnectedIdentifier()+"/";
 		greeting.createName(profilePath+"bug", "bug");
 		greeting.createName(profilePath+"forge", "forge");
-		greeting.createName(profilePath+"tm", "tm");
 		greeting.createName(profilePath+"forge_bug", "forge_bug");
 		
 		// Waiting 1 second for the asynchronous call of the indexation
-		Thread.sleep(1000);
+		Thread.sleep(waitingTime);
 		friB =  browser.findResource(profilePath+"bug").getFactoryResourceIdentifier();
 		friF =  browser.findResource(profilePath+"forge").getFactoryResourceIdentifier();
 		friFB = browser.findResource(profilePath+"forge_bug").getFactoryResourceIdentifier();
+
 	}
 	
 	/**
@@ -181,10 +182,9 @@ public class IndexingServiceSBTest{
 
     	//membership.deleteProfile("toto");
     //name may have been deleted by the test
-    try{ greeting.deleteName(profilePath+"bug");}catch(GreetingServiceException e){}
-	try{ greeting.deleteName(profilePath+"forge");}catch(GreetingServiceException e){}
-    try{ greeting.deleteName(profilePath+"tm");}catch(GreetingServiceException e){}
-	try{ greeting.deleteName(profilePath+"forge_bug");}catch(GreetingServiceException e){}   
+    greeting.deleteName(profilePath+"bug");
+	greeting.deleteName(profilePath+"forge");
+	greeting.deleteName(profilePath+"forge_bug");
 
 
 	}
@@ -235,7 +235,7 @@ public class IndexingServiceSBTest{
 	@Test
 	public void testSearchReadNotAllowedResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, SearchServiceException{
 		logger.info("Testing search of a resource on which we don't have the right to read");
-		String policy = PAPServiceHelper.buildPolicy("1", "/profiles/kermit", "/profiles/kermit/friFB", new String[]{""});
+		//String policy = PAPServiceHelper.buildPolicy("1", "/profiles/kermit", "/profiles/kermit/friFB", new String[]{""});
 		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
 		ArrayList<SearchResult> result = search.searchResource("bug AND forge");
 		
@@ -332,7 +332,8 @@ public class IndexingServiceSBTest{
 		assertEquals("The ArrayList should contains exactly three results", 2, result.size());
 		assertThat("The expected result should be the resource FORGE and BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));
 		assertThat("The expected result should be the resource FORGE",result,hasItem(searchResultWithFactoryResourceIdentifier(friF)));
-	}
+			
+    }
 	
 	/** 
 	 * ====== RIGHT ======
@@ -347,7 +348,7 @@ public class IndexingServiceSBTest{
 		logger.info("Testing update index");
 		greeting.updateName(profilePath+"forge", "egrof");
 		// Waiting 1 second for the asynchronous call of the reindexation
-		Thread.sleep(1000);
+		Thread.sleep(waitingTime);
 		ArrayList<SearchResult> result = search.searchResource("egrof");
 		
 		assertEquals("The ArrayList should contains exactly one result", 1, result.size());
@@ -370,12 +371,13 @@ public class IndexingServiceSBTest{
 		greeting.deleteName(profilePath+"forge");
 
 		// Waiting 1 second for the asynchronous call of the deletion in index
-		Thread.sleep(1000);
+		Thread.sleep(waitingTime);
 		ArrayList<SearchResult> result = search.searchResource("forge");
 		
 		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
-		assertThat("The expected result should be the resource FORGE",result,hasItem(searchResultWithFactoryResourceIdentifier(friF)));	
+		assertThat("The expected result should be the resource BUG_FORGE",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));	
         
+        greeting.createName(profilePath+"forge","forge");
 	}
 	
 }

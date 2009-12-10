@@ -152,7 +152,7 @@ public class IndexingServiceBean implements IndexingService {
 	}
 
 	@Override
-	@TransactionAttribute(TransactionAttributeType.REQUIRED)
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
 	public ArrayList<SearchResult> search(String query) throws IndexingServiceException {
 		logger.info("search(...) called ");
 		logger.debug("params : query=" + query);
@@ -161,7 +161,8 @@ public class IndexingServiceBean implements IndexingService {
 		return filter(unCheckRes);
 	}
 
-	private ArrayList<SearchResult> filter(ArrayList<SearchResult> uncheckedRes) throws IndexingServiceException {
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    private ArrayList<SearchResult> filter(ArrayList<SearchResult> uncheckedRes) throws IndexingServiceException {
 		logger.info("filter(...) called ");
 		try{logger.info("profile "+membership.getProfilePathForConnectedIdentifier() );	}catch(Exception e){}
 		logger.debug("params : UnchedSearchResult= " + uncheckedRes);
@@ -184,7 +185,7 @@ public class IndexingServiceBean implements IndexingService {
 		return checkedRes;
 	}
 
-
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	private void sendMessage(String action, String fs, String path) throws IndexingServiceException{
 		logger.info("sendMessage(...) called ");
 		logger.debug("params : action= " +action+" Service="+fs+" path="+path);

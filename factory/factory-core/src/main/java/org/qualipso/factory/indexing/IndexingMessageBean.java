@@ -25,6 +25,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.Depends;
 import org.jboss.ejb3.annotation.SecurityDomain;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryService;
@@ -49,9 +51,12 @@ public class IndexingMessageBean implements MessageListener{
 	private static Log logger = LogFactory.getLog(IndexingMessageBean.class);
 	@Resource
     private MessageDrivenContext ctx;
-	
 	private Index index;
-	
+    //time period between two attempt to get the IndexableDocument
+	private static int waitingTime =10;
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public void onMessage(Message msg){
 		logger.info("onMessage(...) called");
         logger.debug("params : message=" + msg);
@@ -71,7 +76,8 @@ public class IndexingMessageBean implements MessageListener{
 		
 	}
 
-	
+
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	private void index(FactoryService service, String path) throws IndexingServiceException {
 		logger.info("index(...) called");
         logger.debug("params : service=" + service+" path="+path);
@@ -80,6 +86,7 @@ public class IndexingMessageBean implements MessageListener{
 		
 	}
 
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	private void reindex(FactoryService service, String path) throws IndexingServiceException {
 		logger.info("reindex(...) called");
         logger.debug("params : service=" + service+" path="+path);
@@ -88,13 +95,15 @@ public class IndexingMessageBean implements MessageListener{
 		
 	}
 
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	private void remove(FactoryService service, String path) throws IndexingServiceException {
 		logger.info("remove(...) called");
         logger.debug("params : service=" + service+" path="+path);
 		index = Index.getInstance();
 		index.remove(path);	
-		
 	}
+
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
 	private FactoryService getService(String service) throws IndexingServiceException{
 		try{
 		FactoryService fs = (FactoryService)ctx.lookup(FactoryNamingConvention.getJNDINameForService(service));
@@ -104,11 +113,19 @@ public class IndexingMessageBean implements MessageListener{
 			throw new IndexingServiceException("Unable to locate Service "+service);
 		}
 	}
+
+   	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
 	private IndexableDocument toIndexableDocument(FactoryService service, String path) throws IndexingServiceException{
 		try{
 
-        IndexableService is = (IndexableService) service ;
-		IndexableDocument doc = is.getIndexableDocument(path);
+        IndexableService is = (IndexableService) service ;     
+		IndexableDocument doc = null;
+            while(doc == null){
+             Thread.sleep(waitingTime);
+             try{
+                doc = is.getIndexableDocument(path);
+             }catch(Exception e){}
+            }
 
 		return doc;
 
