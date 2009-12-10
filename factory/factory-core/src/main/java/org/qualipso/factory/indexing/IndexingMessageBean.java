@@ -119,7 +119,7 @@ public class IndexingMessageBean implements MessageListener{
 		try{
 
         IndexableService is = (IndexableService) service ;     
-        Thread.sleep(10);
+        Thread.sleep(100);
         IndexableDocument doc = is.getIndexableDocument(path);
 
 		return doc;
