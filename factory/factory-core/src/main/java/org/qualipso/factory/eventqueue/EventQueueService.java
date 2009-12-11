@@ -35,6 +35,7 @@ import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.eventqueue.entity.EventQueue;
+import org.qualipso.factory.eventqueue.entity.Rule;
 
 /**
  * @author Nicolas HENRY
@@ -213,5 +214,169 @@ public interface EventQueueService extends FactoryService {
 
     @WebMethod
     public void generateXML(String path);
+
+    /**
+     * 
+     * Lists the registered rules.
+     * 
+     * @return an array of the rules registered in the Notification Service
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] list() throws EventQueueServiceException;
+
+    /**
+     * 
+     * Lists the registered rules matching the given args. Use null instead of
+     * arg to skip it. Ex:list("toto",null,null,"/p1/q1") will return a list of
+     * the rules registered by toto on /p1/q1
+     * 
+     * @return an array of rules registered matching the given args
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listByRE(String subject, String object, String target, String queue) throws EventQueueServiceException;
+
+    /**
+     * 
+     * Lists the registered rules equaling the regular expressions specified.
+     * Use null instead of arg to skip it. Ex:list("toto",null,null,"/p1/q1")
+     * will return a list of the rules equaling toto subjectre on /p1/q1 queue
+     * 
+     * @return an array of rules registered matching the specified regular
+     *         expressions
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listBy(String subjectre, String objectre, String targetre, String queuere) throws EventQueueServiceException;
+
+    /**
+     * 
+     * Lists the rules registered to the eventqueue.
+     * 
+     * @return an array of rules registered to queue.
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listByQueue(String queue) throws EventQueueServiceException;
+
+    /**
+     * 
+     * Lists the rules registered to the eventqueues equaling the regular
+     * expression queuere.
+     * 
+     * @return an array of rules registered to the queues equaling the regular
+     *         expression queuere.
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listByQueueRE(String queuere) throws EventQueueServiceException;
+
+    /**
+     * 
+     * Lists the rules matching the subject.
+     * 
+     * @return an array of rules matching the subject.
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listBySubject(String subject) throws EventQueueServiceException;
+
+    /**
+     * 
+     * Lists the rules registered by subjects equaling the regular expression
+     * subjectre.
+     * 
+     * @return an array of rules registered by subjects equaling the regular
+     *         expression subjectre
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listBySubjectRE(String subjectre) throws EventQueueServiceException;
+
+    /**
+     * 
+     * Lists the registered rules matching the object.
+     * 
+     * @return an array of rules matching the object
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listByObject(String object) throws EventQueueServiceException;
+
+    /**
+     * 
+     * Lists the registered rules of types equaling the regular expression
+     * objectre.
+     * 
+     * @return an array of rules registered of types equaling the regular
+     *         expression objectre
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listByObjectRE(String objectre) throws EventQueueServiceException;
+
+    /**
+     * 
+     * Lists the rules matching the target.
+     * 
+     * @return an array of rules matching the target.
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listByTarget(String target) throws EventQueueServiceException;
+
+    /**
+     * 
+     * Lists the rules registered on targets equaling the regular expression
+     * targetre.
+     * 
+     * @return an array of rules registered on targets equaling the regular
+     *         expression targetre
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public Rule[] listByTargetRE(String targetre) throws EventQueueServiceException;
+
+    /**
+     * 
+     * Allows a user to register a rule to an event queue. A queue can be
+     * created using the eventqueue service. Rules are tuples: (subject, object,
+     * target).
+     * 
+     * @param subjectre
+     *            the subject is the author of the action you want to register.
+     * @param objectre
+     *            the object of the type of the action (commit, ...).
+     * @param targetre
+     *            the target of the action (for example: the path to the project
+     *            in which you commit, <code>/p1/t1</code>).
+     * @param queuePath
+     *            the path to the queue in which events matching the rules will
+     *            be pushed.
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public void register(String subjectre, String objectre, String targetre, String queuePath) throws EventQueueServiceException;
+
+    /**
+     * 
+     * Allows a user to unregister a rule from a queue.
+     * 
+     * @param subjectre
+     *            the subject is the author of the action you want to
+     *            unregister.
+     * @param objectre
+     *            objectre the object of the type of the action (commit, ...).
+     * @param targetre
+     *            the target of the action (for example: the path to the project
+     *            in which you commit, <code>/p1/t1</code>).
+     * @param queuePath
+     *            the path to the queue in which events matching the rules will
+     *            be pushed.
+     * @throws NotificationServiceException
+     */
+    @WebMethod
+    public void unregister(String subjectre, String objectre, String targetre, String queuePath) throws EventQueueServiceException;
 
 }

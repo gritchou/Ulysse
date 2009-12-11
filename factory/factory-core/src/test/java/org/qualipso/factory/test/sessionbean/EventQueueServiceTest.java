@@ -48,9 +48,7 @@ import com.bm.testsuite.BaseSessionBeanFixture;
 public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServiceBean> {
     private static Log logger = LogFactory.getLog(EventQueueServiceTest.class);
 
-    @SuppressWarnings("unchecked")
-    // private static final Class[] usedBeans = {Event.class, EventQueue.class};
-    private static final Class[] usedBeans = { EventQueue.class };
+    private static final Class<?>[] usedBeans = { EventQueue.class };
     private Mockery mockery;
     private EntityManager em;
     private BindingService binding;

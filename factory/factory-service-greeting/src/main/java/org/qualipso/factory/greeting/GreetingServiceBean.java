@@ -27,7 +27,6 @@ import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.core.CoreService;
-import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.greeting.entity.Name;
 import org.qualipso.factory.indexing.IndexableContent;
@@ -39,7 +38,6 @@ import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.notification.NotificationServiceException;
 import org.qualipso.factory.security.pap.PAPService;
-import org.qualipso.factory.security.pap.PAPServiceException;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
 
@@ -436,40 +434,6 @@ public class GreetingServiceBean implements GreetingService{
         return findResource(path, true);
     }
     
-    
-    @Override
-    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public void readNameWithUser(String path, String caller) throws GreetingServiceException {
-        logger.info("readNameWithUser(...) called");
-        logger.debug("params : path=" + path);
-        
-        try {
-            //Checking if the connected user has the permission to read the resource giving pep : 
-            //pep.checkSecurity(caller, path, "read");
-            
-            //Performing a lookup in the naming to recover the Resource Identifier 
-            FactoryResourceIdentifier identifier = binding.lookup(path);
-            
-            //Checking if this resource identifier is really a resource managed by this service (a Hello resource)
-            checkResourceType(identifier, Name.RESOURCE_NAME);
-        
-            //STARTING SPECIFIC EXTERNAL SERVICE RESOURCE LOADING OR METHOD CALLS
-            Name name = em.find(Name.class, identifier.getId());
-            if ( name == null ) {
-                throw new GreetingServiceException("unable to find a name for id " + identifier.getId());
-            }
-            name.setResourcePath(path);
-            //END OF EXTERNAL SERVICE INVOCATION
-
-            //Using the notification service to throw an event : 
-            notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "read"), ""));
-            
-        } catch ( Exception e ) {
-            logger.error("unable to read the name at path " + path, e);
-            throw new GreetingServiceException("unable to read the name at path " + path, e);
-        }
-    }
-
 	@Override
 	public IndexableDocument getIndexableDocument(String path) throws IndexingServiceException{
 	try{
@@ -513,161 +477,4 @@ public class GreetingServiceBean implements GreetingService{
     public void throwFacticeEvent() throws NotificationServiceException {
         notification.throwEvent(new Event("/unexist/path", "toto", "Name", "greeting", ""));
     }
-
-	@Override
-	public void createFolder(String path,String name) throws GreetingServiceException {
-		try {
-			core.createFolder(path, name, "greeting folder");
-		} catch (CoreServiceException e) {
-			logger.error("unable to create folder "+name+" at "+path);
-			e.printStackTrace();
-			throw new GreetingServiceException(e.getMessage());
-		}		
-	}
-	
-	@Override
-	public void giveAutorization(String path, String user, String[] actions) throws GreetingServiceException{
-		String policyId = UUID.randomUUID().toString();
-		try {
-			pap.createPolicy(policyId, PAPServiceHelper.buildPolicy(policyId, user, path, actions));
-		} catch (PAPServiceException e) {
-			logger.error("unable to build policy to "+user+" on "+path);
-			e.printStackTrace();
-			throw new GreetingServiceException(e.getMessage());
-		}
-	}
-	@Override
-    public void deleteFolder(String path) throws GreetingServiceException{
-		try {
-			core.deleteFolder(path);
-		} catch (CoreServiceException e) {
-			logger.error("unable to delete folder "+path);
-			e.printStackTrace();
-			throw new GreetingServiceException(e.getMessage());
-		}
-	}
-    /*
-     * public Event createEvent(String string, String caller,String name, String
-     * arg1, String arg2) throws GreetingServiceException{ Event ev = new
-     * Event(string, caller, name, arg1, arg2); return ev; }
-     * 
-     * 
-     * public String throwEventOK() throws GreetingServiceException{ String path
-     * = "/names/sheldon"; logger.info("thowEventOk(...) called");
-     * logger.debug("params : path=" + path);
-     * 
-     * try { //Checking if the connected user has the permission to thowEventOk
-     * the resource giving pep : String caller =
-     * membership.getProfilePathForConnectedIdentifier(); //
-     * pep.checkSecurity(caller, path, "thowEventOk");
-     * 
-     * //Performing a lookup in the naming to recover the Resource Identifier
-     * //FactoryResourceIdentifier identifier = binding.lookup(path);
-     * 
-     * //Checking if this resource identifier is really a resource managed by
-     * this service (a Hello resource) // checkResourceType(identifier, "Name");
-     * 
-     * //STARTING SPECIFIC EXTERNAL SERVICE RESOURCE LOADING OR METHOD CALLS //
-     * Name name = em.find(Name.class, identifier.getId()); // if ( name == null
-     * ) { // throw new GreetingServiceException("unable to find a name for id "
-     * + identifier.getId()); // } //END OF EXTERNAL SERVICE INVOCATION
-     * 
-     * /* //Building hello message : String message = "Hello dear " +
-     * name.getValue() + " !!";
-     * 
-     * 
-     * //Using the notification service to throw an event : // String pathqueu =
-     * eq.getPath();// path de la que // String owner =
-     * eq.getOwner();//propritaire de la queu
-     * 
-     * //create name resource createName(path, "Sheldon Cooper"); String
-     * policyId = UUID.randomUUID().toString(); pap.createPolicy(policyId,
-     * PAPServiceHelper.buildOwnerPolicy(policyId, caller, path));
-     * 
-     * Event ev = new Event(path, caller, "Name", "greeting.name.thowEventOK",
-     * "");
-     * 
-     * //if(owner.equals(caller)){ notification.throwEvent(ev); //}
-     * 
-     * return path; } catch ( Exception e ) { ctx.setRollbackOnly();
-     * logger.error("unable to thowEventOk", e); throw new
-     * GreetingServiceException("unable to thowEventOk", e); }
-     * 
-     * 
-     * 
-     * 
-     * /* String caller = membership.getProfilePathForConnectedIdentifier();
-     * Event ev = new Event("/path/resource/", caller, "Name",
-     * "hello.name.create", ""); //return ev; return ""; }
-     * 
-     * 
-     * public String throwEventKO() throws GreetingServiceException{
-     * 
-     * // logger.info("thowEventKo(...) called"); //
-     * logger.debug("params : path=" + path); // // try { // //Checking if the
-     * connected user has the permission to thowEventOk the resource giving pep
-     * : // String caller = membership.getProfilePathForConnectedIdentifier();
-     * // pep.checkSecurity(caller, path, "thowEventKo"); // // //Performing a
-     * lookup in the naming to recover the Resource Identifier //
-     * FactoryResourceIdentifier identifier = binding.lookup(path); // //
-     * //Checking if this resource identifier is really a resource managed by
-     * this service (a Hello resource) // checkResourceType(identifier, "Name");
-     * // // //STARTING SPECIFIC EXTERNAL SERVICE RESOURCE LOADING OR METHOD
-     * CALLS // Name name = em.find(Name.class, identifier.getId()); // if (
-     * name == null ) { // throw new
-     * GreetingServiceException("unable to find a name for id " +
-     * identifier.getId()); // } // //END OF EXTERNAL SERVICE INVOCATION // //
-     * /* //Building hello message : // String message = "Hello dear " +
-     * name.getValue() + " !!"; //
-     */
-    //
-    // //Using the notification service to throw an event :
-    // //membership.createProfile(identifier, fullname, email, accountStatus);
-    // String caller1 = "caller";
-    // Event ev = new Event(path, caller1, "Name", "greeting.name.thowEventKo",
-    // "");
-    // //notification.throwEvent(ev);
-    //            
-    // return "";
-    // } catch ( Exception e ) {
-    // ctx.setRollbackOnly();
-    // logger.error("unable to thowEventKO to the name at path " + path, e);
-    // throw new
-    // GreetingServiceException("unable to thowEventKo to the name at path " +
-    // path, e);
-    // }
-
-    /*
-     * String caller = "call"; Event ev = new Event("/path/resource/", caller,
-     * "Name", "hello.name.create", ""); return ev;
-     * 
-     * String path = "/names/sheldon"; logger.info("thowEventKO(...) called");
-     * logger.debug("params : path=" + path);
-     * 
-     * try { //Checking if the connected user has the permission to thowEventOk
-     * the resource giving pep : String caller =
-     * membership.getProfilePathForConnectedIdentifier();
-     * membership.createProfile("toto", "toto titi", "toto@gmail.com", 1);
-     * //create name resource createName(path, "Sheldon Cooper"); String
-     * policyId = UUID.randomUUID().toString(); //pap.createPolicy(policyId,
-     * PAPServiceHelper.buildOwnerPolicy(policyId, caller, path));
-     * pap.createPolicy(policyId,PAPServiceHelper.buildPolicy(policyId,
-     * "/profile/toto", path, new String[]{"read"})); Event ev = new Event(path,
-     * caller, "Name", "greeting.name.thowEventKO", "");
-     * 
-     * //if(owner.equals(caller)){ notification.throwEvent(ev); //}
-     * 
-     * return path; } catch ( Exception e ) { ctx.setRollbackOnly();
-     * logger.error("unable to thowEventKO", e); throw new
-     * GreetingServiceException("unable to thowEventKO", e); }
-     * 
-     * }
-     * 
-     * 
-     * 
-     * /* public void createQueue(String path) throws GreetingServiceException{
-     * eqs.createQueue("path");
-     * 
-     * }
-     */
 }

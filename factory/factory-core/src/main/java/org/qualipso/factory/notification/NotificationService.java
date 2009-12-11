@@ -22,7 +22,7 @@
  */
 package org.qualipso.factory.notification;
 
-import javax.ejb.Remote;
+import javax.ejb.Local;
 import javax.jws.WebMethod;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
@@ -30,7 +30,6 @@ import javax.jws.soap.SOAPBinding;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.eventqueue.entity.Event;
-import org.qualipso.factory.notification.entity.Rule;
 
 /**
  * 
@@ -65,54 +64,13 @@ import org.qualipso.factory.notification.entity.Rule;
  * @author Marlène HANTZ
  * @version 11/19/2009
  */
-@Remote
+@Local
 @WebService(name = NotificationService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + NotificationService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface NotificationService extends FactoryService {
 
     public static final String SERVICE_NAME = "notification";
     public static final String[] RESOURCE_TYPE_LIST = new String[] {};
-
-    /**
-     * 
-     * Allows a user to register a rule to an event queue. A queue can be
-     * created using the eventqueue service. Rules are tuples: (subject, object,
-     * target).
-     * 
-     * @param subjectre
-     *            the subject is the author of the action you want to register.
-     * @param objectre
-     *            the object of the type of the action (commit, ...).
-     * @param targetre
-     *            the target of the action (for example: the path to the project
-     *            in which you commit, <code>/p1/t1</code>).
-     * @param queuePath
-     *            the path to the queue in which events matching the rules will
-     *            be pushed.
-     * @throws NotificationServiceException
-     */
-    @WebMethod
-    public void register(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException;
-
-    /**
-     * 
-     * Allows a user to unregister a rule from a queue.
-     * 
-     * @param subjectre
-     *            the subject is the author of the action you want to
-     *            unregister.
-     * @param objectre
-     *            objectre the object of the type of the action (commit, ...).
-     * @param targetre
-     *            the target of the action (for example: the path to the project
-     *            in which you commit, <code>/p1/t1</code>).
-     * @param queuePath
-     *            the path to the queue in which events matching the rules will
-     *            be pushed.
-     * @throws NotificationServiceException
-     */
-    @WebMethod
-    public void unregister(String subjectre, String objectre, String targetre, String queuePath) throws NotificationServiceException;
 
     /**
      * 
@@ -125,128 +83,5 @@ public interface NotificationService extends FactoryService {
      */
     @WebMethod
     public void throwEvent(Event e) throws NotificationServiceException;
-
-    /**
-     * 
-     * Lists the registered rules.
-     * 
-     * @return an array of the rules registered in the Notification Service
-     * @throws NotificationServiceException
-     */
-    @WebMethod
-    public Rule[] list() throws NotificationServiceException;
-
-    /**
-     * 
-     * Lists the registered rules matching the given args. Use null instead of
-     * arg to skip it. Ex:list("toto",null,null,"/p1/q1") will return a list of
-     * the rules registered by toto on /p1/q1
-     * 
-     * @return an array of rules registered matching the given args
-     * @throws NotificationServiceException
-     */
-    @WebMethod
-    public Rule[] listByRE(String subject, String object, String target, String queue) throws NotificationServiceException;
-
-    /**
-     * 
-     * Lists the registered rules equaling the regular expressions specified.
-     * Use null instead of arg to skip it. Ex:list("toto",null,null,"/p1/q1")
-     * will return a list of the rules equaling toto subjectre on /p1/q1 queue
-     * 
-     * @return an array of rules registered matching the specified regular
-     *         expressions
-     * @throws NotificationServiceException
-     */
-    @WebMethod
-    public Rule[] listBy(String subjectre, String objectre, String targetre, String queuere) throws NotificationServiceException;
-
-    /**
-     * 
-     * Lists the rules registered to the eventqueue.
-     * 
-     * @return an array of rules registered to queue.
-     * @throws NotificationServiceException
-     */
-    @WebMethod
-    public Rule[] listByQueue(String queue) throws NotificationServiceException;
-
-    /**
-     * 
-     * Lists the rules registered to the eventqueues equaling the regular
-     * expression queuere.
-     * 
-     * @return an array of rules registered to the queues equaling the regular
-     *         expression queuere.
-     * @throws NotificationServiceException
-     */
-    @WebMethod
-    public Rule[] listByQueueRE(String queuere) throws NotificationServiceException;
-
-    /**
-     * 
-     * Lists the rules matching the subject.
-     * 
-     * @return an array of rules matching the subject.
-     * @throws NotificationServiceException
-     */
-    @WebMethod
-    public Rule[] listBySubject(String subject) throws NotificationServiceException;
-
-    /**
-     * 
-     * Lists the rules registered by subjects equaling the regular expression
-     * subjectre.
-     * 
-     * @return an array of rules registered by subjects equaling the regular
-     *         expression subjectre
-     * @throws NotificationServiceException
-     */
-    @WebMethod
-    public Rule[] listBySubjectRE(String subjectre) throws NotificationServiceException;
-
-    /**
-     * 
-     * Lists the registered rules matching the object.
-     * 
-     * @return an array of rules matching the object
-     * @throws NotificationServiceException
-     */
-    @WebMethod
-    public Rule[] listByObject(String object) throws NotificationServiceException;
-
-    /**
-     * 
-     * Lists the registered rules of types equaling the regular expression
-     * objectre.
-     * 
-     * @return an array of rules registered of types equaling the regular
-     *         expression objectre
-     * @throws NotificationServiceException
-     */
-    @WebMethod
-    public Rule[] listByObjectRE(String objectre) throws NotificationServiceException;
-
-    /**
-     * 
-     * Lists the rules matching the target.
-     * 
-     * @return an array of rules matching the target.
-     * @throws NotificationServiceException
-     */
-    @WebMethod
-    public Rule[] listByTarget(String target) throws NotificationServiceException;
-
-    /**
-     * 
-     * Lists the rules registered on targets equaling the regular expression
-     * targetre.
-     * 
-     * @return an array of rules registered on targets equaling the regular
-     *         expression targetre
-     * @throws NotificationServiceException
-     */
-    @WebMethod
-    public Rule[] listByTargetRE(String targetre) throws NotificationServiceException;
 
 }

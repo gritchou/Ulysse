@@ -15,6 +15,7 @@ import org.jboss.security.auth.callback.UsernamePasswordHandler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Test;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.bootstrap.BootstrapService;
 import org.qualipso.factory.bootstrap.BootstrapServiceException;
@@ -23,24 +24,22 @@ import org.qualipso.factory.client.test.sb.NotificationServiceSBTest;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.eventqueue.entity.Rule;
 import org.qualipso.factory.greeting.GreetingService;
 import org.qualipso.factory.greeting.GreetingServiceException;
 import org.qualipso.factory.membership.MembershipServiceException;
-import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.notification.NotificationServiceException;
-import org.qualipso.factory.notification.entity.Rule;
-import org.junit.Test;
 
 public class NotificationServicePTest {
-	
+
     private static Log logger = LogFactory.getLog(NotificationServiceSBTest.class);
     private static Context context;
-    private static NotificationService notification;
     private static GreetingService greeting;
     private static EventQueueService eqs;
     private final static String pathQueue = "/q";
     private final static String pathResource = "/m2logTestPerf";
     private final static String valueResource = "val";
+
     /**
      * Set up service for all tests.
      * 
@@ -68,7 +67,6 @@ public class NotificationServicePTest {
         LoginContext loginContext = new LoginContext("qualipso", uph);
         loginContext.login();
 
-        notification = (NotificationService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + NotificationService.SERVICE_NAME);
         eqs = (EventQueueService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + EventQueueService.SERVICE_NAME);
         greeting = (GreetingService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + GreetingService.SERVICE_NAME);
     }
@@ -77,40 +75,39 @@ public class NotificationServicePTest {
     public void setUp() throws Exception {
 
         eqs.createEventQueue(pathQueue);
-        
-        notification.register("/profiles/.*", "greeting.name.read", "/m2logTestPerf.*", pathQueue);
-        Rule[] t = notification.list();
+
+        eqs.register("/profiles/.*", "greeting.name.read", "/m2logTestPerf.*", pathQueue);
+        Rule[] t = eqs.list();
         Rule r = t[0];
-        
-        assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.read,/name.*, pathQueue) "+r.getQueuePath()+" "+r.getObjectre()+" "+r.getSubjectre()+" "+r.getTargetre()+" "+notification.list().length,
-        		notification.list().length==1);
-        
+
+        assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.read,/name.*, pathQueue) " + r.getQueuePath() + " "
+                + r.getObjectre() + " " + r.getSubjectre() + " " + r.getTargetre() + " " + eqs.list().length, eqs.list().length == 1);
+
         greeting.createName(pathResource, valueResource);
     }
 
     @After
     public void tearDown() throws Exception {
-        notification.unregister("/profiles/.*", "greeting.name.read", "/m2logTestPerf.*", pathQueue);
+        eqs.unregister("/profiles/.*", "greeting.name.read", "/m2logTestPerf.*", pathQueue);
         eqs.removeQueue(pathQueue);
         greeting.deleteName(pathResource);
     }
 
-    
     /**
      * Test Boundary - Performance throws 10000 events in 1 queue
      * 
      * @throws GreetingServiceException
      * @throws EventQueueServiceException
      */
-     @Test(timeout = 999999999)
+    @Test(timeout = 999999999)
     public void testNotification10000Events() throws GreetingServiceException, EventQueueServiceException {
-    	logger.info("testNotification10000Events called");
+        logger.info("testNotification10000Events called");
         for (int i = 0; i < 1; i++) {
             greeting.readName(pathResource);
         }
 
         logger.info("testNotification10000Events : 10000 events pushed, waiting...");
-        
+
         Event[] lEvent = new Event[] {};
         while (lEvent.length < 1) {
             lEvent = eqs.getEvents(pathQueue);
@@ -125,20 +122,20 @@ public class NotificationServicePTest {
      * 
      * @throws EventQueueServiceException
      * @throws NotificationServiceException
-     * @throws GreetingServiceException 
+     * @throws GreetingServiceException
      */
-     @Test(timeout = 2000000)
+    @Test(timeout = 2000000)
     public void testNotification10000Queues() throws EventQueueServiceException, NotificationServiceException, GreetingServiceException {
-    	logger.info("testNotification10000Queues called");
+        logger.info("testNotification10000Queues called");
         String path = "/q";
         for (int i = 0; i < 1; i++) {
             eqs.createEventQueue(path + i);
-            notification.register("/profiles/.*", "greeting.name.read", "/m2logTestPerf.*", path + i);
+            eqs.register("/profiles/.*", "greeting.name.read", "/m2logTestPerf.*", path + i);
         }
 
         greeting.readName(pathResource);
 
-		logger.info("testNotification10000Queues : 10000 queue created, pushing 1 event matching by all queue...");     
+        logger.info("testNotification10000Queues : 10000 queue created, pushing 1 event matching by all queue...");
         Event[] lEvent = new Event[] {};
         for (int i = 0; i < 1; i++) {
             while (lEvent.length < 1) {
@@ -146,12 +143,12 @@ public class NotificationServicePTest {
             }
             assertTrue("TestNotification10000Queues : expected 1 event but found " + lEvent.length, lEvent.length == 1);
         }
-        
-     logger.info("testNotification10000Queues : deleting all queue...");
-        //delete
+
+        logger.info("testNotification10000Queues : deleting all queue...");
+        // delete
         for (int i = 0; i < 1; i++) {
             eqs.removeQueue(path + i);
-            notification.unregister("/profiles/.*", "greeting.name.read", "/m2logTestPerf.*", path + i);
+            eqs.unregister("/profiles/.*", "greeting.name.read", "/m2logTestPerf.*", path + i);
         }
-    }    
+    }
 }

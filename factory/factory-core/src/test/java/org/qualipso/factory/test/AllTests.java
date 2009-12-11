@@ -30,6 +30,7 @@ import org.qualipso.factory.test.sessionbean.BindingServiceTest;
 import org.qualipso.factory.test.sessionbean.BootstrapServiceTest;
 import org.qualipso.factory.test.sessionbean.BrowserServiceTest;
 import org.qualipso.factory.test.sessionbean.CoreServiceTest;
+import org.qualipso.factory.test.sessionbean.EventQueueRulesServiceTest;
 import org.qualipso.factory.test.sessionbean.EventQueueServiceTest;
 import org.qualipso.factory.test.sessionbean.IndexingServiceTest;
 import org.qualipso.factory.test.sessionbean.MembershipServiceTest;
@@ -63,6 +64,7 @@ import org.qualipso.factory.test.sessionbean.SecurityServiceTest;
 		SecurityServiceTest.class,
 		IndexingServiceTest.class,
 		EventQueueServiceTest.class,
+		EventQueueRulesServiceTest.class,
 		NotificationServiceTest.class})
 public class AllTests {
 	

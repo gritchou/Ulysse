@@ -22,16 +22,19 @@ import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.bootstrap.BootstrapService;
 import org.qualipso.factory.bootstrap.BootstrapServiceException;
 import org.qualipso.factory.client.test.AllTests;
+import org.qualipso.factory.core.CoreService;
+import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.eventqueue.entity.Rule;
 import org.qualipso.factory.greeting.GreetingService;
 import org.qualipso.factory.greeting.GreetingServiceException;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
-import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.notification.NotificationServiceException;
-import org.qualipso.factory.notification.entity.Rule;
+import org.qualipso.factory.security.SecurityService;
+import org.qualipso.factory.security.SecurityServiceException;
 
 /**
  * @author HANTZ Marlène
@@ -42,11 +45,12 @@ import org.qualipso.factory.notification.entity.Rule;
 public class NotificationServiceSBTest {
     private static Log logger = LogFactory.getLog(NotificationServiceSBTest.class);
     private static Context context;
-    private static NotificationService notification;
     private static GreetingService greeting;
     private static EventQueueService eqs;
     private static LoginContext loginContext;
     private static MembershipService membership;
+    private static SecurityService security;
+    private static CoreService core;
     private final static String pathQueue1 = "/q1", pathQueue2 = "/q2";
     private final static String pathResource = "/m2log";
     private final static String valueResource = "val";
@@ -74,14 +78,15 @@ public class NotificationServiceSBTest {
             logger.error(e);
         }
 
-        UsernamePasswordHandler uph = new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS);
+        UsernamePasswordHandler uph = new UsernamePasswordHandler("kermit", "thefrog");
         loginContext = new LoginContext("qualipso", uph);
         loginContext.login();
 
-        notification = (NotificationService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + NotificationService.SERVICE_NAME);
         eqs = (EventQueueService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + EventQueueService.SERVICE_NAME);
         greeting = (GreetingService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + GreetingService.SERVICE_NAME);
         membership = (MembershipService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + MembershipService.SERVICE_NAME);
+        security = (SecurityService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + SecurityService.SERVICE_NAME);
+        core = (CoreService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + CoreService.SERVICE_NAME);
 
     }
 
@@ -96,24 +101,24 @@ public class NotificationServiceSBTest {
         eqs.createEventQueue(pathQueue1);
         eqs.createEventQueue(pathQueue2);
 
-        notification.register("/profiles/.*", "greeting.name.say-hello", "/m2log.*", pathQueue1);
+        eqs.register("/profiles/.*", "greeting.name.say-hello", "/m2log.*", pathQueue1);
 
-        assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.say-hello,/m2log.*, pathQueue1)", notification.list().length == 1);
+        assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.say-hello,/m2log.*, pathQueue1)", eqs.list().length == 1);
 
-        notification.register("/profiles/.*", "greeting.name.read", "/m2log.*", pathQueue2);
-        Rule[] t = notification.list();
+        eqs.register("/profiles/kermit", "greeting.name.read", "/m2log.*", pathQueue2);
+        Rule[] t = eqs.list();
         Rule r = t[0];
 
         assertTrue("SetUp : failed during notification.register(/profiles/.*, greeting.name.read,/m2log.*, pathQueue2) " + r.getQueuePath() + " "
-                + r.getObjectre() + " " + r.getSubjectre() + " " + r.getTargetre() + " " + notification.list().length, notification.list().length == 2);
+                + r.getObjectre() + " " + r.getSubjectre() + " " + r.getTargetre() + " " + eqs.list().length, eqs.list().length == 2);
         greeting.createName(pathResource, valueResource);
     }
 
     @After
     public void tearDown() throws Exception {
 
-        notification.unregister("/profiles/.*", "greeting.name.say-hello", "/m2log.*", pathQueue1);
-        notification.unregister("/profiles/.*", "greeting.name.read", "/m2log.*", pathQueue2);
+        eqs.unregister("/profiles/.*", "greeting.name.say-hello", "/m2log.*", pathQueue1);
+        eqs.unregister("/profiles/kermit", "greeting.name.read", "/m2log.*", pathQueue2);
 
         eqs.removeQueue(pathQueue1);
         eqs.removeQueue(pathQueue2);
@@ -151,7 +156,7 @@ public class NotificationServiceSBTest {
         Thread.sleep(10);
         // assert that no other events happen
         lEvent1 = eqs.getEvents(pathQueue1);
-        assertTrue("TestNotification1 : expected 0 event into queue1(" + pathQueue1 + ") but found " + lEvent1.length, lEvent1.length == 1);
+        assertTrue("TestNotification1 : expected 0 event into queue1(" + pathQueue1 + ") but found " + lEvent1.length, lEvent1.length == 1);        
     }
 
     /*
@@ -222,57 +227,58 @@ public class NotificationServiceSBTest {
      * @throws EventQueueServiceException
      * @throws InterruptedException
      * @throws LoginException
+     * @throws SecurityServiceException 
+     * @throws CoreServiceException 
      */
     @Test(timeout = 50000)
     public void testNotificationRightEvent() throws MembershipServiceException, GreetingServiceException, EventQueueServiceException, InterruptedException,
-            LoginException {
+            LoginException, SecurityServiceException, CoreServiceException {
         logger.info("testNotificationRightEvent() called");
-        String caller = membership.getProfilePathForConnectedIdentifier();
 
         // root permit to kermit to create something on /
-        greeting.giveAutorization("/", "/profiles/kermit", new String[] { "create" });
+        //security.addSecurityRule("/", "/profiles/kermit", "create");
 
         loginContext.logout();
 
         // login kermit
-        UsernamePasswordHandler uph = new UsernamePasswordHandler("kermit", "thefrog");
+        UsernamePasswordHandler uph = new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS);
         loginContext = new LoginContext("qualipso", uph);
         loginContext.login();
 
         // kermit create a folder and a resource on this folder and
         // create a read event on this name
-        greeting.createFolder("/kermitFolder", "kermitFolder");
+        core.createFolder("/kermitFolder", "kermitFolder", "greeting folder");
         greeting.createName("/kermitFolder/kermitName", "kermitName");
         greeting.readName("/kermitFolder/kermitName");
         greeting.deleteName("/kermitFolder/kermitName");
-        greeting.deleteFolder("/kermitFolder");
+        core.deleteFolder("/kermitFolder");
 
         loginContext.logout();
 
-        uph = new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS);
+        uph = new UsernamePasswordHandler("kermit","thefrog");
         loginContext = new LoginContext("qualipso", uph);
         loginContext.login();
 
-        greeting.readName(pathResource);
+        greeting.sayHello(pathResource);
 
-        Event[] lEvent2 = new Event[] {};
+        Event[] lEvent = new Event[] {};
 
-        while (lEvent2.length < 1) {
-            lEvent2 = eqs.getEvents(pathQueue2);
+        while (lEvent.length < 1) {
+            lEvent = eqs.getEvents(pathQueue1);
         }
 
-        assertTrue("TestNotificationRighEvent : expected 1 events into queue2(" + pathQueue2 + ") but found " + lEvent2.length, lEvent2.length == 1);
-        Event e = lEvent2[0];
+        assertTrue("TestNotificationRighEvent : expected 1 events into queue1(" + pathQueue1 + ") but found " + lEvent.length, lEvent.length == 1);
+        Event e = lEvent[0];
         assertEquals("TestNotificationRighEvent : event resource expected " + pathResource + " but found " + e.getFromResource(), e.getFromResource(),
                 pathResource);
-        assertEquals("TestNotificationRighEvent : event type expected greeting.name.create but found " + e.getEventType(), e.getEventType(),
-                "greeting.name.read");
-        assertEquals("TestNotificationRighEvent : event throwedBy expected " + caller + " but found" + e.getThrowedBy(), e.getThrowedBy(), caller);
+        assertEquals("TestNotificationRighEvent : event type expected greeting.name.sayhello but found " + e.getEventType(), e.getEventType(),
+                "greeting.name.say-hello");
+        assertEquals("TestNotificationRighEvent : event throwedBy expected kermit but found" + e.getThrowedBy(), e.getThrowedBy(), "/profiles/kermit");
 
         Thread.sleep(60);
-
-        assertTrue("TestNotificationRighEvent : expected 1 event into queue1 but found " + eqs.getEvents(pathQueue2).length,
-                eqs.getEvents(pathQueue2).length == 1);
+        
+        assertTrue("TestNotificationRighEvent : expected 0 event into queue1 but found " + eqs.getEvents(pathQueue2).length,
+                eqs.getEvents(pathQueue2).length == 0);
 
     }
 
@@ -287,24 +293,5 @@ public class NotificationServiceSBTest {
         greeting.throwNullEvent();
     }
 
-//    /**
-//     * Test Boundary Throws 2 times the same event
-//     * 
-//     * @throws MembershipServiceException
-//     * @throws NotificationServiceException
-//     * @throws EventQueueServiceException
-//     */
-//    @Test(timeout = 30000)
-//    public void testNotificationThrow2SameEvent() throws NotificationServiceException, MembershipServiceException, EventQueueServiceException {
-//    	logger.info("testNotificationThrow2SameEvent() called");
-//        greeting.throw2SameEvent("/name/toto");
-//
-//        Event[] lEvent = new Event[] {};
-//        while (lEvent.length < 2) {
-//            lEvent = eqs.getEvents(pathQueue1);
-//        }
-//
-//        assertEquals("TestNotificationThrow2SameEvent : expected " + lEvent[0].toString() + " but found " + lEvent[1].toString(), lEvent[0], lEvent[1]);
-//    }
 
 }

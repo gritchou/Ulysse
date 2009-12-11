@@ -21,8 +21,8 @@ import org.qualipso.factory.binding.PropertyNotFoundException;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
 import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.eventqueue.entity.Rule;
 import org.qualipso.factory.membership.MembershipService;
-import org.qualipso.factory.notification.entity.Rule;
 import org.qualipso.factory.security.pep.PEPService;
 import org.qualipso.factory.security.pep.PEPServiceException;
 
@@ -103,7 +103,7 @@ public class EventMessageBean implements MessageListener {
                 if (o instanceof Event) {
                     Event ev = (Event) o;
                     try {
-                        Rule[] l = notification.list();
+                        Rule[] l = eventQueue.list();
                         for (Rule rule : l) {
                             if (rule.match(ev)) {
                                 try {
@@ -128,7 +128,7 @@ public class EventMessageBean implements MessageListener {
 								}
                             }
                         }
-                    } catch (NotificationServiceException e1) {
+                    } catch (EventQueueServiceException e1) {
                         logger.error("unable to get rules from notification service");
                     }
                 } else {

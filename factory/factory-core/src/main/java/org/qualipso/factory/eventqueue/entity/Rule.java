@@ -1,4 +1,4 @@
-package org.qualipso.factory.notification.entity;
+package org.qualipso.factory.eventqueue.entity;
 
 import java.io.Serializable;
 import java.util.regex.Matcher;
@@ -10,7 +10,6 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.qualipso.factory.eventqueue.entity.Event;
 
 /**
  * @author Nicolas HENRY
