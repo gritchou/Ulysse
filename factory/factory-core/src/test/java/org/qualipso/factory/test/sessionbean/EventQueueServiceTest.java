@@ -52,7 +52,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
     // private static final Class[] usedBeans = {Event.class, EventQueue.class};
     private static final Class[] usedBeans = { EventQueue.class };
     private Mockery mockery;
-    // private EntityManager em;
+    private EntityManager em;
     private BindingService binding;
     private PEPService pep;
     private PAPService pap;
@@ -73,13 +73,13 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         super.setUp();
         logger.debug("Session beans");
         mockery = new Mockery();
-        // em = mockery.mock(EntityManager.class);
+        em = mockery.mock(EntityManager.class);
         binding = mockery.mock(BindingService.class);
         pep = mockery.mock(PEPService.class);
         pap = mockery.mock(PAPService.class);
         membership = mockery.mock(MembershipService.class);
         ctx = mockery.mock(SessionContext.class);
-        // getBeanToTest().setEntityManager(em);
+        getBeanToTest().setEntityManager(em);
         getBeanToTest().setBindingService(binding);
         getBeanToTest().setMembershipService(membership);
         getBeanToTest().setPAPService(pap);
@@ -102,7 +102,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         logger.debug("testing testCreateEventQueue(...)");
         final String name = "/queue/myQueue";
         final String caller = "theCaller";
-
+        
         final Vector<Object> allParams = new Vector<Object>();
         final Sequence sequence1 = mockery.sequence("sequence1");
         mockery.checking(new Expectations() {
@@ -113,13 +113,11 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
                 oneOf(pep).checkSecurity(with(equal(caller)), with(equal(PathHelper.getParentPath(name))), with(equal("create")));
                 inSequence(sequence1);
-                /*
-                 * oneOf(em).persist(with(any(EventQueue.class)));
-                 * will(saveParams(allParams)); inSequence(sequence1);
-                 */
+                oneOf(em).persist(with(any(EventQueue.class)));
+                will(saveParams(allParams));
+                inSequence(sequence1);
 
                 oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(equal(name)));
-                will(saveParams(allParams));
                 inSequence(sequence1);
                 oneOf(pap).createPolicy(with(any(String.class)), with(any(String.class)));
                 inSequence(sequence1);
@@ -130,37 +128,13 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
             }
         });
+
         EventQueueServiceBean eqsb = getBeanToTest();
-        eqsb.getEntityManager().getTransaction().begin();
+
         eqsb.createEventQueue(name);
 
-        final Sequence sq1 = mockery.sequence("seq1");
-        mockery.checking(new Expectations() {
-            {
+        assertEquals(((EventQueue) allParams.get(0)).getEvents().size(), 0);
 
-                oneOf(binding).lookup(with(equal(name)));
-                will(returnValue(allParams.get(0)));
-                inSequence(sq1);
-
-                oneOf(membership).getProfilePathForConnectedIdentifier();
-                will(returnValue(caller));
-                inSequence(sq1);
-
-                oneOf(pep).checkSecurity(caller, name, "read");
-                inSequence(sq1);
-
-                /*
-                 * oneOf(em).find(with(EventQueue.class),
-                 * with(any(String.class))); will(returnValue(firstQueue));
-                 * inSequence(sq1);
-                 * 
-                 * oneOf(em).persist(with(any(EventQueue.class)));
-                 * will(saveParams(allParams)); inSequence(sq1);
-                 */
-
-            }
-        });
-        assertEquals(eqsb.getEvents(name).length, 0);
         mockery.assertIsSatisfied();
 
     }
@@ -174,51 +148,44 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PAPServiceException
      * @throws EventQueueServiceException
      */
-    // @Test(expected = EventQueueServiceException.class)
-    // public void testCreateEventQueueUsedName() throws
-    // MembershipServiceException, PEPServiceException, BindingServiceException,
-    // PAPServiceException,
-    // EventQueueServiceException {
-    // logger.debug("testing testCreateEventQueue2(...) ");
-    // logger.debug("an Other Queue have the same name ...");
-    // final String name = "/queue/myQueue";
-    // final String caller = "theCaller";
-    //
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, PathHelper.getParentPath(name),
-    // "create");
-    // will(throwException(new
-    // EventQueueServiceException("illegal")));
-    // inSequence(sq1);
-    // /*
-    // * oneOf(em).persist(with(any(EventQueue.class)));
-    // * will(throwException(new
-    // * EventQueueServiceException("illegal"))); inSequence(sq1);
-    // */
-    //
-    // oneOf(ctx).setRollbackOnly();
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // try {
-    // eqsb.createEventQueue(name);
-    // } catch (EventQueueServiceException e) {
-    // //logger.info("exception generated : " + e.getMessage());
-    // }
-    // mockery.assertIsSatisfied();
-    //
-    // }
+    @Test(expected = EventQueueServiceException.class)
+    public void testCreateEventQueueUsedName() throws MembershipServiceException, PEPServiceException, BindingServiceException, PAPServiceException,
+            EventQueueServiceException {
+        logger.debug("testing testCreateEventQueue2(...) ");
+        logger.debug("an Other Queue have the same name ...");
+        final String name = "/queue/myQueue";
+        final String caller = "theCaller";
+        
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, PathHelper.getParentPath(name), "create");
+                inSequence(sq1);
+                oneOf(em).persist(with(any(EventQueue.class)));
+                will(throwException(new EventQueueServiceException("illegal")));
+                inSequence(sq1);
+
+                oneOf(ctx).setRollbackOnly();
+                inSequence(sq1);
+
+            }
+        });
+
+        EventQueueServiceBean eqsb = getBeanToTest();
+        try {
+            eqsb.createEventQueue(name);
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+        mockery.assertIsSatisfied();
+
+    }
 
     /**
      * Test insertion of an event in an eventqueue
@@ -237,8 +204,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         final String name = "/queue/myQueue";
         final String caller = "theCaller";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
-                .randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
 
         final Vector<Object> allParams = new Vector<Object>();
         final EventQueue firstQueue = new EventQueue();
@@ -258,13 +224,13 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 oneOf(pep).checkSecurity(caller, name, "update");
                 inSequence(sq1);
 
-                /*oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
                 will(returnValue(firstQueue));
                 inSequence(sq1);
 
                 oneOf(em).persist(with(any(EventQueue.class)));
                 will(saveParams(allParams));
-                inSequence(sq1);*/
+                inSequence(sq1);
 
             }
         });
@@ -299,13 +265,14 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 oneOf(pep).checkSecurity(caller, name, "update");
                 inSequence(sq1);
 
-                /*allowing(em).find(with(EventQueue.class), with(any(String.class)));
+                allowing(em).find(with(EventQueue.class), with(any(String.class)));
                 will(returnValue((EventQueue) (allParams.get(0))));
                 inSequence(sq1);
 
                 oneOf(em).persist(with(any(EventQueue.class)));
                 will(saveParams(allParams));
-                inSequence(sq1);*/
+                inSequence(sq1);
+
             }
         });
 
@@ -322,1336 +289,1276 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         mockery.assertIsSatisfied();
     }
-    //
-    // /**
-    // * Test the deletion of an event which doesn't exist in an eventqueue.
-    // *
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // * @throws BindingServiceException
-    // * @throws PAPServiceException
-    // * @throws EventQueueServiceException
-    // */
-    // public void testDeleteEventNotInTheQueue() throws
-    // MembershipServiceException, PEPServiceException, BindingServiceException,
-    // PAPServiceException,
-    // EventQueueServiceException {
-    // logger.debug("testing testDeleteEventNotInTheQueue(...)");
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // final String name = "myQueue";
-    // final String caller = "theCaller";
-    // final FactoryResourceIdentifier identifier = new
-    // FactoryResourceIdentifier(EventQueueService.SERVICE_NAME,
-    // EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
-    //
-    // final EventQueue firstQueue = new EventQueue();
-    // Event e = new Event("aResource", "aService", "aType", "anEventType", "");
-    // ArrayList<Event> ale = new ArrayList<Event>();
-    // ale.add(e);
-    // firstQueue.setEvents(ale);
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "update");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // oneOf(em).merge(with(any(EventQueue.class)));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    //
-    // eqsb.deleteEvent(name, e);
-    //
-    // logger.info("TDENITQ");
-    //
-    // assertEquals(firstQueue.getEvents().size(), 0);
-    //
-    // mockery.assertIsSatisfied();
-    //
-    // }
-    //
-    // /**
-    // * Test the deletion of an event which exist in an eventqueue.
-    // *
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // * @throws BindingServiceException
-    // * @throws PAPServiceException
-    // * @throws EventQueueServiceException
-    // */
-    // public void testDeleteEventInTheQueue() throws
-    // MembershipServiceException, PEPServiceException, BindingServiceException,
-    // PAPServiceException,
-    // EventQueueServiceException {
-    // logger.debug("testing testDeleteEventInTheQueue(...)");
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // final String name = "myQueue";
-    // final String caller = "theCaller";
-    // final FactoryResourceIdentifier identifier = new
-    // FactoryResourceIdentifier(EventQueueService.SERVICE_NAME,
-    // EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
-    //
-    // final EventQueue firstQueue = new EventQueue();
-    // Event e1 = new Event("aResource", "aService", "aType", "anEventType",
-    // "");
-    // ArrayList<Event> eventL = new ArrayList<Event>();
-    // eventL.add(e1);
-    // firstQueue.setEvents(eventL);
-    // firstQueue.setResourcePath(name);
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "update");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // // 1.code source d'eventQueue a reverifier car faux!!!( n'enlve
-    // // rien ou peut etre dernier)
-    // // 2. code corrige : Amrou L460
-    //
-    // oneOf(em).merge(with(any(EventQueue.class)));
-    // inSequence(sq1);
-    // }
-    // });
-    //
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // eqsb.deleteEvent(name, e1);
-    // logger.info("TDENITQ");
-    //
-    // assertEquals(firstQueue.getEvents().size(), 0);
-    //
-    // mockery.assertIsSatisfied();
-    //
-    // }
-    //
-    // /**
-    // * Test deletion of an existing queue
-    // *
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // * @throws BindingServiceException
-    // * @throws EventQueueServiceException
-    // */
-    // @Test(expected = EventQueueServiceException.class)
-    // public void testRemoveExistingQueue() throws MembershipServiceException,
-    // PEPServiceException, BindingServiceException, EventQueueServiceException
-    // {
-    //
-    // logger.debug("testing testRemoveExistingQueue(...)");
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // final String name = "myQueue";
-    // final String caller = "theCaller";
-    // final FactoryResourceIdentifier identifier = new
-    // FactoryResourceIdentifier(EventQueueService.SERVICE_NAME,
-    // EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
-    //
-    // final EventQueue firstQueue = new EventQueue();
-    // firstQueue.setEvents(new ArrayList<Event>());
-    // firstQueue.setResourcePath(name);
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "update");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // oneOf(em).remove(with(any(EventQueue.class)));
-    // oneOf(binding).unbind(name);
-    // inSequence(sq1);
-    // }
-    // });
-    //
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    //
-    // eqsb.removeQueue(name);
-    //
-    // logger.info("Second Passage pour verification TREQ");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "update");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(null));
-    // inSequence(sq1);
-    //
-    // oneOf(ctx).setRollbackOnly();
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    // eqsb.removeQueue(name);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    //
-    // mockery.assertIsSatisfied();
-    //
-    // }
-    //
-    // /**
-    // * Test deletion of an inexistant queue
-    // *
-    // * @throws InvalidPathException
-    // * @throws PathNotFoundException
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // */
-    // @Test(expected = EventQueueServiceException.class)
-    // public void testRemoveNotExistingQueue() throws InvalidPathException,
-    // PathNotFoundException, MembershipServiceException, PEPServiceException {
-    //
-    // logger.debug("testing testRemoveNotExistingQueue(...)");
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // final String name = "myQueue";
-    // final String caller = "theCaller";
-    // final FactoryResourceIdentifier identifier = new
-    // FactoryResourceIdentifier(EventQueueService.SERVICE_NAME,
-    // EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
-    //
-    // final EventQueue firstQueue = new EventQueue();
-    // firstQueue.setEvents(new ArrayList<Event>());
-    // firstQueue.setResourcePath(name);
-    //
-    // logger.info(" verification TRNEQ");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "update");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(throwException(with(any(EventQueueServiceException.class))));
-    // inSequence(sq1);
-    //
-    // oneOf(ctx).setRollbackOnly();
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // eqsb.removeQueue(name);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    //
-    // mockery.assertIsSatisfied();
-    //
-    // }
-    //
-    // /**
-    // * Test search by date of an event in an eventqueue
-    // *
-    // * @throws InvalidPathException
-    // * @throws PathNotFoundException
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // */
-    // public void testfindEventByDate() throws InvalidPathException,
-    // PathNotFoundException, MembershipServiceException, PEPServiceException {
-    //
-    // logger.debug("testing testfindEventByDate(...)");
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // final String name = "myQueue";
-    // final String caller = "theCaller";
-    // final FactoryResourceIdentifier identifier = new
-    // FactoryResourceIdentifier(EventQueueService.SERVICE_NAME,
-    // EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
-    //
-    // final EventQueue firstQueue = new EventQueue();
-    // ArrayList<Event> a = new ArrayList<Event>();
-    // a.add(new Event());
-    // a.add(new Event());
-    // a.add(new Event());
-    //
-    // firstQueue.setEvents(a);
-    // firstQueue.setResourcePath(name);
-    //
-    // logger.info(" verification TRNEQ");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventByDate(name, new Date()));
-    // assertEquals(myTab.length, 0);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    //
-    // mockery.assertIsSatisfied();
-    //
-    // }
-    //
-    // /**
-    // * Test search of an event in a queue, using a time interval
-    // *
-    // * @throws InvalidPathException
-    // * @throws PathNotFoundException
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // */
-    //
-    // public void testfindEventByDateBetween() throws InvalidPathException,
-    // PathNotFoundException, MembershipServiceException, PEPServiceException {
-    //
-    // logger.debug("testing testfindEventByDateBetween(...)");
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // final String name = "myQueue";
-    // final String caller = "theCaller";
-    // final FactoryResourceIdentifier identifier = new
-    // FactoryResourceIdentifier(EventQueueService.SERVICE_NAME,
-    // EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
-    //
-    // final EventQueue firstQueue = new EventQueue();
-    // ArrayList<Event> a = new ArrayList<Event>();
-    // a.add(new Event());
-    //
-    // Date dTest = new Date();
-    // a.add(new Event());
-    // a.add(new Event());
-    // Date dTest2 = new Date();
-    //
-    // a.add(new Event());
-    //
-    // firstQueue.setEvents(a);
-    // firstQueue.setResourcePath(name);
-    //
-    // logger.info(" verification TRNEQ");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    //
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // a.add(new Event());
-    //
-    // Event[] myTab = (Event[]) (eqsb.findEventByDateBetween(name, dTest, new
-    // Date()));
-    // assertEquals(myTab.length, 5);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    //
-    // mockery.assertIsSatisfied();
-    //
-    // // entre 2 dates choix arbitrairement
-    //
-    // logger.info("2ieme test");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventByDateBetween(name, dTest,
-    // dTest2));
-    // assertEquals(myTab.length, 4);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    //
-    // mockery.assertIsSatisfied();
-    // }
-    //
-    // /**
-    // * Test search of an event before a given date
-    // *
-    // * @throws InvalidPathException
-    // * @throws PathNotFoundException
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // */
-    //
-    // public void testfindEventByDateInf() throws InvalidPathException,
-    // PathNotFoundException, MembershipServiceException, PEPServiceException {
-    //
-    // logger.debug("testing testfindEventByDateInf(...)");
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // final String name = "myQueue";
-    // final String caller = "theCaller";
-    // final FactoryResourceIdentifier identifier = new
-    // FactoryResourceIdentifier(EventQueueService.SERVICE_NAME,
-    // EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
-    // final EventQueue firstQueue = new EventQueue();
-    // ArrayList<Event> a = new ArrayList<Event>();
-    // a.add(new Event());
-    //
-    // Date dTest = new Date();
-    // a.add(new Event());
-    // a.add(new Event());
-    // Date dTest2 = new Date();
-    //
-    // a.add(new Event());
-    //
-    // firstQueue.setEvents(a);
-    // firstQueue.setResourcePath(name);
-    //
-    // logger.info(" verification TRNEQ");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    //
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // a.add(new Event());
-    //
-    // Event[] myTab = (Event[]) (eqsb.findEventByDateInf(name, dTest));
-    // assertEquals(myTab.length, 4);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    //
-    // mockery.assertIsSatisfied();
-    //
-    // // avant dTest 2
-    //
-    // logger.info("2ieme test");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventByDateInf(name, dTest2));
-    // assertEquals(myTab.length, 4);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    //
-    // mockery.assertIsSatisfied();
-    // }
-    //
-    // /**
-    // * Test search of an event after a given date
-    // *
-    // * @throws InvalidPathException
-    // * @throws PathNotFoundException
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // */
-    // public void testfindEventByDateSup() throws InvalidPathException,
-    // PathNotFoundException, MembershipServiceException, PEPServiceException {
-    //
-    // logger.debug("testing testfindEventByDateInf(...)");
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // final String name = "myQueue";
-    // final String caller = "theCaller";
-    // final FactoryResourceIdentifier identifier = new
-    // FactoryResourceIdentifier(EventQueueService.SERVICE_NAME,
-    // EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
-    // final EventQueue firstQueue = new EventQueue();
-    // ArrayList<Event> a = new ArrayList<Event>();
-    // a.add(new Event());
-    //
-    // Date dTest = new Date();
-    // a.add(new Event());
-    // a.add(new Event());
-    // a.add(new Event());
-    //
-    // firstQueue.setEvents(a);
-    // firstQueue.setResourcePath(name);
-    //
-    // logger.info(" verification TRNEQ");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    //
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventByDateSup(name, dTest));
-    // assertEquals(myTab.length, 4);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    //
-    // mockery.assertIsSatisfied();
-    //
-    // // avant dTest 2
-    //
-    // logger.info("2ieme test");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    // Date dTest2 = new Date();
-    // a.add(new Event());
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventByDateSup(name, dTest2));
-    // assertEquals(myTab.length, 1);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    //
-    // mockery.assertIsSatisfied();
-    // }
-    //
-    // /**
-    // * Test search of an event by eventType
-    // *
-    // * @throws InvalidPathException
-    // * @throws PathNotFoundException
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // */
-    //
-    // public void testfindEventByEventType() throws InvalidPathException,
-    // PathNotFoundException, MembershipServiceException, PEPServiceException {
-    //
-    // logger.debug("testing testfindEventByEventType(...)");
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // final String name = "myQueue";
-    // final String caller = "theCaller";
-    // final FactoryResourceIdentifier identifier = new
-    // FactoryResourceIdentifier(EventQueueService.SERVICE_NAME,
-    // EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
-    // final EventQueue firstQueue = new EventQueue();
-    // ArrayList<Event> a = new ArrayList<Event>();
-    // a.add(new Event("/name", "Rule", "eventype", ""));
-    // a.add(new Event("/ressource", "Rule", "eventype2", ""));
-    // a.add(new Event("/ressource2", "Rule", "eventype3", ""));
-    //
-    // logger.info(" verification TRNEQ");
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // oneOf(ctx).setRollbackOnly();
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventByEventType(name, "eventype",
-    // false));
-    // assertEquals(myTab.length, 0);
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    // mockery.assertIsSatisfied();
-    //
-    // //
-    // firstQueue.setEvents(a);
-    // firstQueue.setResourcePath(name);
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventByEventType(name, "eventype",
-    // true));
-    // assertEquals(myTab.length, 3);
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    // mockery.assertIsSatisfied();
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventByEventType(name, "eventype",
-    // false));
-    // assertEquals(myTab.length, 1);
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    // mockery.assertIsSatisfied();
-    // }
-    //
-    // /**
-    // * Test exceptionnal cases of events searches with their types
-    // *
-    // * @throws InvalidPathException
-    // * @throws PathNotFoundException
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // */
-    // public void testfindEventByEventTypeNullParameter() throws
-    // InvalidPathException, PathNotFoundException, MembershipServiceException,
-    // PEPServiceException {
-    // logger.debug("testing testfindEventByEventTypeNullParameter(...)");
-    //
-    // final String name = "myQueue";
-    // final EventQueue firstQueue = new EventQueue();
-    // ArrayList<Event> a = new ArrayList<Event>();
-    // a.add(new Event("/name", "Rule", "eventype", ""));
-    // a.add(new Event("/ressource", "Rule", "eventype2", ""));
-    // a.add(new Event("/ressource2", "Rule", "eventype3", ""));
-    //
-    // firstQueue.setEvents(a);
-    // firstQueue.setResourcePath(name);
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    // oneOf(ctx).setRollbackOnly();
-    // }
-    // });
-    //
-    // logger.info(" verification TRNEQ");
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // eqsb.findEventByEventType(name, null, true);
-    // eqsb.findEventByEventType(null, "eventype", false);
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    // mockery.assertIsSatisfied();
-    // }
-    //
-    // /**
-    // * Test search of an event by type of resource
-    // *
-    // * @throws InvalidPathException
-    // * @throws PathNotFoundException
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // */
-    //
-    // public void testfindEventRessourceType() throws InvalidPathException,
-    // PathNotFoundException, MembershipServiceException, PEPServiceException {
-    // logger.debug("testing testfindEventfromRessource(...)");
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // final String name = "myQueue";
-    // final String caller = "theCaller";
-    // final String ressource = "RessourceType";
-    // final FactoryResourceIdentifier identifier = new
-    // FactoryResourceIdentifier(EventQueueService.SERVICE_NAME,
-    // EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
-    //
-    // final EventQueue firstQueue = new EventQueue();
-    // ArrayList<Event> a = new ArrayList<Event>();
-    // a.add(new Event("", "", ressource, "", ""));
-    // a.add(new Event("", "", "anOtherRessourceType", "", ""));
-    // a.add(new Event("", "", "TheRessourceType", "", ""));
-    //
-    // firstQueue.setEvents(a);
-    // firstQueue.setResourcePath(name);
-    //
-    // logger.info(" verification TFERT");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // oneOf(ctx).setRollbackOnly();
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventByRessourceType(name, ressource,
-    // true));
-    // assertEquals(myTab.length, 3);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    //
-    // mockery.assertIsSatisfied();
-    //
-    // // deuxieme exactement type ressource : RessourceType
-    // a.add(new Event("", "", "ressourceType", "", ""));
-    // firstQueue.setEvents(a);
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // oneOf(ctx).setRollbackOnly();
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventByRessourceType(name, ressource,
-    // false));
-    // assertEquals(myTab.length, 1);
-    // assertEquals(myTab[0].getThrowedBy(), ressource);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    // mockery.assertIsSatisfied();
-    // }
-    //
-    // /**
-    // * Test exceptionnal cases of events searches with their type of resource
-    // *
-    // * @throws InvalidPathException
-    // * @throws PathNotFoundException
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // */
-    // public void testfindEventByRessourceTypeNullParameter() throws
-    // InvalidPathException, PathNotFoundException, MembershipServiceException,
-    // PEPServiceException {
-    // logger.debug("testing testfindEventByRessourceTypeNullParameter(...)");
-    //
-    // final String name = "myQueue";
-    // final EventQueue firstQueue = new EventQueue();
-    // ArrayList<Event> a = new ArrayList<Event>();
-    // a.add(new Event("/name", "Rule", "eventype", ""));
-    // a.add(new Event("/ressource", "Rule", "eventype2", ""));
-    // a.add(new Event("/ressource2", "Rule", "eventype3", ""));
-    //
-    // firstQueue.setEvents(a);
-    // firstQueue.setResourcePath(name);
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    // oneOf(ctx).setRollbackOnly();
-    // }
-    // });
-    //
-    // logger.info(" verification TFEBRTNP");
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // eqsb.findEventByFromRessource(name, null, true);
-    // eqsb.findEventByFromRessource(null, "eventype", false);
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    // mockery.assertIsSatisfied();
-    // }
-    //
-    // /**
-    // * Test search of an event by resource
-    // *
-    // * @throws InvalidPathException
-    // * @throws PathNotFoundException
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // */
-    //
-    // public void testfindEventFromRessource() throws InvalidPathException,
-    // PathNotFoundException, MembershipServiceException, PEPServiceException {
-    // logger.debug("testing testfindEventfromRessource(...)");
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // final String name = "myQueue";
-    // final String caller = "theCaller";
-    // final String ressource = "Ressource";
-    // final FactoryResourceIdentifier identifier = new
-    // FactoryResourceIdentifier(EventQueueService.SERVICE_NAME,
-    // EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
-    //
-    // final EventQueue firstQueue = new EventQueue();
-    // ArrayList<Event> a = new ArrayList<Event>();
-    // a.add(new Event(ressource, "", "", "", ""));
-    // a.add(new Event("anOtherRessource", "", "", "", ""));
-    // a.add(new Event("TheRessource", "", "", "", ""));
-    //
-    // firstQueue.setEvents(a);
-    // firstQueue.setResourcePath(name);
-    //
-    // logger.info(" verification TFEFR");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // oneOf(ctx).setRollbackOnly();
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventByRessourceType(name, ressource,
-    // true));
-    // assertEquals(myTab.length, 3);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    //
-    // mockery.assertIsSatisfied();
-    //
-    // // deuxieme exactement nom ressource : Ressource
-    // a.add(new Event("ressource", "", "", "", ""));
-    // firstQueue.setEvents(a);
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // oneOf(ctx).setRollbackOnly();
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventByRessourceType(name, ressource,
-    // false));
-    // assertEquals(myTab.length, 1);
-    // assertEquals(myTab[0].getThrowedBy(), ressource);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    // mockery.assertIsSatisfied();
-    // }
-    //
-    // /**
-    // * Test exceptionnal cases of events searches from resources
-    // *
-    // * @throws InvalidPathException
-    // * @throws PathNotFoundException
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // */
-    // public void testfindEventFromRessourceNullParameter() throws
-    // InvalidPathException, PathNotFoundException, MembershipServiceException,
-    // PEPServiceException {
-    // logger.debug("testing testfindEventFromRessourceNullParameter(...)");
-    //
-    // final String name = "myQueue";
-    // final EventQueue firstQueue = new EventQueue();
-    // ArrayList<Event> a = new ArrayList<Event>();
-    // a.add(new Event("/name", "Rule", "eventype", ""));
-    // a.add(new Event("/ressource", "Rule", "eventype2", ""));
-    // a.add(new Event("/ressource2", "Rule", "eventype3", ""));
-    //
-    // firstQueue.setEvents(a);
-    // firstQueue.setResourcePath(name);
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    // oneOf(ctx).setRollbackOnly();
-    // }
-    // });
-    //
-    // logger.info(" verification TFEFRNP");
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // eqsb.findEventByFromRessource(name, null, true);
-    // eqsb.findEventByFromRessource(null, "eventype", false);
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    // mockery.assertIsSatisfied();
-    // }
-    //
-    // /**
-    // * Test if an event is in an EventQueue
-    // *
-    // * @throws InvalidPathException
-    // * @throws PathNotFoundException
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // */
-    // public void testfindObjectEvent() throws InvalidPathException,
-    // PathNotFoundException, MembershipServiceException, PEPServiceException {
-    // logger.debug("testing testfindObjectEvent(...)");
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // final String name = "myQueue";
-    // final String caller = "theCaller";
-    // final FactoryResourceIdentifier identifier = new
-    // FactoryResourceIdentifier(EventQueueService.SERVICE_NAME,
-    // EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
-    // final EventQueue firstQueue = new EventQueue();
-    // ArrayList<Event> a = new ArrayList<Event>();
-    // Event e1 = new Event("/name", "Rule", "eventype", "");
-    // Event e2 = new Event("/name2", "Rule3", "eventypeAlpha", "args");
-    // a.add(new Event("/name", "Rule", "eventype", ""));
-    // a.add(new Event("/ressource", "Rule", "eventype2", ""));
-    // a.add(new Event("/ressource2", "Rule", "eventype3", ""));
-    // firstQueue.setEvents(a);
-    // firstQueue.setResourcePath(name);
-    //
-    // logger.info(" verification TFOE");
-    // // Event e1 est dans la queue firstqueue
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findObjectEvent(name, e1));
-    // assertEquals(myTab.length, 1);
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    // mockery.assertIsSatisfied();
-    // // Event e2 n'est pas dans la queue firstqueue
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findObjectEvent(name, e2));
-    // assertEquals(myTab.length, 0);
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    // mockery.assertIsSatisfied();
-    // }
-    //
-    // /**
-    // * Test search of an event by thrower in a queue
-    // *
-    // * @throws InvalidPathException
-    // * @throws PathNotFoundException
-    // * @throws MembershipServiceException
-    // * @throws PEPServiceException
-    // */
-    //
-    // public void testfindEventBythrower() throws InvalidPathException,
-    // PathNotFoundException, MembershipServiceException, PEPServiceException {
-    //
-    // logger.debug("testing testfindEventBythrower(...)");
-    // final Sequence sq1 = mockery.sequence("seq1");
-    //
-    // final String name = "myQueue";
-    // final String caller = "theCaller";
-    // final String thrower1 = "Thrower";
-    // final FactoryResourceIdentifier identifier = new
-    // FactoryResourceIdentifier(EventQueueService.SERVICE_NAME,
-    // EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
-    //
-    // final EventQueue firstQueue = new EventQueue();
-    // ArrayList<Event> a = new ArrayList<Event>();
-    // a.add(new Event("", thrower1, "", "", ""));
-    // a.add(new Event("", "anOtherThrower", "", "", ""));
-    // a.add(new Event("", "TheThrower1", "", "", ""));
-    //
-    // firstQueue.setEvents(a);
-    // firstQueue.setResourcePath(name);
-    //
-    // logger.info(" verification TFEBT");
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventBythrower(name, thrower1,
-    // true));
-    // assertEquals(myTab.length, 3);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    //
-    // mockery.assertIsSatisfied();
-    //
-    // // recherche exactement nom thrower : Thrower
-    // a.add(new Event("", "thrower2", "", "", ""));
-    // firstQueue.setEvents(a);
-    //
-    // mockery.checking(new Expectations() {
-    // {
-    //
-    // oneOf(binding).lookup(name);
-    // will(returnValue(identifier));
-    // inSequence(sq1);
-    //
-    // oneOf(membership).getProfilePathForConnectedIdentifier();
-    // will(returnValue(caller));
-    // inSequence(sq1);
-    //
-    // oneOf(pep).checkSecurity(caller, name, "read");
-    // inSequence(sq1);
-    //
-    // oneOf(em).find(with(EventQueue.class), with(any(String.class)));
-    // will(returnValue(firstQueue));
-    // inSequence(sq1);
-    //
-    // }
-    // });
-    //
-    // try {
-    // EventQueueServiceBean eqsb = getBeanToTest();
-    // Event[] myTab = (Event[]) (eqsb.findEventBythrower(name, thrower1,
-    // false));
-    // assertEquals(myTab.length, 1);
-    // assertEquals(myTab[0].getThrowedBy(), thrower1);
-    //
-    // } catch (EventQueueServiceException e) {
-    // logger.info("exception generated : " + e.getMessage());
-    // }
-    // mockery.assertIsSatisfied();
-    // }
-    //
+
+    /**
+     * Test the deletion of an event which doesn't exist in an eventqueue.
+     * 
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     * @throws BindingServiceException
+     * @throws PAPServiceException
+     * @throws EventQueueServiceException
+     */
+    public void testDeleteEventNotInTheQueue() throws MembershipServiceException, PEPServiceException, BindingServiceException, PAPServiceException,
+            EventQueueServiceException {
+        logger.debug("testing testDeleteEventNotInTheQueue(...)");
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        final String name = "myQueue";
+        final String caller = "theCaller";
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+
+        final EventQueue firstQueue = new EventQueue();
+        Event e = new Event("aResource", "aService", "aType", "anEventType", "");
+        ArrayList<Event> ale = new ArrayList<Event>();
+        ale.add(e);
+        firstQueue.setEvents(ale);
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "update");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+                oneOf(em).merge(with(any(EventQueue.class)));
+                inSequence(sq1);
+
+            }
+        });
+
+        EventQueueServiceBean eqsb = getBeanToTest();
+
+        eqsb.deleteEvent(name, e);
+
+        logger.info("TDENITQ");
+
+        assertEquals(firstQueue.getEvents().size(), 0);
+
+        mockery.assertIsSatisfied();
+
+    }
+
+    /**
+     * Test the deletion of an event which exist in an eventqueue.
+     * 
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     * @throws BindingServiceException
+     * @throws PAPServiceException
+     * @throws EventQueueServiceException
+     */
+    public void testDeleteEventInTheQueue() throws MembershipServiceException, PEPServiceException, BindingServiceException, PAPServiceException,
+            EventQueueServiceException {
+        logger.debug("testing testDeleteEventInTheQueue(...)");
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        final String name = "myQueue";
+        final String caller = "theCaller";
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+
+        final EventQueue firstQueue = new EventQueue();
+        Event e1 = new Event("aResource", "aService", "aType", "anEventType", "");
+        ArrayList<Event> eventL = new ArrayList<Event>();
+        eventL.add(e1);
+        firstQueue.setEvents(eventL);
+        firstQueue.setResourcePath(name);
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "update");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+                // 1.code source d'eventQueue a reverifier car faux!!!( n'enlve
+                // rien ou peut etre dernier)
+                // 2. code corrige : Amrou L460
+
+                oneOf(em).merge(with(any(EventQueue.class)));
+                inSequence(sq1);
+            }
+        });
+
+        EventQueueServiceBean eqsb = getBeanToTest();
+        eqsb.deleteEvent(name, e1);
+        logger.info("TDENITQ");
+
+        assertEquals(firstQueue.getEvents().size(), 0);
+
+        mockery.assertIsSatisfied();
+
+    }
+
+    /**
+     * Test deletion of an existing queue
+     * 
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     * @throws BindingServiceException
+     * @throws EventQueueServiceException 
+     */
+    @Test(expected = EventQueueServiceException.class)
+    public void testRemoveExistingQueue() throws MembershipServiceException, PEPServiceException, BindingServiceException, EventQueueServiceException {
+
+        logger.debug("testing testRemoveExistingQueue(...)");
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        final String name = "myQueue";
+        final String caller = "theCaller";
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+
+        final EventQueue firstQueue = new EventQueue();
+        firstQueue.setEvents(new ArrayList<Event>());
+        firstQueue.setResourcePath(name);
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "update");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+                oneOf(em).remove(with(any(EventQueue.class)));
+                oneOf(binding).unbind(name);
+                inSequence(sq1);
+            }
+        });
+
+        EventQueueServiceBean eqsb = getBeanToTest();
+
+            eqsb.removeQueue(name);
+
+        logger.info("Second Passage pour verification TREQ");
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "update");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(null));
+                inSequence(sq1);
+
+                oneOf(ctx).setRollbackOnly();
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+            eqsb.removeQueue(name);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+
+        mockery.assertIsSatisfied();
+
+    }
+
+    /**
+     * Test deletion of an inexistant queue
+     * 
+     * @throws InvalidPathException
+     * @throws PathNotFoundException
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     */
+    @Test(expected = EventQueueServiceException.class)
+    public void testRemoveNotExistingQueue() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+
+        logger.debug("testing testRemoveNotExistingQueue(...)");
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        final String name = "myQueue";
+        final String caller = "theCaller";
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+
+        final EventQueue firstQueue = new EventQueue();
+        firstQueue.setEvents(new ArrayList<Event>());
+        firstQueue.setResourcePath(name);
+
+        logger.info(" verification TRNEQ");
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "update");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(throwException(with(any(EventQueueServiceException.class))));
+                inSequence(sq1);
+
+                oneOf(ctx).setRollbackOnly();
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            eqsb.removeQueue(name);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+
+        mockery.assertIsSatisfied();
+
+    }
+
+    /**
+     * Test search by date of an event in an eventqueue
+     * 
+     * @throws InvalidPathException
+     * @throws PathNotFoundException
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     */
+    public void testfindEventByDate() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+
+        logger.debug("testing testfindEventByDate(...)");
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        final String name = "myQueue";
+        final String caller = "theCaller";
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+
+        final EventQueue firstQueue = new EventQueue();
+        ArrayList<Event> a = new ArrayList<Event>();
+        a.add(new Event());
+        a.add(new Event());
+        a.add(new Event());
+
+        firstQueue.setEvents(a);
+        firstQueue.setResourcePath(name);
+
+        logger.info(" verification TRNEQ");
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventByDate(name, new Date()));
+            assertEquals(myTab.length, 0);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+
+        mockery.assertIsSatisfied();
+
+    }
+
+    /**
+     * Test search of an event in a queue, using a time interval
+     * 
+     * @throws InvalidPathException
+     * @throws PathNotFoundException
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     */
+
+    public void testfindEventByDateBetween() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+
+        logger.debug("testing testfindEventByDateBetween(...)");
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        final String name = "myQueue";
+        final String caller = "theCaller";
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+
+        final EventQueue firstQueue = new EventQueue();
+        ArrayList<Event> a = new ArrayList<Event>();
+        a.add(new Event());
+
+        Date dTest = new Date();
+        a.add(new Event());
+        a.add(new Event());
+        Date dTest2 = new Date();
+
+        a.add(new Event());
+
+        firstQueue.setEvents(a);
+        firstQueue.setResourcePath(name);
+
+        logger.info(" verification TRNEQ");
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+
+            EventQueueServiceBean eqsb = getBeanToTest();
+            a.add(new Event());
+
+            Event[] myTab = (Event[]) (eqsb.findEventByDateBetween(name, dTest, new Date()));
+            assertEquals(myTab.length, 5);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+
+        mockery.assertIsSatisfied();
+
+        // entre 2 dates choix arbitrairement
+
+        logger.info("2ieme test");
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventByDateBetween(name, dTest, dTest2));
+            assertEquals(myTab.length, 4);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+
+        mockery.assertIsSatisfied();
+    }
+
+    /**
+     * Test search of an event before a given date
+     * 
+     * @throws InvalidPathException
+     * @throws PathNotFoundException
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     */
+
+    public void testfindEventByDateInf() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+
+        logger.debug("testing testfindEventByDateInf(...)");
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        final String name = "myQueue";
+        final String caller = "theCaller";
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final EventQueue firstQueue = new EventQueue();
+        ArrayList<Event> a = new ArrayList<Event>();
+        a.add(new Event());
+
+        Date dTest = new Date();
+        a.add(new Event());
+        a.add(new Event());
+        Date dTest2 = new Date();
+
+        a.add(new Event());
+
+        firstQueue.setEvents(a);
+        firstQueue.setResourcePath(name);
+
+        logger.info(" verification TRNEQ");
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+
+            EventQueueServiceBean eqsb = getBeanToTest();
+            a.add(new Event());
+
+            Event[] myTab = (Event[]) (eqsb.findEventByDateInf(name, dTest));
+            assertEquals(myTab.length, 4);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+
+        mockery.assertIsSatisfied();
+
+        // avant dTest 2
+
+        logger.info("2ieme test");
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventByDateInf(name, dTest2));
+            assertEquals(myTab.length, 4);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+
+        mockery.assertIsSatisfied();
+    }
+
+    /**
+     * Test search of an event after a given date
+     * 
+     * @throws InvalidPathException
+     * @throws PathNotFoundException
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     */
+    public void testfindEventByDateSup() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+
+        logger.debug("testing testfindEventByDateInf(...)");
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        final String name = "myQueue";
+        final String caller = "theCaller";
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final EventQueue firstQueue = new EventQueue();
+        ArrayList<Event> a = new ArrayList<Event>();
+        a.add(new Event());
+
+        Date dTest = new Date();
+        a.add(new Event());
+        a.add(new Event());
+        a.add(new Event());
+
+        firstQueue.setEvents(a);
+        firstQueue.setResourcePath(name);
+
+        logger.info(" verification TRNEQ");
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventByDateSup(name, dTest));
+            assertEquals(myTab.length, 4);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+
+        mockery.assertIsSatisfied();
+
+        // avant dTest 2
+
+        logger.info("2ieme test");
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+            Date dTest2 = new Date();
+            a.add(new Event());
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventByDateSup(name, dTest2));
+            assertEquals(myTab.length, 1);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+
+        mockery.assertIsSatisfied();
+    }
+
+    /**
+     * Test search of an event by eventType
+     * 
+     * @throws InvalidPathException
+     * @throws PathNotFoundException
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     */
+
+    public void testfindEventByEventType() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+
+        logger.debug("testing testfindEventByEventType(...)");
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        final String name = "myQueue";
+        final String caller = "theCaller";
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final EventQueue firstQueue = new EventQueue();
+        ArrayList<Event> a = new ArrayList<Event>();
+        a.add(new Event("/name", "Rule", "eventype", ""));
+        a.add(new Event("/ressource", "Rule", "eventype2", ""));
+        a.add(new Event("/ressource2", "Rule", "eventype3", ""));
+
+        logger.info(" verification TRNEQ");
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+                oneOf(ctx).setRollbackOnly();
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventByEventType(name, "eventype", false));
+            assertEquals(myTab.length, 0);
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+        mockery.assertIsSatisfied();
+
+        //
+        firstQueue.setEvents(a);
+        firstQueue.setResourcePath(name);
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventByEventType(name, "eventype", true));
+            assertEquals(myTab.length, 3);
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+        mockery.assertIsSatisfied();
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventByEventType(name, "eventype", false));
+            assertEquals(myTab.length, 1);
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+        mockery.assertIsSatisfied();
+    }
+
+    /**
+     * Test exceptionnal cases of events searches with their types
+     * 
+     * @throws InvalidPathException
+     * @throws PathNotFoundException
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     */
+    public void testfindEventByEventTypeNullParameter() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+        logger.debug("testing testfindEventByEventTypeNullParameter(...)");
+
+        final String name = "myQueue";
+        final EventQueue firstQueue = new EventQueue();
+        ArrayList<Event> a = new ArrayList<Event>();
+        a.add(new Event("/name", "Rule", "eventype", ""));
+        a.add(new Event("/ressource", "Rule", "eventype2", ""));
+        a.add(new Event("/ressource2", "Rule", "eventype3", ""));
+
+        firstQueue.setEvents(a);
+        firstQueue.setResourcePath(name);
+
+        mockery.checking(new Expectations() {
+            {
+                oneOf(ctx).setRollbackOnly();
+            }
+        });
+
+        logger.info(" verification TRNEQ");
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            eqsb.findEventByEventType(name, null, true);
+            eqsb.findEventByEventType(null, "eventype", false);
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+        mockery.assertIsSatisfied();
+    }
+
+    /**
+     * Test search of an event by type of resource
+     * 
+     * @throws InvalidPathException
+     * @throws PathNotFoundException
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     */
+
+    public void testfindEventRessourceType() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+        logger.debug("testing testfindEventfromRessource(...)");
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        final String name = "myQueue";
+        final String caller = "theCaller";
+        final String ressource = "RessourceType";
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+
+        final EventQueue firstQueue = new EventQueue();
+        ArrayList<Event> a = new ArrayList<Event>();
+        a.add(new Event("", "", ressource, "", ""));
+        a.add(new Event("", "", "anOtherRessourceType", "", ""));
+        a.add(new Event("", "", "TheRessourceType", "", ""));
+
+        firstQueue.setEvents(a);
+        firstQueue.setResourcePath(name);
+
+        logger.info(" verification TFERT");
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+                oneOf(ctx).setRollbackOnly();
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventByRessourceType(name, ressource, true));
+            assertEquals(myTab.length, 3);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+
+        mockery.assertIsSatisfied();
+
+        // deuxieme exactement type ressource : RessourceType
+        a.add(new Event("", "", "ressourceType", "", ""));
+        firstQueue.setEvents(a);
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+                oneOf(ctx).setRollbackOnly();
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventByRessourceType(name, ressource, false));
+            assertEquals(myTab.length, 1);
+            assertEquals(myTab[0].getThrowedBy(), ressource);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+        mockery.assertIsSatisfied();
+    }
+
+    /**
+     * Test exceptionnal cases of events searches with their type of resource
+     * 
+     * @throws InvalidPathException
+     * @throws PathNotFoundException
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     */
+    public void testfindEventByRessourceTypeNullParameter() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+        logger.debug("testing testfindEventByRessourceTypeNullParameter(...)");
+
+        final String name = "myQueue";
+        final EventQueue firstQueue = new EventQueue();
+        ArrayList<Event> a = new ArrayList<Event>();
+        a.add(new Event("/name", "Rule", "eventype", ""));
+        a.add(new Event("/ressource", "Rule", "eventype2", ""));
+        a.add(new Event("/ressource2", "Rule", "eventype3", ""));
+
+        firstQueue.setEvents(a);
+        firstQueue.setResourcePath(name);
+
+        mockery.checking(new Expectations() {
+            {
+                oneOf(ctx).setRollbackOnly();
+            }
+        });
+
+        logger.info(" verification TFEBRTNP");
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            eqsb.findEventByFromRessource(name, null, true);
+            eqsb.findEventByFromRessource(null, "eventype", false);
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+        mockery.assertIsSatisfied();
+    }
+
+    /**
+     * Test search of an event by resource
+     * 
+     * @throws InvalidPathException
+     * @throws PathNotFoundException
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     */
+
+    public void testfindEventFromRessource() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+        logger.debug("testing testfindEventfromRessource(...)");
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        final String name = "myQueue";
+        final String caller = "theCaller";
+        final String ressource = "Ressource";
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+
+        final EventQueue firstQueue = new EventQueue();
+        ArrayList<Event> a = new ArrayList<Event>();
+        a.add(new Event(ressource, "", "", "", ""));
+        a.add(new Event("anOtherRessource", "", "", "", ""));
+        a.add(new Event("TheRessource", "", "", "", ""));
+
+        firstQueue.setEvents(a);
+        firstQueue.setResourcePath(name);
+
+        logger.info(" verification TFEFR");
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+                oneOf(ctx).setRollbackOnly();
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventByRessourceType(name, ressource, true));
+            assertEquals(myTab.length, 3);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+
+        mockery.assertIsSatisfied();
+
+        // deuxieme exactement nom ressource : Ressource
+        a.add(new Event("ressource", "", "", "", ""));
+        firstQueue.setEvents(a);
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+                oneOf(ctx).setRollbackOnly();
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventByRessourceType(name, ressource, false));
+            assertEquals(myTab.length, 1);
+            assertEquals(myTab[0].getThrowedBy(), ressource);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+        mockery.assertIsSatisfied();
+    }
+
+    /**
+     * Test exceptionnal cases of events searches from resources
+     * 
+     * @throws InvalidPathException
+     * @throws PathNotFoundException
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     */
+    public void testfindEventFromRessourceNullParameter() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+        logger.debug("testing testfindEventFromRessourceNullParameter(...)");
+
+        final String name = "myQueue";
+        final EventQueue firstQueue = new EventQueue();
+        ArrayList<Event> a = new ArrayList<Event>();
+        a.add(new Event("/name", "Rule", "eventype", ""));
+        a.add(new Event("/ressource", "Rule", "eventype2", ""));
+        a.add(new Event("/ressource2", "Rule", "eventype3", ""));
+
+        firstQueue.setEvents(a);
+        firstQueue.setResourcePath(name);
+
+        mockery.checking(new Expectations() {
+            {
+                oneOf(ctx).setRollbackOnly();
+            }
+        });
+
+        logger.info(" verification TFEFRNP");
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            eqsb.findEventByFromRessource(name, null, true);
+            eqsb.findEventByFromRessource(null, "eventype", false);
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+        mockery.assertIsSatisfied();
+    }
+
+    /**
+     * Test if an event is in an EventQueue
+     * 
+     * @throws InvalidPathException
+     * @throws PathNotFoundException
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     */
+    public void testfindObjectEvent() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+        logger.debug("testing testfindObjectEvent(...)");
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        final String name = "myQueue";
+        final String caller = "theCaller";
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final EventQueue firstQueue = new EventQueue();
+        ArrayList<Event> a = new ArrayList<Event>();
+        Event e1 = new Event("/name", "Rule", "eventype", "");
+        Event e2 = new Event("/name2", "Rule3", "eventypeAlpha", "args");
+        a.add(new Event("/name", "Rule", "eventype", ""));
+        a.add(new Event("/ressource", "Rule", "eventype2", ""));
+        a.add(new Event("/ressource2", "Rule", "eventype3", ""));
+        firstQueue.setEvents(a);
+        firstQueue.setResourcePath(name);
+
+        logger.info(" verification TFOE");
+        // Event e1 est dans la queue firstqueue
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findObjectEvent(name, e1));
+            assertEquals(myTab.length, 1);
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+        mockery.assertIsSatisfied();
+        // Event e2 n'est pas dans la queue firstqueue
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findObjectEvent(name, e2));
+            assertEquals(myTab.length, 0);
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+        mockery.assertIsSatisfied();
+    }
+
+    /**
+     * Test search of an event by thrower in a queue
+     * 
+     * @throws InvalidPathException
+     * @throws PathNotFoundException
+     * @throws MembershipServiceException
+     * @throws PEPServiceException
+     */
+
+    public void testfindEventBythrower() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+
+        logger.debug("testing testfindEventBythrower(...)");
+        final Sequence sq1 = mockery.sequence("seq1");
+
+        final String name = "myQueue";
+        final String caller = "theCaller";
+        final String thrower1 = "Thrower";
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+
+        final EventQueue firstQueue = new EventQueue();
+        ArrayList<Event> a = new ArrayList<Event>();
+        a.add(new Event("", thrower1, "", "", ""));
+        a.add(new Event("", "anOtherThrower", "", "", ""));
+        a.add(new Event("", "TheThrower1", "", "", ""));
+
+        firstQueue.setEvents(a);
+        firstQueue.setResourcePath(name);
+
+        logger.info(" verification TFEBT");
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventBythrower(name, thrower1, true));
+            assertEquals(myTab.length, 3);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+
+        mockery.assertIsSatisfied();
+
+        // recherche exactement nom thrower : Thrower
+        a.add(new Event("", "thrower2", "", "", ""));
+        firstQueue.setEvents(a);
+
+        mockery.checking(new Expectations() {
+            {
+
+                oneOf(binding).lookup(name);
+                will(returnValue(identifier));
+                inSequence(sq1);
+
+                oneOf(membership).getProfilePathForConnectedIdentifier();
+                will(returnValue(caller));
+                inSequence(sq1);
+
+                oneOf(pep).checkSecurity(caller, name, "read");
+                inSequence(sq1);
+
+                oneOf(em).find(with(EventQueue.class), with(any(String.class)));
+                will(returnValue(firstQueue));
+                inSequence(sq1);
+
+            }
+        });
+
+        try {
+            EventQueueServiceBean eqsb = getBeanToTest();
+            Event[] myTab = (Event[]) (eqsb.findEventBythrower(name, thrower1, false));
+            assertEquals(myTab.length, 1);
+            assertEquals(myTab[0].getThrowedBy(), thrower1);
+
+        } catch (EventQueueServiceException e) {
+            logger.info("exception generated : " + e.getMessage());
+        }
+        mockery.assertIsSatisfied();
+    }
+
 }
