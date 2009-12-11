@@ -255,10 +255,18 @@ public class NotificationServiceBean implements NotificationService {
         Query q = em.createQuery("SELECT r FROM Rule r WHERE 0=0 " + (subjectre != null ? "AND r.subjectre=:subjectre" : "") + " "
                 + (objectre != null ? "AND r.objectre=:objectre" : "") + " " + (targetre != null ? "AND r.targetre=:targetre" : "") + " "
                 + (queue != null ? "AND r.queuePath =:queue" : ""));
-        q.setParameter("subjectre", subjectre);
-        q.setParameter("objectre", objectre);
-        q.setParameter("targetre", targetre);
-        q.setParameter("queue", queue);
+        if (subjectre != null) {
+            q.setParameter("subjectre", subjectre);
+        }
+        if (objectre != null) {
+            q.setParameter("objectre", objectre);
+        }
+        if (targetre != null) {
+            q.setParameter("targetre", targetre);
+        }
+        if (queue != null) {
+            q.setParameter("queue", queue);
+        }
         List<?> l = q.getResultList();
         Rule[] tab = new Rule[l.size()];
         tab = l.toArray(tab);
