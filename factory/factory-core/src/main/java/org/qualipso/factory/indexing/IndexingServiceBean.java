@@ -174,11 +174,13 @@ public class IndexingServiceBean implements IndexingService {
 				SearchResult current = iter.next();
 				String path = current.getPath();
 				logger.info("filter(...) called current resource path"+path);
-				pep.checkSecurity(profile, path, "read");
-				checkedRes.add(current);
+				try {
+                    pep.checkSecurity(profile, path, "read");
+                    checkedRes.add(current);
+                    }catch(Exception e){}
 			}
 		}catch(Exception e){
-			logger.error("Error in indexingservice when filtring searchResult", e);
+			logger.error("unable to filter result of search", e);
             ctx.setRollbackOnly();
             throw new IndexingServiceException("Error in indexingservice when filtring searchResult", e);  
 		}
