@@ -164,7 +164,6 @@ public class IndexingServiceBean implements IndexingService {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     private ArrayList<SearchResult> filter(ArrayList<SearchResult> uncheckedRes) throws IndexingServiceException {
 		logger.info("filter(...) called ");
-		try{logger.info("profile "+membership.getProfilePathForConnectedIdentifier() );	}catch(Exception e){}
 		logger.debug("params : UnchedSearchResult= " + uncheckedRes);
 		Iterator<SearchResult> iter = uncheckedRes.iterator();
 		ArrayList<SearchResult> checkedRes = new ArrayList<SearchResult>();
@@ -173,7 +172,6 @@ public class IndexingServiceBean implements IndexingService {
 			while(iter.hasNext()){
 				SearchResult current = iter.next();
 				String path = current.getPath();
-				logger.info("filter(...) called current resource path"+path);
 				try {
                     pep.checkSecurity(profile, path, "read");
                     checkedRes.add(current);

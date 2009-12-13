@@ -30,7 +30,6 @@ import org.apache.lucene.store.FSDirectory;
 public class Index implements IndexI {
 	private static Index instance;
 	private static String indexFolderName = "data/index/";
-	//private Directory indexDirectory;
 	private File indexDir;
 	private Analyzer analyzer;
 	private IndexWriter writer;
@@ -40,36 +39,26 @@ public class Index implements IndexI {
 	
 		indexDir = new File(indexFolderName);
 		analyzer = new QualipsoAnalyzer();
-		/*
-		if (indexDir.exists() && indexDir.isDirectory()) {
-			indexDirectory = FSDirectory.getDirectory(indexFolderName);
-		} else {
-			indexDir.mkdirs();
-			indexDirectory = FSDirectory.getDirectory(indexFolderName);
 
-			// Build the index
-			writer = new IndexWriter(indexDirectory, analyzer, true);
-			writer.close();
-		}*/
 		synchronized(this){
-		if (!indexDir.exists()){ 
-	   	 writer = new IndexWriter(FSDirectory.open(indexDir), analyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
-	   	 writer.close();
-	   	 }
+		    if (!indexDir.exists()){ 
+    	   	 writer = new IndexWriter(FSDirectory.open(indexDir), analyzer, true, IndexWriter.MaxFieldLength.UNLIMITED);
+    	   	 writer.close();
+	       	}
 	   	 }
 	     
 	}
 
 	public static synchronized Index getInstance() throws IndexingServiceException {
-			try {
-				if (instance == null) 
-					instance = new Index();
-				return instance;
-				}
-			 catch (Exception e) {
-				logger.error("can't get instance of index " , e);
-				throw new IndexingServiceException("Can't get instance of index");
-			}
+        try {
+            if (instance == null) 
+                instance = new Index();
+			return instance;
+		}
+		catch (Exception e) {
+			logger.error("can't get instance of index " , e);
+			throw new IndexingServiceException("Can't get instance of index");
+        }
 	}
 
 	@Override
@@ -77,21 +66,19 @@ public class Index implements IndexI {
 	logger.info("index(...) called");
     logger.debug("params : IndexableDocument=" + doc);
 		try {
-
-				//IndexWriter writer = null;
-				synchronized(this){
-				try {
+    		synchronized(this){
+                try {
 					writer = new IndexWriter(FSDirectory.open(indexDir), analyzer, false, IndexWriter.MaxFieldLength.UNLIMITED);
 					writer.addDocument(doc.getDocument());
 					writer.optimize();
 				} finally {
 					writer.close();
 				}
-				}
+            }
 		} catch (IOException e) {
 			logger.error("unable to index document " + doc, e);
 			throw new IndexingServiceException("Can't index a document", e);
-		}
+        }
 
 	}
 
@@ -111,10 +98,8 @@ public class Index implements IndexI {
 		try {
 			synchronized(this){
 				Term term = new Term("PATH", path);
-				//IndexReader reader = IndexReader.open(indexDirectory);
 				IndexReader reader = IndexReader.open(FSDirectory.open(indexDir), false);
-				int nbDoc = reader.deleteDocuments(term);
-				logger.info("Nd document deleted "+nbDoc);
+				reader.deleteDocuments(term);
 				reader.close();
 			}
 		} catch (IOException e) {
@@ -130,12 +115,8 @@ public class Index implements IndexI {
 		try {
 			synchronized(this){
 			QueryParser queryParser = new QueryParser("CONTENT", analyzer);
-			//queryParser.parse(queryString);
-
 			Query query = queryParser.parse(queryString);
 
-			//Searcher searcher = new IndexSearcher(indexDirectory);
-			//IndexReader reader = IndexReader.open(indexDirectory);
 			IndexReader reader = IndexReader.open(FSDirectory.open(indexDir), true); 
             IndexSearcher searcher=new IndexSearcher(reader);
 
@@ -164,9 +145,8 @@ public class Index implements IndexI {
 				sr.setType(type);
 				sr.setPath(path);
 				sr.setExplain(higlighteText);
-
-
-				listRs.add(sr);
+                
+                listRs.add(sr);
 
 			}
 			searcher.close();
