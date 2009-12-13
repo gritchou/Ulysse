@@ -164,7 +164,6 @@ public class IndexingServiceBean implements IndexingService {
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     private ArrayList<SearchResult> filter(ArrayList<SearchResult> uncheckedRes) throws IndexingServiceException {
 		logger.info("filter(...) called ");
-		try{logger.info("profile "+membership.getProfilePathForConnectedIdentifier() );	}catch(Exception e){}
 		logger.debug("params : UnchedSearchResult= " + uncheckedRes);
 		Iterator<SearchResult> iter = uncheckedRes.iterator();
 		ArrayList<SearchResult> checkedRes = new ArrayList<SearchResult>();
@@ -173,12 +172,13 @@ public class IndexingServiceBean implements IndexingService {
 			while(iter.hasNext()){
 				SearchResult current = iter.next();
 				String path = current.getPath();
-				logger.info("filter(...) called current resource path"+path);
-				pep.checkSecurity(profile, path, "read");
-				checkedRes.add(current);
+				try {
+                    pep.checkSecurity(profile, path, "read");
+                    checkedRes.add(current);
+                    }catch(Exception e){}
 			}
 		}catch(Exception e){
-			logger.error("Error in indexingservice when filtring searchResult", e);
+			logger.error("unable to filter result of search", e);
             ctx.setRollbackOnly();
             throw new IndexingServiceException("Error in indexingservice when filtring searchResult", e);  
 		}

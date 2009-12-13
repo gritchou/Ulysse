@@ -58,6 +58,8 @@ import org.qualipso.factory.search.SearchService;
 import org.qualipso.factory.search.SearchServiceException;
 import org.qualipso.factory.indexing.SearchResult;
 import org.qualipso.factory.greeting.GreetingService;
+import org.qualipso.factory.security.SecurityService;
+import org.qualipso.factory.security.SecurityServiceException;
 import org.qualipso.factory.greeting.GreetingServiceException;
 import org.qualipso.factory.bootstrap.BootstrapService;
 import org.qualipso.factory.bootstrap.BootstrapServiceException;
@@ -77,14 +79,17 @@ public class IndexingServiceSBTest{
 
 	private static Log logger = LogFactory.getLog(IndexingServiceSBTest.class);
 	private static Context context;
-	private static LoginContext loginContext;
+	private static LoginContext loginContextRoot;
+	private static LoginContext loginContextKermit;
 	private static SearchService search;
 	private static MembershipService membership;
 	private static GreetingService greeting; 
 	private static BindingService binding;
+	private static SecurityService security;
 	private static BrowserService browser;
 	private FactoryResourceIdentifier friB, friF, friFB;
-    private String profilePath;
+    private static  String profilePath;
+    private static String profilePathKermit;
     private static int waitingTime = 1000;
 
 
@@ -94,9 +99,10 @@ public class IndexingServiceSBTest{
 	 * @throws NamingException exception thrown when a naming problem occurs
 	 * @throws LoginException exception thrown when the login fails
 	 * @throws MembershipServiceException When the creation of profile toto fails, a MembershipServiceException will be thrown
+	 * @throws SecurityServiceException
 	 */
 	@BeforeClass
-	public static void before() throws NamingException, LoginException{
+	public static void before() throws NamingException, LoginException, MembershipServiceException,SecurityServiceException{
 		try {
 			logger.debug("jaas config file path : " + ClassLoader.getSystemResource("jaas.config").getPath());
 			System.setProperty("java.security.auth.login.config", ClassLoader.getSystemResource("jaas.config").getPath());
@@ -117,17 +123,32 @@ public class IndexingServiceSBTest{
 			logger.error(e);
 		}
 
-		UsernamePasswordHandler uph = new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS); 
-		loginContext = new LoginContext("qualipso", uph);
-        //we need to login in just to delete things created by the quest user
-        loginContext.login();
+		UsernamePasswordHandler uphRoot = new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS); 
+		loginContextRoot = new LoginContext("qualipso", uphRoot);
+		UsernamePasswordHandler uphKermit = new UsernamePasswordHandler("kermit", "thefrog"); 
+		loginContextKermit = new LoginContext("qualipso", uphKermit);
+
 
 		search = (SearchService) context.lookup(FactoryNamingConvention.getJNDINameForService(SearchService.SERVICE_NAME));
-		//binding = (BindingService) context.lookup(BindingService.SERVICE_NAME);
+		security = (SecurityService) context.lookup(FactoryNamingConvention.getJNDINameForService(SecurityService.SERVICE_NAME));
 		browser = (BrowserService) context.lookup(FactoryNamingConvention.getJNDINameForService(BrowserService.SERVICE_NAME));
 		greeting=(GreetingService) context.lookup(FactoryNamingConvention.getJNDINameForService(GreetingService.SERVICE_NAME));
 		membership = (MembershipService) context.lookup(FactoryNamingConvention.getJNDINameForService(MembershipService.SERVICE_NAME));
-	
+
+
+        
+        loginContextRoot.login();
+        profilePath = membership.getProfilePathForConnectedIdentifier()+"/";        
+        membership.createProfile("kermit", "Kermit", "THE-FROG", 0);
+
+
+
+        loginContextKermit.login();
+        profilePathKermit = membership.getProfilePathForConnectedIdentifier();
+        security.addSecurityRule(profilePathKermit,"/profiles/root","delete");
+        loginContextKermit.logout();
+        
+        loginContextRoot.login();
 
 	}
 
@@ -135,14 +156,18 @@ public class IndexingServiceSBTest{
 	 * Log out, and close the context
 	 * 
 	 * @throws NamingException
+	 * @throws SecurityServiceException
 	 * @throws LoginException exception thrown when the logout fails
 	 * @throws MembershipServiceException When the deletion of profile toto fails, a MembershipServiceException will be thrown
 	 */
 	@AfterClass
-	public static void after() throws LoginException, NamingException, MembershipServiceException {
+	public static void after() throws LoginException, NamingException, MembershipServiceException, SecurityServiceException {
 		
-
-		loginContext.logout();
+		loginContextRoot.logout();
+		loginContextKermit.login();
+        security.removeSecurityRule(profilePathKermit,"/profiles/root");
+        membership.deleteProfile("/profiles/kermit");
+        loginContextKermit.logout();
 		context.close();
 	}
 
@@ -155,10 +180,8 @@ public class IndexingServiceSBTest{
 	 */
 	@Before
 	public void setUp() throws NamingException, FactoryException, InterruptedException {
-	    //TODO create toto profile with root user
-		//membership.createProfile("toto", "toto titi", "toto@gmail.com", 0);
+	    
 
-        profilePath = membership.getProfilePathForConnectedIdentifier()+"/";
 		greeting.createName(profilePath+"bug", "bug");
 		greeting.createName(profilePath+"forge", "forge");
 		greeting.createName(profilePath+"forge_bug", "forge_bug");
@@ -176,15 +199,16 @@ public class IndexingServiceSBTest{
 	 * 
 	 * @throws MembershipServiceException
 	 * @throws GreetingServiceException
+	 * @throws SecurityServiceException
 	 */
 	@After
-	public void tearDown() throws MembershipServiceException, GreetingServiceException{
+	public void tearDown() throws MembershipServiceException, GreetingServiceException, SecurityServiceException{
 
-    	//membership.deleteProfile("toto");
-    //name may have been deleted by the test
+
     greeting.deleteName(profilePath+"bug");
 	greeting.deleteName(profilePath+"forge");
 	greeting.deleteName(profilePath+"forge_bug");
+
 
 
 	}
@@ -212,36 +236,50 @@ public class IndexingServiceSBTest{
 	 * Test if a resource can be found by the resource owner
 	 * 
 	 * @throws SearchServiceException exception thrown when a problem occurs in the search method
+	 * @throws LoginException
+	 * @SecurityServiceException
 	 */
 	@Test
-	public void testSearchOwnedResource() throws SearchServiceException{
+	public void testSearchOwnedResource() throws SearchServiceException, LoginException, SecurityServiceException{
 		logger.info("Testing search of an owned resource");
+		security.changeOwner(profilePath+"forge_bug", profilePathKermit);
+		
+		loginContextRoot.logout();
+		loginContextKermit.login();
+		
 		ArrayList<SearchResult> result = search.searchResource("bug AND forge");
 		
 		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
 		assertThat("The expected result should be the resource FORGE_BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));
-
+		
+		
+		security.changeOwner(profilePath+"forge_bug", "/profiles/root");
+		
+		loginContextKermit.logout();
+		loginContextRoot.login();
+	
 	}
 	
 	/**
 	 * ===== BOUNDARIE =====
 	 * Test if a client who doesn't have the right to read the resource can't find it
 	 * 
-	 * @throws InvalidPathException
-	 * @throws PathNotFoundException
-	 * @throws BindingServiceException
 	 * @throws SearchServiceException exception thrown when a problem occurs in the search method
+	 * @throws LoginException
 	 */
 	@Test
-	public void testSearchReadNotAllowedResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, SearchServiceException{
+	public void testSearchReadNotAllowedResource() throws LoginException, SearchServiceException{
 		logger.info("Testing search of a resource on which we don't have the right to read");
-		//String policy = PAPServiceHelper.buildPolicy("1", "/profiles/kermit", "/profiles/kermit/friFB", new String[]{""});
-		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
+		
+		loginContextRoot.logout();
+		loginContextKermit.login();
+		
 		ArrayList<SearchResult> result = search.searchResource("bug AND forge");
 		
 		assertEquals("The ArrayList should be empty", 0, result.size());
 		
-		//binding.setProperty("/profiles/resource",FactoryResourceProperty.OWNER, "/profiles/kermit");
+		loginContextKermit.logout();
+		loginContextRoot.login();
 	}
 	
 	/**
@@ -249,21 +287,25 @@ public class IndexingServiceSBTest{
 	 * Test if a client who has the right to read the resource can find it. This method give the ownership to user toto,
 	 * and keep the read right for kermit.
 	 * 
-	 * @throws InvalidPathException
-	 * @throws PathNotFoundException
-	 * @throws BindingServiceException
+	 * @throws LoginException
+	 * @throws SecurityServiceException
 	 * @throws SearchServiceException exception thrown when a problem occurs in the search method
 	 */
 	@Test
-	public void testSearchReadableResource() throws InvalidPathException, PathNotFoundException, BindingServiceException, SearchServiceException{
+	public void testSearchReadableResource() throws  LoginException, SearchServiceException, SecurityServiceException{
 		logger.info("Testing search of a readable resource");
-		String policy = PAPServiceHelper.buildPolicy("1", profilePath+"kermit", profilePath+"friFB", new String[]{"read"});
-		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.OWNER, "/profiles/toto");
-		//binding.setProperty("/profiles/kermit/friFB",FactoryResourceProperty.POLICY_ID, policy);
+
+        security.addSecurityRule(profilePath+"forge_bug",profilePathKermit,"read");
+        loginContextRoot.logout();
+        loginContextKermit.login();
+		
 		ArrayList<SearchResult> result = search.searchResource("bug AND forge");
 		
 		assertEquals("The ArrayList should contain exactly one result", 1, result.size());
 		assertThat("The expected result should be the resource FORGE_BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));
+		
+		loginContextKermit.logout();
+		loginContextRoot.login();
 
 	}
 	
@@ -326,11 +368,10 @@ public class IndexingServiceSBTest{
 	@Test
 	public void testSearchNotContent() throws SearchServiceException{
 		logger.info("Testing search with operator NOT");
-		ArrayList<SearchResult> result = search.searchResource("NOT bug");
+		ArrayList<SearchResult> result = search.searchResource("forge NOT bug ");
 
 		
-		assertEquals("The ArrayList should contains exactly three results", 2, result.size());
-		assertThat("The expected result should be the resource FORGE and BUG",result,hasItem(searchResultWithFactoryResourceIdentifier(friFB)));
+		assertEquals("The ArrayList should contains exactly one results", 1, result.size());
 		assertThat("The expected result should be the resource FORGE",result,hasItem(searchResultWithFactoryResourceIdentifier(friF)));
 			
     }
