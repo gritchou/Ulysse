@@ -1,0 +1,139 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta http-equiv="Content-Script-Type" content="text/javascript" />
+	
+	<meta http-equiv="imagetoolbar" content="no" />
+	
+	<meta name="author" content="Christophe Bouthier" />
+	<meta name="copyright" content="copyright 2009 - INRIA" />
+	<meta name="keywords" content="Qualipso, qualipso factory, open-source, quality, service, development" />
+	<meta name="description" content="Documentation for the Qualiso factory - configuration of JBoss" />
+	
+	<link rel="stylesheet" href="commons/css/style.css" type="text/css" />
+	<link rel="stylesheet" href="commons/css/lightbox.css" type="text/css" media="screen" />
+	
+	<script type="text/javascript" src="commons/js/prototype.js"></script>
+  <script type="text/javascript" src="commons/js/scriptaculous.js?load=effects,builder"></script>
+  <script type="text/javascript" src="commons/js/lightbox.js"></script>
+	
+	<title>Qualipso Factory - JBoss configuration for the Factory</title>
+</head>
+<body id="www.qualipso.org">
+	
+	<h1>Qualipso Factory</h1>
+	
+	<div id="wrapper">
+  	
+	<div id="menu">
+		<div id="menu_all">
+	    <ul>
+	      <li class="selected"><a href="install-env-service.html">Installation</a</li>
+<!--	      <li><a href="create-new-service.html">Development</a></li>-->
+	    </ul>
+	  </div>
+	 <div id="menu_global">
+  	  <h2>Factory Installation:</h2>
+	  	<ol>
+	  	  <li><a href="install-env-service.html">Environment installation</a></li>
+	  	  <li id="selected"><a href="config-jboss.html">JBoss configuration</a></li>
+	  	  <li><a href="install-dev-service.html">Template installation</a></li>
+	    </ol>
+	  </div>
+	  <div id="back">
+	    <a href="../index.html">Go back to the main site</a>
+	  </div>
+	</div>
+	
+	<div id="content">
+		<h2>JBoss configuration for the Factory</h2>
+		
+		<div id="introduction">
+			<p>In order to develop a service for the factory, you need to be able to deploy a factory, and for this, you need first to configure some properties of JBoss for the factory. This page contains the instruction necessary to configure JBoss for such a deployement. It assume that you have already installed a correct development environment, as described in <a href="install-env-service.html">Environment installation</a>. If this is not the case, then you need first to follow the given instruction before proceeding to this page.</p>
+		</div>
+		
+		<div class="step">
+      <h3>JBoss Configuration</h3>
+      <p>
+        For the factory to run correctly, it need some information from JBoss, especially authentication information. Indeed, you need to modify the JAAS configuration file of JBoss, in order to add the specific authentication configuration for the services of the factory. Each service in the factory reference the name of a specific application policy (with a @SecurityDomain annotation). The application policy define how to find the users names and passwords, and how the client can authenticate itself to the service (digest, plain, etc). Thus, by referencing the same name, services can use the same application policy, that is the same users and passwords, and the same authentication methods.
+        In the factory, all core services reference the same application policy, called "JBossWSDigest". You need to define this security domain. This is done by modifying the "login-config.xml" file in the <code>$JBOSS_HOME/server/default/conf</code> folder:
+      </p>
+        <ol>
+	    	  <li>
+	    	    Open the "login-config.xml" file in the <code>$JBOSS_HOME/server/default/conf</code> folder in your prefered text editor:
+	    	    <a href="images/full/config-jboss-login.png" rel="lightbox" title="JBoss login config"><img src="images/preview/config-jboss-login.png" alt="JBoss login config"/></a>
+	    	  </li>
+	    	  <li>
+	    	    Find the <code>&lt;application-policy name="other"&gt;</code> tag, near the end of the file, and before it, add the following code:
+	    	    <pre>
+	    	      <samp>
+&lt;application-policy name="JBossWSDigest"&gt;
+  &lt;authentication&gt;
+    &lt;login-module code="org.jboss.security.auth.spi.UsersRolesLoginModule" 
+      flag="sufficient"&gt;
+      &lt;module-option name="usersProperties"&gt;
+        props/jbossws-users.properties
+      &lt;/module-option&gt;
+      &lt;module-option name="rolesProperties"&gt;
+        props/jbossws-roles.properties
+      &lt;/module-option&gt;
+      &lt;module-option name="hashAlgorithm"&gt;SHA&lt;/module-option&gt;
+      &lt;module-option name="hashEncoding"&gt;BASE64&lt;/module-option&gt;
+      &lt;module-option name="hashUserPassword"&gt;false&lt;/module-option&gt;
+      &lt;module-option name="hashStorePassword"&gt;true&lt;/module-option&gt;
+      &lt;module-option name="storeDigestCallback"&gt;
+        org.jboss.ws.extensions.security.auth.callback.UsernameTokenCallback
+      &lt;/module-option&gt;
+      &lt;module-option name="unauthenticatedIdentity"&gt;guest&lt;/module-option&gt;
+    &lt;/login-module&gt;
+    &lt;login-module code="org.jboss.security.auth.spi.UsersRolesLoginModule" 
+    flag="sufficient"&gt;
+      &lt;module-option name="usersProperties"&gt;
+        props/jbossws-users.properties
+      &lt;/module-option&gt;
+      &lt;module-option name="rolesProperties"&gt;
+        props/jbossws-roles.properties
+      &lt;/module-option&gt;
+      &lt;module-option name="unauthenticatedIdentity"&gt;guest&lt;/module-option&gt;
+    &lt;/login-module&gt;
+  &lt;/authentication&gt;
+&lt;/application-policy&gt;
+	    	      </samp>
+	    	    </pre>
+	    	    Your file "login-config.xml" should look like this:
+	    	    <a href="images/full/config-jboss-jaas.png" rel="lightbox" title="login-config.xml"><img src="images/preview/config-jboss-jaas.png" alt="login-config.xml"/></a>
+	    	    <p>Some explanation of the configuration:</p>
+	    	      <ul>
+	    	        <li>
+	    	          The "application-policy" tag define the name of the application policy ("JBossWSDigest" here), and contains the configuration for this application policy.
+	    	          <a href="images/full/config-jboss-jaas-apppolicy.png" rel="lightbox" title="application-policy"><img src="images/preview/config-jboss-jaas-apppolicy.png" alt="application-policy"/></a>
+	    	        </li>
+	    	        <li>The 2 "login-module" tags define two methods of login called "UsersRolesLoginModule": the first one is to be used by clients using the webservice interface, and the second one is to be used by clients using the RMI interface.
+	    	        	 <a href="images/full/config-jboss-jaas-modules.png" rel="lightbox" title="login-module"><img src="images/preview/config-jboss-jaas-modules.png" alt="login-module"/></a></li>
+	    	        <li>The 2 login modules define the path to the files used to get usernames and roles through their "usersProperties" and "rolesProperties" properties
+	    	        	 <a href="images/full/config-jboss-jaas-users.png" rel="lightbox" title="usersProperties"><img src="images/preview/config-jboss-jaas-users.png" alt="usersProperties"/></a></li>
+	    	        <li>Moreover, the first module set its properties so that the client has to use a digest to authenticate (instead of passing the passord in clear).
+	    	        	 <a href="images/full/config-jboss-jaas-digest.png" rel="lightbox" title="digest"><img src="images/preview/config-jboss-jaas-digest.png" alt="digest"/></a></li>
+              </ul>
+	    	  </li>
+	    	</ol>
+		</div>
+		
+		<div id="conclusion">
+			<p>Once the application policies are defined, your JBoss is ready for the factory. You can now start to <a href="install-dev-service.html">install the Eclipse template</a> to create a factory service.</p>
+		</div>
+
+	</div>
+	</div>
+	
+	<div id="footer">
+	  <div id="validation">
+      <a class="xhtml" href="http://validator.w3.org/check?uri=referer">xhtml</a>
+      <a class="css" href="http://jigsaw.w3.org/css-validator/check/referer">css</a>
+    </div>
+	</div>
+
+</body>
+</html>

@@ -12,11 +12,13 @@
  * Jérôme Blanchard / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
  *
  */
 package org.qualipso.factory.client.test.ws;
 
 import org.junit.runner.RunWith;
+
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
@@ -27,9 +29,7 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses(value =  {
-	MembershipServiceWSTest.class,
-	CoreServiceWSTest.class,
-	BrowserServiceWSTest.class}
+    MembershipServiceWSTest.class, CoreServiceWSTest.class, BrowserServiceWSTest.class}
 )
 public class AllWSTests {
 }

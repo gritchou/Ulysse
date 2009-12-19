@@ -79,11 +79,25 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 	 */
 	private NotificationService notification;
 	
+	/**
+	 * ForumService
+	 */
+	//private ForumService forumService;
+	
+	/**
+	 * DocumentService
+	 */
+	//private DocumentService documentService;
+	
 
 	/**
 	 * user path
 	 */
 	private static final String USER_PATH = "/profiles/anonyme";
+	
+	private static final String [] SUBJECTS = new String[]{
+		USER_PATH
+	};
 	
 	/**
 	 * project name mantis
@@ -115,12 +129,16 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 		pep = mockery.mock(PEPService.class);
 		pap = mockery.mock(PAPService.class);
 		notification = mockery.mock(NotificationService.class);
+		//forumService = mockery.mock(ForumService.class);
+		//documentService = mockery.mock(DocumentService.class);
 		getBeanToTest().setMembershipService(membership);
 		getBeanToTest().setNotificationService(notification);
 		getBeanToTest().setBindingService(binding);
 		getBeanToTest().setPEPService(pep);
 		getBeanToTest().setPAPService(pap);
 		getBeanToTest().setBugTrackerManager(new BugTrackerManagerMock());
+		//getBeanToTest().setDocumentService(documentService);
+		//getBeanToTest().setForumService(forumService);
 	}
     
     
@@ -136,10 +154,15 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 		mockery.checking(new Expectations() {
 			{
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence);
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal("/test/issue_1")), with(equal("read"))); inSequence(sequence);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal("/test/issue_1")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal("/test/issue_1"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/1")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("toto", "fullname_toto"))); inSequence(sequence);
-				oneOf(membership).readProfile(with(equal("/profiles/titi"))); will(returnValue(generateProfile("titi", "fullname_titi"))); inSequence(sequence);
+				
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				oneOf(binding).lookup(with(equal("/profiles/titi"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "2")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("toto", "fullname_toto"))); inSequence(sequence);
+				//oneOf(membership).readProfile(with(equal("/profiles/titi"))); will(returnValue(generateProfile("titi", "fullname_titi"))); inSequence(sequence);
+				
 				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("issue.read"))); inSequence(sequence);
 				
 		}
@@ -158,8 +181,10 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 		assertEquals("1", dto.getNum());
 		assertEquals("description1", dto.getDescription());
 		assertEquals("summary1", dto.getSummary());
-		assertEquals("fullname_toto", dto.getReporter());
-		assertEquals("fullname_titi", dto.getAssignee());
+		assertEquals("/profiles/toto", dto.getReporter());
+		assertEquals("/profiles/titi", dto.getAssignee());
+		//assertEquals("fullname_toto", dto.getReporter());
+		//assertEquals("fullname_titi", dto.getAssignee());
 		assertEquals(service.getIssueAttributes().getPriorities().get(0).getId(), dto.getPriority().getId());
 		assertEquals(service.getIssueAttributes().getResolutions().get(0).getId(), dto.getResolution().getId());
 		assertEquals(service.getIssueAttributes().getSeverities().get(0).getId(), dto.getSeverity().getId());
@@ -207,7 +232,8 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
     	mockery.checking(new Expectations() {
 			{
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence);
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(path)), with(equal("create"))); inSequence(sequence);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(path)), with(equal("create"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(path))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + PROJECT_NAME)));
 				
 				oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(containsString(path + "/issue_"))); inSequence(sequence);
@@ -218,6 +244,9 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 				oneOf(binding).setProperty(with(containsString(path + "/issue_")), with(equal(FactoryResourceProperty.OWNER)), with(equal(USER_PATH))); inSequence(sequence);
 				oneOf(binding).setProperty(with(containsString(path + "/issue_")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class))); inSequence(sequence);
 			
+				//oneOf(forumService).createForum(with(containsString(path + "/issue_")),  with(any(String.class))); inSequence(sequence);
+				//oneOf(documentService).createFolder(with(containsString(path + "/issue_")), with(any(String.class)), with(any(String.class))); inSequence(sequence);
+				
 				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("issue.create"))); inSequence(sequence);
 				
 		}
@@ -287,7 +316,8 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 	    	mockery.checking(new Expectations() {
 				{
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence);
-					oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(issuePath)), with(equal("delete"))); inSequence(sequence);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence);
+					oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(issuePath)), with(equal("delete"))); inSequence(sequence);
 					oneOf(binding).lookup(with(equal(issuePath))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + Utils.getIdBugTracker(issuePath))));
 					oneOf(binding).getProperty(with(equal(issuePath)), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); will(returnValue("policyIdToDelete"));
 					oneOf(pap).deletePolicy(with(equal("policyIdToDelete"))); inSequence(sequence);
@@ -338,11 +368,13 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
     	final Sequence sequence = mockery.sequence("sequence1");
 		mockery.checking(new Expectations() {
 			{
-				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence);
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal("/test/issue_1")), with(equal("read"))); inSequence(sequence);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal("/test/issue_1")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal("/test/issue_1"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/1")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("toto", "fullname_toto"))); inSequence(sequence);
-				oneOf(membership).readProfile(with(equal("/profiles/titi"))); will(returnValue(generateProfile("titi", "fullname_titi"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				oneOf(binding).lookup(with(equal("/profiles/titi"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "2")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("toto", "fullname_toto"))); inSequence(sequence);
+				//oneOf(membership).readProfile(with(equal("/profiles/titi"))); will(returnValue(generateProfile("titi", "fullname_titi"))); inSequence(sequence);
 				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("issue.read"))); inSequence(sequence);
 				
 		}
@@ -385,7 +417,8 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
   			mockery.checking(new Expectations() {
   				{
   					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence);
-  					oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(issuePath)), with(equal("read"))); inSequence(sequence);
+  					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence);
+  					oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(issuePath)), with(equal("read"))); inSequence(sequence);
   					oneOf(binding).lookup(with(equal(issuePath))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + Utils.getIdBugTracker(issuePath))));
   					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("issue.read"))); inSequence(sequence);
   					
@@ -410,31 +443,39 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 		mockery.checking(new Expectations() {
 			{
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence);
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH)), with(equal("getAllIssues"))); inSequence(sequence);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH)), with(equal("getAllIssues"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + PROJECT_NAME)));
 				
 				//issue1
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_1")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_1")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_1"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/1")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("toto", "fullname_toto"))); inSequence(sequence);
-				oneOf(membership).readProfile(with(equal("/profiles/titi"))); will(returnValue(generateProfile("titi", "fullname_titi"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				oneOf(binding).lookup(with(equal("/profiles/titi"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "2")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("toto", "fullname_toto"))); inSequence(sequence);
+				//oneOf(membership).readProfile(with(equal("/profiles/titi"))); will(returnValue(generateProfile("titi", "fullname_titi"))); inSequence(sequence);
 				//issue2 (no assigned)
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_2")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_2")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_2"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/2")));
-				oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/tutu"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "3")));
+				//oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
 				//issue3
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_3")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_3")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_3"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/3")));
-				oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
-				oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/tutu"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "3")));
+				oneOf(binding).lookup(with(equal("/profiles/tutu"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "3")));
+				//oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
+				//oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
 				//issue4 (no assigned)
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_4")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_4")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_4"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/4")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				//issue5 (no assigned)
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_5")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_5")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_5"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/5")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				
 				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.allIssues"))); inSequence(sequence);
 				
@@ -484,17 +525,20 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 		mockery.checking(new Expectations() {
 			{
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence);
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH)), with(equal("getNewIssues"))); inSequence(sequence);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH)), with(equal("getNewIssues"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + PROJECT_NAME)));
 				
 				//issue4 (no assigned)
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_4")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_4")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_4"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/4")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				//issue5 (no assigned)
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_5")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_5")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_5"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/5")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				
 				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.newIssues"))); inSequence(sequence);
 				
@@ -553,31 +597,39 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 		mockery.checking(new Expectations() {
 			{
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence);
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH)), with(equal("getNewIssues"))); inSequence(sequence);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH)), with(equal("getNewIssues"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + PROJECT_NAME)));
 				
 				//issue1
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_1")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_1")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_1"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/1")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("toto", "fullname_toto"))); inSequence(sequence);
-				oneOf(membership).readProfile(with(equal("/profiles/titi"))); will(returnValue(generateProfile("titi", "fullname_titi"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				oneOf(binding).lookup(with(equal("/profiles/titi"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "2")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("toto", "fullname_toto"))); inSequence(sequence);
+				//oneOf(membership).readProfile(with(equal("/profiles/titi"))); will(returnValue(generateProfile("titi", "fullname_titi"))); inSequence(sequence);
 				//issue2 (no assigned)
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_2")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_2")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_2"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/2")));
-				oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/tutu"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "3")));
+				//oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
 				//issue3
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_3")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_3")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_3"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/3")));
-				oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
-				oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/tutu"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "3")));
+				oneOf(binding).lookup(with(equal("/profiles/tutu"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "3")));
+				//oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
+				//oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
 				//issue4 (no assigned)
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_4")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_4")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_4"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/4")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				//issue5 (no assigned)
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_5")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_5")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_5"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/5")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				
 				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.newIssues"))); inSequence(sequence);
 				
@@ -627,17 +679,20 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 		mockery.checking(new Expectations() {
 			{
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence);
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH)), with(equal("getModifiedIssues"))); inSequence(sequence);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH)), with(equal("getModifiedIssues"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + PROJECT_NAME)));
 				
 				//issue4 (no assigned)
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_4")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_4")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_4"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/4")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				//issue5 (no assigned)
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_5")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_5")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_5"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/5")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				
 				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.modifiedIssues"))); inSequence(sequence);
 				
@@ -694,31 +749,39 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 		mockery.checking(new Expectations() {
 			{
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence);
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH)), with(equal("getModifiedIssues"))); inSequence(sequence);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH)), with(equal("getModifiedIssues"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + PROJECT_NAME)));
 				
 				//issue1
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_1")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_1")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_1"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/1")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("toto", "fullname_toto"))); inSequence(sequence);
-				oneOf(membership).readProfile(with(equal("/profiles/titi"))); will(returnValue(generateProfile("titi", "fullname_titi"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				oneOf(binding).lookup(with(equal("/profiles/titi"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "2")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("toto", "fullname_toto"))); inSequence(sequence);
+				//oneOf(membership).readProfile(with(equal("/profiles/titi"))); will(returnValue(generateProfile("titi", "fullname_titi"))); inSequence(sequence);
 				//issue2 (no assigned)
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_2")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_2")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_2"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/2")));
-				oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/tutu"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "3")));
+				//oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
 				//issue3
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_3")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_3")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_3"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/3")));
-				oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
-				oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/tutu"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "3")));
+				oneOf(binding).lookup(with(equal("/profiles/tutu"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "3")));
+				//oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
+				//oneOf(membership).readProfile(with(equal("/profiles/tutu"))); will(returnValue(generateProfile("tutu", "fullname_tutu"))); inSequence(sequence);
 				//issue4 (no assigned)
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_4")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_4")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_4"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/4")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				//issue5 (no assigned)
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(PROJECT_PATH + "/issue_5")), with(equal("read"))); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(PROJECT_PATH + "/issue_5")), with(equal("read"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(PROJECT_PATH + "/issue_5"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + "/5")));
-				oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
+				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
+				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				
 				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.modifiedIssues"))); inSequence(sequence);
 				
@@ -788,7 +851,8 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
     	mockery.checking(new Expectations() {
 			{
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence);
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal("/test/issue_12")), with(equal("update"))); inSequence(sequence);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal("/test/issue_12")), with(equal("update"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal("/test/issue_12"))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + Utils.getIdBugTracker("/test/issue_12"))));
 				
 				oneOf(binding).setProperty(with(equal("/test/issue_12")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence);
@@ -850,7 +914,8 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
     	mockery.checking(new Expectations() {
 			{
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence);
-				oneOf(pep).checkSecurity(with(equal(USER_PATH)), with(equal(path)), with(equal("create"))); inSequence(sequence);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(path)), with(equal("create"))); inSequence(sequence);
 				oneOf(binding).lookup(with(equal(path))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + PROJECT_NAME)));
 				
 				oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(containsString(path + "/issue_"))); inSequence(sequence);

@@ -1,5 +1,23 @@
+/*
+ *
+ * Qualipso Factory
+ * Copyright (C) 2006-2010 INRIA
+ * http://www.inria.fr - molli@loria.fr
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of LGPL. See licenses details in LGPL.txt
+ *
+ * Initial authors :
+ *
+ * Jérôme Blanchard / INRIA
+ * Pascal Molli / Nancy Université
+ * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
+ * 
+ */
 package org.qualipso.factory.security.repository;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -9,20 +27,35 @@ import org.apache.commons.logging.LogFactory;
 import org.xmldb.api.DatabaseManager;
 import org.xmldb.api.base.Collection;
 import org.xmldb.api.base.Database;
+import org.xmldb.api.base.Resource;
+import org.xmldb.api.base.ResourceIterator;
+import org.xmldb.api.base.ResourceSet;
 import org.xmldb.api.base.XMLDBException;
+import org.xmldb.api.modules.CollectionManagementService;
 import org.xmldb.api.modules.XMLResource;
+import org.xmldb.api.modules.XPathQueryService;
 
 import com.sun.xacml.EvaluationCtx;
 
 /**
+ * Implementation of an XMLDB PolicyRepository. (not complete)<br/>
+ * <br/>
+ * This implementation will provide : <br/>
+ * <ul>
+ * <li>Transaction support</li>
+ * <li>Optimization support</li>
+ * <li>Cache support</li>
+ * </ul>
+ * 
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 31 august 2009
  */
 public class XmlDBPolicyRepository extends PolicyRepository {
-
 	private static final String XMLDB_DRIVER = "org.exist.xmldb.DatabaseImpl";
-	private static final String XMLDB_COLLECTION = "xmldb:exist://localhost:8080/exist/xmlrpc/qualipso"; 
+	private static final String XMLDB_BASE_COLLECTION = "xmldb:exist:///db";
+	private static final String COLLECTION_NAME = "qualipso";
 	private static Log logger = LogFactory.getLog(XmlDBPolicyRepository.class);
+	private Collection baseCollection;
 	private Collection collection;
 
 	public XmlDBPolicyRepository() {
@@ -30,28 +63,48 @@ public class XmlDBPolicyRepository extends PolicyRepository {
 
 	public void init() throws PolicyRepositoryException {
 		try {
-			Class<?> cl = Class.forName(XMLDB_DRIVER);
-			Database database = (Database) cl.newInstance();
+			Class c = Class.forName(XMLDB_DRIVER);
+			Database database = (Database) c.newInstance();
 			DatabaseManager.registerDatabase(database);
+			database.setProperty("create-database", "true");
 
-			collection = DatabaseManager.getCollection(XMLDB_COLLECTION);
-			
-			logger.info("XmlDBPolicyRepository initialized");
+			baseCollection = DatabaseManager.getCollection(XMLDB_BASE_COLLECTION);
+			baseCollection.setProperty("encoding", "ISO-8859-1");
+
+			logger.debug("Got Base Collection");
+
+			String[] collections = baseCollection.listChildCollections();
+			boolean collectionExists = false;
+
+			for (String collection : collections) {
+				if (collection.equals(COLLECTION_NAME)) {
+					collectionExists = true;
+					break;
+				}
+			}
+
+			if (!collectionExists) {
+				CollectionManagementService service = (CollectionManagementService) baseCollection.getService("CollectionManagementService", "1.0");
+				collection = service.createCollection(COLLECTION_NAME);
+			} else {
+				collection = baseCollection.getChildCollection(COLLECTION_NAME);
+			}
+
 		} catch (Exception e) {
-			logger.error("Error during initialization", e);
-			throw new PolicyRepositoryException("Error during initialization", e);
+			throw new PolicyRepositoryException("Error during init", e);
 		}
 	}
-	
+
 	public void shutdown() throws PolicyRepositoryException {
 		try {
-			collection.close();
-		} catch ( Exception e ) {
-			logger.error("Error during shutdown", e);
+			if (baseCollection != null) {
+				baseCollection.close();
+				logger.debug("Closed base (db) collection");
+			}
+		} catch (Exception e) {
 			throw new PolicyRepositoryException("Error during shutdown", e);
 		}
 	}
-	
 
 	@Override
 	public void addPolicy(String id, byte[] policy) throws PolicyRepositoryException {
@@ -61,7 +114,6 @@ public class XmlDBPolicyRepository extends PolicyRepository {
 			collection.storeResource(document);
 			logger.debug("policy added");
 		} catch (XMLDBException e) {
-			logger.error("unable to add policy", e);
 			throw new PolicyRepositoryException("unable to add policy ", e);
 		}
 	}
@@ -70,10 +122,11 @@ public class XmlDBPolicyRepository extends PolicyRepository {
 	public byte[] getPolicy(String id) throws PolicyRepositoryException {
 		try {
 			XMLResource document = (XMLResource) collection.getResource(id);
+			byte[] policy = ((String) document.getContent()).getBytes();
 			logger.debug("policy retreived");
-			return (byte[]) document.getContent();
+
+			return policy;
 		} catch (XMLDBException e) {
-			logger.error("unable to retreive policy", e);
 			throw new PolicyRepositoryException("unable to retreive policy ", e);
 		}
 	}
@@ -81,12 +134,14 @@ public class XmlDBPolicyRepository extends PolicyRepository {
 	@Override
 	public void updatePolicy(String id, byte[] policy) throws PolicyRepositoryException {
 		try {
-			XMLResource document = (XMLResource) collection.createResource(id, "XMLResource");
+			XMLResource document = (XMLResource) collection.getResource(id);
+			if (document == null) {
+				throw new PolicyRepositoryException("unable to update policy, no policy found for id: " + id);
+			}
 			document.setContent(policy);
 			collection.storeResource(document);
 			logger.debug("policy updated");
 		} catch (XMLDBException e) {
-			logger.error("unable to update policy", e);
 			throw new PolicyRepositoryException("unable to update policy ", e);
 		}
 	}
@@ -97,7 +152,6 @@ public class XmlDBPolicyRepository extends PolicyRepository {
 			XMLResource document = (XMLResource) collection.getResource(id);
 			collection.removeResource(document);
 		} catch (XMLDBException e) {
-			logger.error("unable to retreive policy", e);
 			throw new PolicyRepositoryException("unable to retreive policy ", e);
 		}
 	}
@@ -106,21 +160,69 @@ public class XmlDBPolicyRepository extends PolicyRepository {
 	public List<String> listPolicies() throws PolicyRepositoryException {
 		try {
 			String[] policies = collection.listResources();
-			Vector<String> vpolicies = new Vector<String> ();
-			for ( int i=0; i<policies.length; i++ ) {
+			Vector<String> vpolicies = new Vector<String>();
+
+			for (int i = 0; i < policies.length; i++) {
 				vpolicies.add(policies[i]);
 			}
+
 			return vpolicies;
 		} catch (XMLDBException e) {
-			logger.error("unable to list policies", e);
 			throw new PolicyRepositoryException("unable to list policies ", e);
 		}
 	}
 
 	@Override
 	public Map<String, byte[]> getPolicies(EvaluationCtx eval) throws PolicyRepositoryException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			String request = "for $policy in /Policy"
+					+ " where $policy/Target/Resources/Resource/ResourceMatch/AttributeValue/text() = \"" + eval.getResourceId().encode() + "\""
+					+ " or $policy/Target/Resources[count(AnyResource) = 1]"
+					+ " return $policy";
+			logger.debug("Executing Xquery to retreive relevent policies: \r\n" + request);
+			Map<String, byte[]> results = query(request);
+			logger.debug("Found " + results.size() + " relevent policies");
+			return results;
+		} catch (Exception e) {
+			throw new PolicyRepositoryException("unable to get policies for given evalutation context", e);
+		}
 	}
 
+	@Override
+	public void purge() throws PolicyRepositoryException {
+		logger.warn("purging policy repository will remove all existing policies");
+		try {
+			logger.debug("number of policies in collection before purge : " + collection.getResourceCount());
+			CollectionManagementService service = (CollectionManagementService) baseCollection.getService("CollectionManagementService", "1.0");
+			service.removeCollection(COLLECTION_NAME);
+			collection = service.createCollection(COLLECTION_NAME);
+			logger.debug("number of policies in collection after purge : " + collection.getResourceCount());
+		} catch (Exception e) {
+			throw new PolicyRepositoryException("Error during purge", e);
+		}
+	}
+
+	private Map<String, byte[]> query(String XQuery) throws PolicyRepositoryException {
+		try {
+			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
+			service.setProperty("indent", "yes");
+
+			ResourceSet result = service.query(XQuery);
+			ResourceIterator i = result.getIterator();
+			HashMap<String, byte[]> results = new HashMap<String, byte[]> ();
+
+			while (i.hasMoreResources()) {
+				Resource r = i.nextResource();
+				logger.debug("XML resource foudn for query : ");
+				logger.debug("id: " + r.getId());
+				logger.debug("content: " + r.getContent());
+				results.put(r.getId(), ((String)r.getContent()).getBytes());
+			}
+
+			return results;
+		} catch (Exception e) {
+			logger.error("Error in query", e);
+			throw new PolicyRepositoryException(e);
+		}
+	}
 }

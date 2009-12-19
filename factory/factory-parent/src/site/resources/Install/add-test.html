@@ -1,0 +1,293 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta http-equiv="Content-Script-Type" content="text/javascript" />
+	
+	<meta http-equiv="imagetoolbar" content="no" />
+	
+	<meta name="author" content="Christophe Bouthier" />
+	<meta name="copyright" content="copyright 2009 - INRIA" />
+	<meta name="keywords" content="Qualipso, qualipso factory, open-source, quality, service, development" />
+	<meta name="description" content="Documentation for the Qualiso factory - creation of the test infrastructure" />
+	
+	<link rel="stylesheet" href="commons/css/style.css" type="text/css" />
+	<link rel="stylesheet" href="commons/css/lightbox.css" type="text/css" media="screen" />
+	
+	<script type="text/javascript" src="commons/js/prototype.js"></script>
+  <script type="text/javascript" src="commons/js/scriptaculous.js?load=effects,builder"></script>
+  <script type="text/javascript" src="commons/js/lightbox.js"></script>
+	
+	<title>Qualipso Factory - Tutorial - Part II</title>
+</head>
+<body id="www.qualipso.org">
+	
+	<h1>Qualipso Factory</h1>
+	
+  <div id="wrapper">
+  	
+	<div id="menu">
+		<div id="menu_all">
+	    <ul>
+	      <li><a href="install-env-service.html">Installation</a</li>
+	      <li class="selected"><a href="create-new-service.html">Development</a></li>
+	    </ul>
+	  </div>
+	 <div id="menu_global">
+  	  <h2>Tutorial map:</h2>
+	  	<ol>
+	  	  <li><a href="create-new-service.html">Create a new service</a></li>
+	  	  <li id="selected"><a href="add-test.html">Add the test structure</a></li>
+	  	  <li><a href="EJB.html">Define the EJB service</a></li>
+	  	  <li><a href="remote.html">Implements remote access</a></li>
+	  	  <li><a href="factory.html">Qualipso Factory services</a></li> 
+	    </ol>
+	  </div>
+	  <div id="menu_local">
+		  <h2>Steps:</h2>
+		  <ul>
+		    <li><a href="#UNIT">Unit testing</a></li>
+		    <li><a href="#FUNCTIONAL">Functionnal tests project</a></li>
+		    <li><a href="#FUNCTIONAL_IMPL">Functionnal tests</a></li>
+		    <li><a href="#WEBSERVICE">WebService tests project</a></li>
+		    <li><a href="#WEBSERVICE_IMPL">WebService tests</a></li>
+	    </ul>
+	 </div>
+	</div>
+	
+	<div id="content">
+		<h2>Adding the test structure</h2>
+
+		<div id="introduction">
+			<p>Before writing a single line of code, you need to have a full set of tests, in order to first code the test, then code the implementation passing this test. For a factory abstract service, there are three level of tests to pass:</p>
+			<ul>
+			  <li><strong>unit tests</strong>, testing a single method of the service; those tests are integrated in the service project and are run on each build.</li>
+			  <li><strong>functional tests</strong>, testing a full functionality of the service, possibly spanning several methods. Those tests applies to a real, deployed service. As such, they require first that the service is built, deployed on a JBoss server, and running, to be able to run. They are run as a real client, in a separated JVM, calling the service remotely. That's why they are in a separated project from the service, as they consists in client code, that don't have to be put on the server. Functional tests are calling the service throught its RMI remote interface (standard remote interface for EJB).</li>
+			  <li><strong>web services tests</strong>, testing the web service remote access to the service. Indeed, a factory abstract service provide two kind of remote access: the standard EJB RMI remote access, and a web service SOAP remote access. The RMI access is tested throught the preceding tests, the web service access is tested through those tests.</li>
+			</ul>
+			<p>On this page, you will see the necessary steps to prepare the infrastructure for the whole three set of tests. Unit tests are done directly in the service project that you already prepared <a href="create-new-service.html">previously</a>, in <em>src/test/java</em>. Functional and web services tests are done in separated projects, that you will create from the existing corresponding projects of the "ClockService" template.</p>
+		</div>
+		
+		<div id="checklist">
+		  <h3>Checklist</h3>
+		  <p>Here is the checklist of everything that you will do on this level:</p>
+		  <ul>
+		    <li><a href="#UNIT">Prepare the unit tests</a></li>
+        <li><a href="#FUNCTIONAL">Set the functional tests project</a></li>
+        <li><a href="#FUNCTIONAL_IMPL">Define the functional tests</a></li>
+        <li><a href="#WEBSERVICE">Set the webservice tests project</a></li>
+        <li><a href="#WEBSERVICE_IMPL">Define the webservice tests</a></li>
+		  </ul>
+		</div>
+			
+    <!-- Unit tests -->
+		<div class="step">
+		  <h3><a name="UNIT"></a>Step 1: Prepare the unit tests</h3>
+			<p>The unit tests are just testing the working of each method of the service. They are run on each build of the service, and are integrated in the service project.  They use the ejb3unit library to test the EJB, and they can use jmock to mock other EJB. They are defined in the <em>TwitterServiceTest.java</em> file, in <em>src/test/java</em>:</p>
+			<ol>
+			  <li>Open the <em>TwitterServiceTest.java</em> file, in <em>src/test/java</em>, and as always, comment everything, so that you will be able to use it as reference.</li>
+			  <li>
+			    Create a new Java class, named <kbd>"TwitterServiceTest"</kbd>, that extends the <kbd>"BaseSessionBeanFixture&lt;TwitterServiceBean&gt;"</kbd> class.
+<pre><samp><span class="new">public class TwitterServiceTest 
+  extends BaseSessionBeanFixture&lt;TwitterServiceBean&gt; {
+	
+}</span></samp></pre>
+			    The <em>BaseSessionBeanFixture&lt;T&gt;</em> class is part of the ejb3unit library. It define a fixture, that is a set of unit tests, that will be run against a specific EJB. This specific EJB (<em>TwitterServiceBean</em> here) is given as parametized type to <em>BaseSessionBeanFixture&lt;T&gt;</em>. This way, ejb3unit will manage the life cycle of the EJB <em>TwitterServiceBean</em> (instanciate, destroy, etc.) and will run each tests against this EJB.
+			  </li>
+			  <li>
+			    <em>BaseSessionBeanFixture&lt;T&gt;</em> doesn't provide a default constructor without any parameters, so you need to implement a constructor that call one of the defined constructor of <em>BaseSessionBeanFixture&lt;T&gt;</em>. You will call <kbd>BaseSessionBeanFixture(Class&lt;T&gt; sessionBeanToTest, Class[] usedEntityBeans)</kbd>. The first parameter is the class of the EJB you will test: here, it's' the class of the service you will test (<em>TwitterServiceBean</em>). Let the second parameter to <kbd>usedEntityBeans</kbd> for now:
+<pre><samp>public class TwitterServiceTest 
+  extends BaseSessionBeanFixture&lt;TwitterServiceBean&gt; {
+  
+  <span class="new">public TwitterServiceTest() {
+    super(TwitterServiceBean.class, usedEntityBeans);
+  }</span>
+  
+}</samp></pre>
+        </li>
+        <li>
+			    In the called constructor, the second argument is an array of the class of all entity beans you will use in those tests - that is, here, of all the factory resources that will appears in those test. You don't know yet all the factory resources you will need, but you can be pretty sure that <em>Tweet</em> will at least be one of them. So add a static variable to manage this array of classes:
+<pre><samp>public class TwitterServiceTest 
+  extends BaseSessionBeanFixture&lt;TwitterServiceBean&gt; {
+  
+  <span class="new">public static final Class[] usedEntityBeans = {Tweet.class};</span>
+  
+  public TwitterServiceTest() {
+    super(TwitterServiceBean.class, usedEntityBeans);
+  }
+  
+}</samp></pre>
+        </li>
+        <li>
+          You still have a warning about the use of the <em>Class</em> type for the <em>usedEntityBeans</em> variable. Indeed, <em>Class</em> is a generic type, and variables using this type are generally meant to be correctly casted at some point in the code. This casting can introduce errors, that will throws exceptions (<em>ClassCastException</em>). In order to remove this possibility of wrong casting, and thus inforce a stronger type checking, Java now prefers to parametize such generic type, just like what is done with <em>BaseSessionBeanFixturew&lt;T&gt;</em>. So that's the reason why the compiler is issuing a warning for the use of the <em>Class</em> type.
+          However, in your case, you won't do type cast, so you can add a annotation to tell the compiler to suppress this warning:
+<pre><samp>public class TwitterServiceTest 
+  extends BaseSessionBeanFixture&lt;TwitterServiceBean&gt; {
+  
+  <span class="new">@SuppressWarnings("unchecked")</span>
+  public static final Class[] usedEntityBeans = {Tweet.class};
+  
+  public TwitterServiceTest() {
+    super(TwitterServiceBean.class, usedEntityBeans);
+  }
+  
+}</samp></pre>
+          Later in the tutorial you will fill up this class with real test methods, but right now, this is enough for the tests infrastructure.
+			  </li>
+			</ol>
+	 </div>
+	 
+    <!-- Functional tests -->
+		<div class="step">
+		  <h3><a name="FUNCTIONAL"></a>Step 2: Set the functional tests project</h3>
+			<p>The functional tests are testing the whole functionality of the service, possibly spanning several methods of the service. They correspond to user stories for the service, and thus access the service as a standard client. They require a deployed and running service, and are run in a possibly separated JVM (Java Virtual Machine). For this reason, functional tests are in a separated maven (and thus Eclipse) project. Like for the service project, you will directly reuse the structure put in place in the "ClockService ftests" template.</p>
+			<ol>
+			  <li>
+			    Go in the <em>funkyfactory/funkyfactory-service</em> folder, duplicate the <em>funkyfactory-service-clock-ftests</em> folder, and rename it <kbd>"funkyfactory-service-twitter-ftests"</kbd>
+			  <a href="images/full/tut-copy-folder-ftests.png" rel="lightbox" title="Duplicating project folder"><img src="images/preview/tut-copy-folder-ftests.png" alt="Duplicating project folder"/></a>
+			  </li>
+			   <li>
+			      Go in the newly created <em>funkyfactory-service-twitter-ftests</em>, and edit the pom.xml file. You need to replace the following elements:
+			      <ul class="projects">
+			        <li><em>artifactId</em> -&gt; <kbd>funkyfactory-service-twitter-ftests</kbd></li>
+			        <li><em>name</em> -&gt; <kbd>funkyfactory-service-twitter-ftests</kbd></li>
+			        <li><em>version</em> -&gt; <kbd>0.0.1</kbd></li>
+			     </ul>
+			     	<a href="images/full/tut-modif-pom-ftests.png" rel="lightbox" title="Modifying project pom"><img src="images/preview/tut-modif-pom-ftests.png" alt="Modifying project pom"/></a>
+			   </li>
+			   <li>
+			     Still in the pom.xml file, go down to the last dependency (currently set to <em>funkyfactory-service-clock</em>), and change it so that it's set to <em>funkyfactory-service-twitter</em>:
+			     <ul class="projects">
+			        <li><em>artifactId</em> -&gt; <kbd>funkyfactory-service-twitter</kbd></li>
+			        <li><em>version</em> -&gt; <kbd>0.0.1</kbd></li>
+			      </ul>
+			      <a href="images/full/tut-modif-pom-ftests-dep.png" rel="lightbox" title="Modifying dependency in project pom"><img src="images/preview/tut-modif-pom-ftests-dep.png" alt="Modifying dependency in project pom"/></a>
+			   </li>
+			   <li>
+			      Back in the newly created <em>funkyfactory-service-twitter-ftests</em>, remove the "target" folder if it's present.
+			   </li>
+			   <li>
+			      In Eclipse, import the <em>funkyfactory-service-twitter-ftests</em> as a Maven project:
+			      <a href="images/full/tut-import-maven-project-ftests.png" rel="lightbox" title="Importing the maven project"><img src="images/preview/tut-import-maven-project-ftests.png" alt="Importing the maven project"/></a>
+			   </li>
+			   <li>
+			      Once imported, file and package in the project still have the "Clock" in their name:
+			      <a href="images/full/tut-imported-project-ftests.png" rel="lightbox" title="Files to change in the project"><img src="images/preview/tut-imported-project-ftests.png" alt="Files to change in the project"/></a>
+			      You need to change that, using the "Refactor" function of Eclipse. Right-click on the <em>"org.qualipso.funkyfactory.test.clock.functional"</em> package, in the <em>"src/test/java"</em> folder, and in the contextual menu, select "Refactor" -&gt; "Rename...":
+			      <a href="images/full/tut-rename-package-ftests.png" rel="lightbox" title="Select package to rename"><img src="images/preview/tut-rename-package-ftests.png" alt="Select package to rename"/></a>
+			      Change the name to <kbd>"org.qualipso.funkyfactory.test.twitter.functional"</kbd> and click on "OK":
+			      <a href="images/full/tut-rename-package-ftests-2.png" rel="lightbox" title="Rename package"><img src="images/preview/tut-rename-package-ftests-2.png" alt="Rename package"/></a>
+			   </li>
+			   <li>
+			      Do the same refactoring for the <em>"ClockServiceFunctionalTest.java"</em> file, that you will rename to <kbd>"TwitterServiceFunctionalTest.java"</kbd>.
+			     </li>
+			     <li>
+			        Once this is done, the project content should look like this:
+			        <a href="images/full/tut-clean-project-ftests.png" rel="lightbox" title="All files renamed"><img src="images/preview/tut-clean-project-ftests.png" alt="All files renamed"/></a>
+			   </li>
+			</ol>
+	  </div>
+	 
+	  <!-- Functional tests implementation -->
+		<div class="step">
+		  <h3><a name="FUNCTIONAL_IMPL"></a>Step 3: Define the functional tests</h3>
+			<p>Once the functional tests project structure is done, you can start to create the functional tests themselves. This is done in the <em>TwitterServiceFunctionalTest.java</em> file, in <em>src/test/java</em>.</p>
+			<ol>
+			  <li>
+			    Open the <em>TwitterServiceFunctionalTest.java</em> file, in <em>src/test/java</em>, and start by commenting everything. You will start from scratch, keeping the old code as reference.
+			  </li>
+			  <li>
+			    Define a new Java class, called <kbd>"TwitterServiceFunctionalTest"</kbd>. 
+<pre><samp><span class="new">public class TwitterServiceFunctionalTest {
+	
+}</span></samp></pre>
+	    	<p>Right now, it's totally empty. To fill it up, you will need first to think about how you want to use the twitter service. You will do just that, and fill up this class, in the next tutorial page. But before that, you need first to prepare the webservice tests infrastructure.</p>
+			  </li>
+			</ol>	 
+		</div>
+	 
+    <!-- Webservice tests -->
+		<div class="step">
+		  <h3><a name="WEBSERVICE"></a>Step 4: Set the webservice tests project</h3>
+<p>The webservice tests are testing the same thing than the functional tests, that is the whole functionality of the service, corresponding to user stories, but using the webservice remote access to the service (instead of the standard RMI one). As the functional tests, they require a deployed and running service, and are in a separated maven (and thus Eclipse) project. Like for the functional tests project, you will directly reuse the structure put in place in the "ClockService wstests" template.</p>
+			<ol>
+			  <li>
+			    Go in the <em>funkyfactory/funkyfactory-service</em> folder, duplicate the <em>funkyfactory-service-clock-wstests</em> folder, and rename it <kbd>"funkyfactory-service-twitter-wstests"</kbd>
+			  <a href="images/full/tut-copy-folder-wstests.png" rel="lightbox" title="Duplicating project folder"><img src="images/preview/tut-copy-folder-wstests.png" alt="Duplicating project folder"/></a>
+			  </li>
+			   <li>
+			      Go in the newly created <em>funkyfactory-service-twitter-wstests</em>, and edit the pom.xml file. You need to replace the following elements:
+			      <ul class="projects">
+			        <li><em>artifactId</em> -&gt; <kbd>funkyfactory-service-twitter-wstests</kbd></li>
+			        <li><em>name</em> -&gt; <kbd>funkyfactory-service-twitter-wstests</kbd></li>
+			        <li><em>version</em> -&gt; <kbd>0.0.1</kbd></li>
+			     </ul>
+			     	<a href="images/full/tut-modif-pom-wstests.png" rel="lightbox" title="Modifying project pom"><img src="images/preview/tut-modif-pom-wstests.png" alt="Modifying project pom"/></a>
+			   </li>
+			   	<li>
+			     Still in the pom.xml file, inside the configuration for the jaxws-maven-plugin:
+			     <ul class="projects">
+			        <li>set <em>wsdlUrl</em> to <kbd>${ws.root.uri}/twitter?wsdl</kbd></li>
+			        <li>set <em>packageName</em> to <kbd>org.qualipso.funkyfactory.test.clock.ws.client</kbd></li>
+			      </ul>
+			      <a href="images/full/tut-modif-pom-wstests-ws.png" rel="lightbox" title="Modifying configuration in project pom"><img src="images/preview/tut-modif-pom-wstests-ws.png" alt="Modifying configuration in project pom"/></a>
+			   </li>
+			   <li>
+			      Back in the newly created <em>funkyfactory-service-twitter-wstests</em>, remove the "target" folder if it's present. Go in the <em>src/<strong>main</strong>/java</em> folder, and remove also the <em>"org"</em> folder.
+			   </li>
+			   <li>
+			      In Eclipse, import the <em>funkyfactory-service-twitter-wstests</em> as a Maven project:
+			      <a href="images/full/tut-import-maven-project-wstests.png" rel="lightbox" title="Importing the maven project"><img src="images/preview/tut-import-maven-project-wstests.png" alt="Importing the maven project"/></a>
+			   </li>
+			   <li>
+			      Once imported, file and package in the project still have the "Clock" in their name:
+			      <a href="images/full/tut-imported-project-wstests.png" rel="lightbox" title="Files to change in the project"><img src="images/preview/tut-imported-project-wstests.png" alt="Files to change in the project"/></a>
+			      You need to change that, using the "Refactor" function of Eclipse. Right-click on the <em>"org.qualipso.funkyfactory.test.clock.ws"</em> package, in the <em>"src/test/java"</em> folder, and in the contextual menu, select "Refactor" -&gt; "Rename...":
+			      <a href="images/full/tut-rename-package-wstests.png" rel="lightbox" title="Select package to rename"><img src="images/preview/tut-rename-package-wstests.png" alt="Select package to rename"/></a>
+			      Change the name to <kbd>"org.qualipso.funkyfactory.test.twitter.ws"</kbd> and click on "OK":
+			      <a href="images/full/tut-rename-package-wstests-2.png" rel="lightbox" title="Rename package"><img src="images/preview/tut-rename-package-wstests-2.png" alt="Rename package"/></a>
+			   </li>
+			   <li>
+			      Do the same refactoring for the <em>"ClockServiceWSTest.java"</em> file, that you will rename to <kbd>"TwitterServiceWSTest.java"</kbd>.
+			     </li>
+			     <li>
+			        Once this is done, the project content should look like this:
+			        <a href="images/full/tut-clean-project-wstests.png" rel="lightbox" title="All files renamed"><img src="images/preview/tut-clean-project-wstests.png" alt="All files renamed"/></a>
+			   </li>
+			</ol>
+		</div>
+
+    <!-- Webservice tests implementation -->
+		<div class="step">
+		  <h3><a name="WEBSERVICE_IMPL"></a>Step 5: Define the webservice tests</h3>
+      <p>Once the webservice tests project structure is done, you can start to create the webservice tests themselves. This is done in the <em>TwitterServiceWSTest.java</em> file, in <em>src/test/java</em>.</p>
+			<ol>
+			  <li>
+			    Open the <em>TwitterServiceWSTest.java</em> file, in <em>src/test/java</em>, and start by commenting everything. Again, you will start from scratch, keeping the old code as reference.
+			  </li>
+			  <li>
+			    Define a new Java class, called <kbd>"TwitterServiceWSTest"</kbd>. 
+<pre><samp><span class="new">public class TwitterServiceWSTest {
+	
+}</span></samp></pre>
+	    	<p>Right now, it's totally empty. As for the functional tests, you will need first to define the specification of the twitter service before filling it up.</p>
+			  </li>
+			</ol>	 
+		</div>
+
+		<div id="conclusion">
+			<p>You now have a complete empty scaffolding structure for your service, containing not only the service itself but also all its tests (unit, functional, webservice). You can now start to <a href="EJB.html">define your service</a>.</p>
+		</div>
+	</div>
+	</div>
+	
+	<div id="footer">
+	  <div id="validation">
+      <a class="xhtml" href="http://validator.w3.org/check?uri=referer">xhtml</a>
+      <a class="css" href="http://jigsaw.w3.org/css-validator/check/referer">css</a>
+    </div>
+	</div>
+
+</body>
+</html>

@@ -29,12 +29,14 @@ import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.browser.BrowserService;
+import org.qualipso.factory.collaboration.beans.DocumentDetails;
+import org.qualipso.factory.collaboration.beans.ListItem;
 import org.qualipso.factory.collaboration.document.entity.CollaborationFolder;
 import org.qualipso.factory.collaboration.document.entity.Document;
-import org.qualipso.factory.collaboration.document.entity.ListItem;
 import org.qualipso.factory.collaboration.utils.CollaborationUtils;
 import org.qualipso.factory.collaboration.ws.DocumentWService;
 import org.qualipso.factory.collaboration.ws.beans.DocumentDTO;
+import org.qualipso.factory.collaboration.ws.beans.FolderDTO;
 import org.qualipso.factory.core.CoreService;
 import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.membership.MembershipService;
@@ -45,6 +47,9 @@ import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
 
+/**
+ * The Class DocumentServiceBean.
+ */
 @Stateless(name = "DocumentServiceBean", mappedName = FactoryNamingConvention.SERVICE_PREFIX
 	+ DocumentService.SERVICE_NAME)
 @WebService(endpointInterface = "org.qualipso.factory.collaboration.document.DocumentService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE
@@ -56,27 +61,52 @@ import org.qualipso.factory.security.pep.PEPService;
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class DocumentServiceBean implements DocumentService {
+    
+    /** The logger. */
     private static Log logger = LogFactory.getLog(DocumentServiceBean.class);
 
+    /** The binding. */
     private BindingService binding;
+    
+    /** The pep. */
     private PEPService pep;
+    
+    /** The pap. */
     private PAPService pap;
+    
+    /** The notification. */
     private NotificationService notification;
+    
+    /** The membership. */
     private MembershipService membership;
+    
+    /** The browser. */
     private BrowserService browser;
+    
+    /** The core. */
     private CoreService core;
     //
+    /** The ctx. */
     private SessionContext ctx;
+    
+    /** The em. */
     private EntityManager em;
     //
+    /** The document ws. */
     private DocumentWService documentWS;
 
+    /**
+     * Instantiates a new document service bean.
+     */
     public DocumentServiceBean() {
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#createDocument(java.lang.String, org.qualipso.factory.collaboration.beans.DocumentDetails)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public String createDocument(String parentPath, Document document)
+    public String createDocument(String parentPath, DocumentDetails document)
 	    throws DocumentServiceException {
 	logIt("createDocument(...) called");
 	logIt("params : path=" + parentPath + ", name=" + document.getName());
@@ -99,7 +129,7 @@ public class DocumentServiceBean implements DocumentService {
 		// }
 		pep.checkSecurity(caller, parentPath, "create");
 		//
-		String parentFolderID = CollaborationUtils.DEFAULT_FOLDER_ID;
+		String parentFolderId = CollaborationUtils.DEFAULT_FOLDER_ID;
 		// Check if folder is a collaboration folder or not.
 		// If it is we need to match it with a mermig folder.
 		if (!parentPath.equals("/")) {
@@ -107,7 +137,7 @@ public class DocumentServiceBean implements DocumentService {
 		    try {
 			parFold = readFolder(parentPath);
 			if (parFold != null) {
-			    parentFolderID = parFold.getId();
+			    parentFolderId = parFold.getId();
 			}
 		    } catch (Exception e) {
 			logger
@@ -128,12 +158,12 @@ public class DocumentServiceBean implements DocumentService {
 		     * + parentPath); } parentFolderID = folderID; }
 		     */
 		}
-		logIt("Parent folder id " + parentFolderID);
+		logIt("Parent folder id " + parentFolderId);
 		// We need to find if this folder ID exists on cms (mermig).
 		// call the getFolder service?
 		// Call the create Documet service
 		HashMap<String, String> values = documentWS.createDocument(
-			parentFolderID, document.getName(), document.getDate(),
+			parentFolderId, document.getName(), document.getDate(),
 			document.getType(), document.getKeywords(), document
 				.getVersion(), document.getStatus(), document
 				.getFileName(), document.getMimeType(),
@@ -150,13 +180,13 @@ public class DocumentServiceBean implements DocumentService {
 					+ code + " Message:" + msg);
 		    }
 		    // we persist only id,name,path and parent id and author
-		    path = PathHelper.normalize(parentPath) + "/" + newId;
+		    path = PathHelper.normalize(parentPath + "/" + newId);
 		    Document doc = new Document();
 		    doc.setId(newId);// Set the id returned by the MermigWS
 		    doc.setResourcePath(path);
 		    doc.setName(document.getName());
 		    doc.setAuthor(caller.toString());
-		    doc.setParentFolderID(parentFolderID);
+		    doc.setParentFolderId(parentFolderId);
 		    em.persist(doc);
 		    // Bind the document with the path and the identifier
 		    binding.bind(doc.getFactoryResourceIdentifier(), path);
@@ -199,128 +229,9 @@ public class DocumentServiceBean implements DocumentService {
 	return path;
     }
 
-    @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public String createDocumentSimple(String parentPath, String name,
-	    String date, String type, String keywords, String version,
-	    String status, String fileName, String mimeType,
-	    byte[] binaryContent) throws DocumentServiceException {
-	logIt("createDocument(...) called");
-	logIt("params : path=" + parentPath + ", name=" + name);
-	String path = null;
-	try {
-	    if (name != null && binaryContent != null) {
-		// Security check
-		String caller = membership
-			.getProfilePathForConnectedIdentifier();
-		if (caller == null) {
-		    throw new DocumentServiceException(
-			    "Could not get connected profile");
-		}
-		logIt("caller: " + caller);
-		// String parentPath = "/";
-		// if (!parentPath.equals("/"))
-		// {
-		// parentPath = PathHelper.getParentPath(parentPath);
-		// }
-		pep.checkSecurity(caller, parentPath, "create");
-		//
-		String parentFolderID = CollaborationUtils.DEFAULT_FOLDER_ID;
-		// Check if folder is a collaboration folder or not.
-		// If it is we need to match it with a mermig folder.
-		if (!parentPath.equals("/")) {
-		    CollaborationFolder parFold = null;
-		    try {
-			parFold = readFolder(parentPath);
-			if (parFold != null) {
-			    parentFolderID = parFold.getId();
-			}
-		    } catch (Exception e) {
-			logger
-				.warn("Propably we create a document for a parent that it is not collaboration-folder");
-		    }
-		    /*
-		     * else { // Should we create it? String tempName = "F" +
-		     * System.currentTimeMillis(); if (parentPath.indexOf("/") >
-		     * 0) { int i = parentPath.lastIndexOf("/"); if (i + 1 <
-		     * parentPath.length()) { tempName =
-		     * parentPath.substring(i); } }
-		     * logIt("Create folder before uploading file. Path " +
-		     * parentPath + " Name " + tempName); String folderID =
-		     * createFolder(parentPath, tempName,
-		     * "Folder created by factory"); if (folderID == null) {
-		     * throw new DocumentServiceException(
-		     * "Error in creating folder for the document upload.Path: "
-		     * + parentPath); } parentFolderID = folderID; }
-		     */
-		}
-		logIt("Parent folder id " + parentFolderID);
-		// We need to find if this folder ID exists on cms (mermig).
-		// call the getFolder service?
-		// Call the create Documet service
-		HashMap<String, String> values = documentWS.createDocument(
-			parentFolderID, name, date, type, keywords, version,
-			status, fileName, mimeType, binaryContent);
-		if (values != null && !values.isEmpty()) {
-		    String code = (String) values.get("statusCode");
-		    String msg = (String) values.get("statusMessage");
-		    String newId = (String) values.get("documentId");
-		    logIt("Message Code:" + code + " Message: " + msg);
-		    if (!code.equals(CollaborationUtils.SUCCESS_CODE)
-			    || (newId == null || newId.equals(""))) {
-			throw new DocumentServiceException(
-				"Error code recieved from the WS." + " Code"
-					+ code + " Message:" + msg);
-		    }
-		    // we persist only id,name,path and parent id and author
-		    path = PathHelper.normalize(parentPath) + "/" + newId;
-		    Document doc = new Document();
-		    doc.setId(newId);// Set the id returned by the MermigWS
-		    doc.setResourcePath(path);
-		    doc.setName(name);
-		    doc.setAuthor(caller.toString());
-		    doc.setParentFolderID(parentFolderID);
-		    em.persist(doc);
-		    // Bind the document with the path and the identifier
-		    binding.bind(doc.getFactoryResourceIdentifier(), path);
-		    binding.setProperty(path,
-			    FactoryResourceProperty.CREATION_TIMESTAMP, ""
-				    + System.currentTimeMillis());
-		    binding.setProperty(path,
-			    FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, ""
-				    + System.currentTimeMillis());
-		    binding.setProperty(path, FactoryResourceProperty.AUTHOR,
-			    caller);
-		    // Create policy (owner)
-		    String policyId = UUID.randomUUID().toString();
-		    pap.createPolicy(policyId, PAPServiceHelper
-			    .buildOwnerPolicy(policyId, caller, path));
-		    binding.setProperty(path, FactoryResourceProperty.OWNER,
-			    caller);
-		    binding.setProperty(path,
-			    FactoryResourceProperty.POLICY_ID, policyId);
-		    // Notify
-		    notification.throwEvent(new Event(path, caller,
-			    Document.RESOURCE_NAME, Event.buildEventType(
-				    DocumentService.SERVICE_NAME,
-				    Document.RESOURCE_NAME, "create"), ""));
-		    //
-		    logIt(doc.toString());
-		} else {
-		    throw new DocumentServiceException(
-			    "No valid answer from the WS.Check logs.");
-		}
-	    }
-	} catch (Exception e) {
-	    // ctx.setRollbackOnly();
-	    logger.error("unable to create the document at path " + parentPath,
-		    e);
-	    throw new DocumentServiceException(
-		    "unable to create the document at path " + parentPath, e);
-	}
-	return path;
-    }
-
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#readDocument(java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Document readDocument(String path) throws DocumentServiceException {
@@ -369,6 +280,7 @@ public class DocumentServiceBean implements DocumentService {
 		    // since we persist them on factory
 		    // We don't persist date,type,keywords,version,status,file
 		    // details
+		    document.setResourceId(docWS.getResourceId());
 		    document.setDate(docWS.getDate());
 		    document.setType(docWS.getType());
 		    document.setKeywords(docWS.getKeywords());
@@ -401,6 +313,9 @@ public class DocumentServiceBean implements DocumentService {
 	return document;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#readDocumentProperties(java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Document readDocumentProperties(String path)
@@ -447,6 +362,7 @@ public class DocumentServiceBean implements DocumentService {
 		    // since we persist them on factory
 		    // We don't persist date,type,keywords,version,status,file
 		    // details
+		    document.setResourceId(docWS.getResourceId());
 		    document.setDate(docWS.getDate());
 		    document.setType(docWS.getType());
 		    document.setKeywords(docWS.getKeywords());
@@ -454,6 +370,7 @@ public class DocumentServiceBean implements DocumentService {
 		    document.setStatus(docWS.getStatus());
 		    document.setSize(docWS.getSize());
 		    document.setResourcePath(path);
+		    document.setFileName(docWS.getFileName());
 		    // Notify
 		    notification.throwEvent(new Event(path, caller,
 			    Document.RESOURCE_NAME, Event.buildEventType(
@@ -475,6 +392,9 @@ public class DocumentServiceBean implements DocumentService {
 	return document;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#updateDocument(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, byte[])
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void updateDocument(String path, String name, String type,
@@ -542,6 +462,9 @@ public class DocumentServiceBean implements DocumentService {
 	}
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#deleteDocument(java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void deleteDocument(String path) throws DocumentServiceException {
@@ -603,6 +526,9 @@ public class DocumentServiceBean implements DocumentService {
     }
 
     // Folder management
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#createFolder(java.lang.String, java.lang.String, java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public String createFolder(String parentPath, String name,
@@ -622,11 +548,6 @@ public class DocumentServiceBean implements DocumentService {
 			"Could not get connected profile");
 	    }
 	    logIt("caller: " + caller);
-	    // String parentPath = "/";
-	    // if (!path.equals("/"))
-	    // {
-	    // parentPath = PathHelper.getParentPath(path);
-	    // }
 	    pep.checkSecurity(caller, parentPath, "create");
 	    // Get parent folder id
 	    String parentFolderID = CollaborationUtils.DEFAULT_FOLDER_ID;
@@ -644,9 +565,6 @@ public class DocumentServiceBean implements DocumentService {
 		}
 	    }
 	    logIt("Folder id " + parentFolderID);
-	    // We need to find if this folder ID exists on cms (mermig). If not.
-	    // should we create?
-	    // TODO call the readFolder service.
 	    // Call the create Folder service
 	    HashMap<String, String> values = documentWS.createFolder(name,
 		    parentFolderID, description);
@@ -711,6 +629,9 @@ public class DocumentServiceBean implements DocumentService {
 	return path;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#readFolder(java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public CollaborationFolder readFolder(String path)
@@ -739,8 +660,7 @@ public class DocumentServiceBean implements DocumentService {
 			"unable to find a folder for id " + identifier.getId());
 	    }
 	    // Call WS getFolderProperties
-	    // TODO return folderdto
-	    HashMap<String, String> values = documentWS.readFolder(folder
+	    HashMap<String, Object> values = documentWS.readFolder(folder
 		    .getId());
 	    if (values != null && !values.isEmpty()) {
 		// We don't persist description and date
@@ -752,14 +672,13 @@ public class DocumentServiceBean implements DocumentService {
 			    "Error code recieved from the WS." + " Code" + code
 				    + " Message:" + msg);
 		}
-		if (values.get("abstract") != null) {
-		    String desc = (String) values.get("abstract");
-		    folder.setDescription(desc);
+		if(values.get("folder")!=null)
+		{
+		    FolderDTO  folderWS = (FolderDTO)values.get("folder");
+		    folder.setDescription(folderWS.getDescription());
+		    folder.setDate(folderWS.getDate());
 		}
-		if (values.get("dateCreated") != null) {
-		    String date = (String) values.get("dateCreated");
-		    folder.setDate(date);
-		}
+		
 	    } else {
 		throw new DocumentServiceException(
 			"No valid answer from the WS.Check logs.");
@@ -780,6 +699,9 @@ public class DocumentServiceBean implements DocumentService {
 	return folder;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#updateFolder(java.lang.String, java.lang.String, java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void updateFolder(String path, String name, String description)
@@ -847,6 +769,9 @@ public class DocumentServiceBean implements DocumentService {
 	}
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#deleteFolder(java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void deleteFolder(String path) throws DocumentServiceException {
@@ -916,6 +841,9 @@ public class DocumentServiceBean implements DocumentService {
 	}
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#readFolderContent(java.lang.String)
+     */
     @Override
     public CollaborationFolder readFolderContent(String path)
 	    throws DocumentServiceException {
@@ -976,6 +904,9 @@ public class DocumentServiceBean implements DocumentService {
 	return folder;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#getFolderContent(java.lang.String)
+     */
     @Override
     public ListItem[] getFolderContent(String path)
 	    throws DocumentServiceException {
@@ -1010,7 +941,7 @@ public class DocumentServiceBean implements DocumentService {
 		}
 	    }
 	    // Get documents
-	    typePattern = "Document";
+	    typePattern = Document.RESOURCE_NAME;
 	    String[] docsArray = browser.listChildrenOfType(path,
 		    servicePattern, typePattern);
 	    if (docsArray != null && docsArray.length > 0) {
@@ -1038,6 +969,9 @@ public class DocumentServiceBean implements DocumentService {
 	return contList;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#getFolderDocuments(java.lang.String)
+     */
     @Override
     public Document[] getFolderDocuments(String path)
 	    throws DocumentServiceException {
@@ -1076,6 +1010,9 @@ public class DocumentServiceBean implements DocumentService {
 	return docList;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#getSubfolders(java.lang.String)
+     */
     @Override
     public CollaborationFolder[] getSubfolders(String path)
 	    throws DocumentServiceException {
@@ -1114,6 +1051,9 @@ public class DocumentServiceBean implements DocumentService {
 	return folderList;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.document.DocumentService#uploadDocumentVersion(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, byte[])
+     */
     @Override
     public void uploadDocumentVersion(String path, String name, String version,
 	    String status, String fileName, String mimeType,
@@ -1182,103 +1122,211 @@ public class DocumentServiceBean implements DocumentService {
 	}
     }
 
+    /**
+     * Sets the entity manager.
+     * 
+     * @param em the new entity manager
+     */
     @PersistenceContext(unitName = "DocumentServiceBean")
     public void setEntityManager(EntityManager em) {
 	this.em = em;
     }
 
+    /**
+     * Gets the entity manager.
+     * 
+     * @return the entity manager
+     */
     public EntityManager getEntityManager() {
 	return this.em;
     }
 
+    /**
+     * Sets the session context.
+     * 
+     * @param ctx the new session context
+     */
     @Resource
     public void setSessionContext(SessionContext ctx) {
 	this.ctx = ctx;
     }
 
+    /**
+     * Gets the session context.
+     * 
+     * @return the session context
+     */
     public SessionContext getSessionContext() {
 	return this.ctx;
     }
 
     // @EJB(name = "BindingService")
+    /**
+     * Sets the binding service.
+     * 
+     * @param binding the new binding service
+     */
     @EJB
     public void setBindingService(BindingService binding) {
 	this.binding = binding;
     }
 
+    /**
+     * Gets the binding service.
+     * 
+     * @return the binding service
+     */
     public BindingService getBindingService() {
 	return this.binding;
     }
 
     // @EJB(name = "PEPService")
+    /**
+     * Sets the pEP service.
+     * 
+     * @param pep the new pEP service
+     */
     @EJB
     public void setPEPService(PEPService pep) {
 	this.pep = pep;
     }
 
+    /**
+     * Gets the pEP service.
+     * 
+     * @return the pEP service
+     */
     public PEPService getPEPService() {
 	return this.pep;
     }
 
     // @EJB(name = "PAPService")
+    /**
+     * Sets the pAP service.
+     * 
+     * @param pap the new pAP service
+     */
     @EJB
     public void setPAPService(PAPService pap) {
 	this.pap = pap;
     }
 
+    /**
+     * Gets the pAP service.
+     * 
+     * @return the pAP service
+     */
     public PAPService getPAPService() {
 	return this.pap;
     }
 
     // @EJB(name = "NotificationService")
+    /**
+     * Sets the notification service.
+     * 
+     * @param notification the new notification service
+     */
     @EJB
     public void setNotificationService(NotificationService notification) {
 	this.notification = notification;
     }
 
+    /**
+     * Gets the notification service.
+     * 
+     * @return the notification service
+     */
     public NotificationService getNotificationService() {
 	return this.notification;
     }
 
     // @EJB(name = "MembershipService")
+    /**
+     * Sets the membership service.
+     * 
+     * @param membership the new membership service
+     */
     @EJB
     public void setMembershipService(MembershipService membership) {
 	this.membership = membership;
     }
 
+    /**
+     * Gets the membership service.
+     * 
+     * @return the membership service
+     */
     public MembershipService getMembershipService() {
 	return this.membership;
     }
 
+    /**
+     * Gets the browser.
+     * 
+     * @return the browser
+     */
     public BrowserService getBrowser() {
 	return browser;
     }
 
     // @EJB(name = "BrowserService")
+    /**
+     * Sets the browser.
+     * 
+     * @param browser the new browser
+     */
     @EJB
     public void setBrowser(BrowserService browser) {
 	this.browser = browser;
     }
 
+    /**
+     * Gets the core.
+     * 
+     * @return the core
+     */
     public CoreService getCore() {
 	return core;
     }
 
     // @EJB(name = "CoreService")
+    /**
+     * Sets the core.
+     * 
+     * @param core the new core
+     */
     @EJB
     public void setCore(CoreService core) {
 	this.core = core;
     }
 
+    /**
+     * Gets the document ws.
+     * 
+     * @return the document ws
+     */
     public DocumentWService getDocumentWS() {
 	return documentWS;
     }
 
+    /**
+     * Sets the document ws.
+     * 
+     * @param documentWS the new document ws
+     */
     @EJB(name = "DocumentWService")
     public void setDocumentWS(DocumentWService documentWS) {
 	this.documentWS = documentWS;
     }
 
+    /**
+     * Check resource type.
+     * 
+     * @param identifier the identifier
+     * @param resourceType the resource type
+     * 
+     * @throws MembershipServiceException the membership service exception
+     */
     private void checkResourceType(FactoryResourceIdentifier identifier,
 	    String resourceType) throws MembershipServiceException {
 	if (!identifier.getService().equals(getServiceName())) {
@@ -1293,16 +1341,25 @@ public class DocumentServiceBean implements DocumentService {
 	}
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.FactoryService#getResourceTypeList()
+     */
     @Override
     public String[] getResourceTypeList() {
 	return RESOURCE_TYPE_LIST;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.FactoryService#getServiceName()
+     */
     @Override
     public String getServiceName() {
 	return SERVICE_NAME;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.FactoryService#findResource(java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public FactoryResource findResource(String path) throws FactoryException {
@@ -1334,6 +1391,11 @@ public class DocumentServiceBean implements DocumentService {
 	}
     }
 
+    /**
+     * Log it.
+     * 
+     * @param message the message
+     */
     private void logIt(String message) {
 	if (logger.isInfoEnabled()) {
 	    logger.info(message);

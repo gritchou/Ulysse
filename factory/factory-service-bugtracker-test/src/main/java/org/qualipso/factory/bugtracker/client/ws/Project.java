@@ -29,7 +29,7 @@ public interface Project {
      * @param arg2
      * @param arg1
      * @param arg0
-     * @throws ProjectException_Exception
+     * @throws ProjectServiceException_Exception
      */
     @WebMethod
     public void createProject(
@@ -41,19 +41,19 @@ public interface Project {
         String arg2,
         @WebParam(name = "arg3", partName = "arg3")
         String arg3)
-        throws ProjectException_Exception
+        throws ProjectServiceException_Exception
     ;
 
     /**
      * 
      * @param arg0
-     * @throws ProjectException_Exception
+     * @throws ProjectServiceException_Exception
      */
     @WebMethod
     public void deleteProject(
         @WebParam(name = "arg0", partName = "arg0")
         String arg0)
-        throws ProjectException_Exception
+        throws ProjectServiceException_Exception
     ;
 
     /**
@@ -76,14 +76,14 @@ public interface Project {
      * @param arg0
      * @return
      *     returns org.qualipso.factory.bugtracker.client.ws.Project_Type
-     * @throws ProjectException_Exception
+     * @throws ProjectServiceException_Exception
      */
     @WebMethod
     @WebResult(name = "project", partName = "project")
     public Project_Type getProject(
         @WebParam(name = "arg0", partName = "arg0")
         String arg0)
-        throws ProjectException_Exception
+        throws ProjectServiceException_Exception
     ;
 
     /**
@@ -111,7 +111,7 @@ public interface Project {
      * @param arg2
      * @param arg1
      * @param arg0
-     * @throws ProjectException_Exception
+     * @throws ProjectServiceException_Exception
      */
     @WebMethod
     public void updateProject(
@@ -125,7 +125,7 @@ public interface Project {
         String arg3,
         @WebParam(name = "arg4", partName = "arg4")
         String arg4)
-        throws ProjectException_Exception
+        throws ProjectServiceException_Exception
     ;
 
     /**
@@ -136,7 +136,7 @@ public interface Project {
      * @param arg2
      * @param arg1
      * @param arg0
-     * @throws ProjectException_Exception
+     * @throws ProjectServiceException_Exception
      */
     @WebMethod
     public void updateTagsProject(
@@ -152,7 +152,7 @@ public interface Project {
         StringArray arg4,
         @WebParam(name = "arg5", partName = "arg5")
         StringArray arg5)
-        throws ProjectException_Exception
+        throws ProjectServiceException_Exception
     ;
 
 }

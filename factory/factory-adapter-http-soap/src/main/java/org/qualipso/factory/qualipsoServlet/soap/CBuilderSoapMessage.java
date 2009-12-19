@@ -21,7 +21,6 @@ import javax.xml.ws.Service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.qualipso.factory.qualipsoServlet.QualipsoServletClass;
 import org.qualipso.factory.qualipsoServlet.api.manager.CRequestManager;
 import org.qualipso.factory.qualipsoServlet.auth.soapHandler.QualipsoHandlerHeader;
 
@@ -33,11 +32,12 @@ import org.qualipso.factory.qualipsoServlet.auth.soapHandler.QualipsoHandlerHead
 
 public class CBuilderSoapMessage 
 {
-
 	private static final String NAMESPACE_DEFAULT_AXIS2 = "http://ws.apache.org/axis2";
 	private static final String XML_SOAP_ENVELOPE = "http://schemas.xmlsoap.org/soap/envelope/";
 	private static final String XML_SOAP_ENCODING = "http://schemas.xmlsoap.org/soap/encoding/";
-	static final String XML_SCHEMA_INSTANCE = "http://www.w3.org/2001/XMLSchema-instance";
+	private static final String XML_SOAP_MIME = "http://schemas.xmlsoap.org/wsdl/mime/";
+	private static final String XML_SCHEMA_INSTANCE = "http://www.w3.org/2001/XMLSchema-instance";
+	private static final String XML_SCHEMA_XSD = "http://www.w3.org/2001/XMLSchema";
 	
 	private SOAPConnectionFactory soapFactory;
 	
@@ -69,15 +69,21 @@ public class CBuilderSoapMessage
  	 * @return SOAPEnvelope the soap response of the web service through axis2
  	 */
  	public SOAPMessage SendAndLoadServiceWeb(HttpServletRequest request)
- 		throws SOAPException,Exception
+ 		throws SOAPException
  	{
  		// build the envelope of the soap message :
- 		SOAPMessage aSOAPresult;
- 		SOAPConnection conn = soapFactory.createConnection();
+ 		SOAPMessage aSOAPresult = null;
+ 		SOAPConnection conn;
+ 		if(soapFactory != null)
+ 			conn = soapFactory.createConnection();
+ 		else
+ 			conn = SOAPConnectionFactory.newInstance().createConnection();
  		
  		String aMsgInUrlWS = request.getParameter("FullPathURL");
- 		String methodWS = request.getParameter("MethodName");
+ 		if(aMsgInUrlWS == null)
+ 			throw new SOAPException ("Missing the EndPoint Reference of the service !");
  		
+ 		String methodWS = request.getParameter("MethodName");
  		if (methodWS == null)
  			throw new SOAPException ("Missing the Method Name of the service !");
  		
@@ -111,11 +117,9 @@ public class CBuilderSoapMessage
  			conn.close();
  			throw new SOAPException(e.getMessage());
  		}
- 		catch (IOException except)
+ 		catch(IOException except)
  		{
- 			logger.error(except.getMessage());
  			conn.close();
- 			throw new Exception(except.getMessage());
  		}
  		finally
  		{
@@ -132,9 +136,10 @@ public class CBuilderSoapMessage
  	 * @param aMethod is the function name used in web service
  	 * @return is a Soap Message request
  	 */
- 	private SOAPMessage generateSOAP(HttpServletRequest request, String aMethod) throws SOAPException
+ 	private SOAPMessage generateSOAP(HttpServletRequest request, String aMethod) 
+ 		throws SOAPException
  	{
- 		SOAPMessage MessageSoap = MessageFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL).createMessage();
+ 		SOAPMessage MessageSoap = MessageFactory.newInstance().createMessage();
  		SOAPEnvelope envelope = MessageSoap.getSOAPPart().getEnvelope();
  		
  		
@@ -182,7 +187,7 @@ public class CBuilderSoapMessage
  		{
  			if(!(aNameSpaceXsdSoap.length() > 1))
  			{
- 				aNameSpaceXsdSoap = aNameSpaceSoap + "/xsd";
+ 				aNameSpaceXsdSoap = CBuilderSoapMessage.XML_SCHEMA_XSD;
  			}
  		}
  		//################################
@@ -200,31 +205,32 @@ public class CBuilderSoapMessage
  		envelope.addNamespaceDeclaration("xsi",CBuilderSoapMessage.XML_SCHEMA_INSTANCE);
  		envelope.addNamespaceDeclaration("enc",CBuilderSoapMessage.XML_SOAP_ENCODING);
  		envelope.addNamespaceDeclaration("env",CBuilderSoapMessage.XML_SOAP_ENVELOPE);
+ 		envelope.addNamespaceDeclaration("mime",CBuilderSoapMessage.XML_SOAP_MIME);
  		envelope.setEncodingStyle(CBuilderSoapMessage.XML_SOAP_ENCODING);
 
  		SOAPBody body = envelope.getBody();
- 		System.out.println("body test = " + body);
-
- 		SOAPElement operation = envelope.addChildElement(aMethod,"ns");
- 		SOAPElement aBodyElement = body.addChildElement(operation);
- 		
- 		//request.
+ 		SOAPElement operation,aBodyElement;
+ 		operation = envelope.addChildElement(aMethod,"ns");
+ 		aBodyElement = body.addChildElement(operation);
  		
  		// build the soap body request
  		CRequestManager manager= new CRequestManager();
- 		manager.processRequest(request, aBodyElement);
  		
- 		// Management of the 
- 		Boolean aTagAttachment = false;
- 		
- 		// data attachment
- 		/*
- 		if (aTagAttachment == true)
- 		{
- 			MessageSoap.saveChanges();
- 			MessageSoap.createAttachmentPart(datahandler);
+ 		// define the type of http content
+ 		logger.info("Will manage the attachment or nor....");
+ 		try{
+ 			//MessageSoap.saveChanges();
+ 			logger.info("Soap attachment before : "+MessageSoap.toString());
+ 			manager.processRequestWithAttach(request, MessageSoap);
+ 			logger.info("After attachment : "+ MessageSoap.toString());
  		}
- 		*/
+ 		catch(SOAPException exception)
+ 		{
+ 			logger.debug("No attachment in soap message");
+ 			manager.processRequest(request, aBodyElement);
+ 			logger.debug("body soap = "+MessageSoap.toString());
+ 		}
+ 		
  		MessageSoap.saveChanges();
  		
  		return MessageSoap;
@@ -298,7 +304,8 @@ public class CBuilderSoapMessage
  			}
  			catch(Exception except)
  			{
- 				except.printStackTrace();
+ 				logger.info("Erreur in header saop wsse : "+except);
+ 				//except.printStackTrace();
  			}
  		}
  		else

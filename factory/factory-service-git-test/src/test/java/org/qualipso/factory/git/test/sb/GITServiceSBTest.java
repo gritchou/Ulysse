@@ -27,18 +27,18 @@ import org.qualipso.factory.core.CoreService;
 import org.qualipso.factory.git.GITService;
 import org.qualipso.factory.git.entity.GITRepository;
 import org.qualipso.factory.git.test.AllTests;
-import org.spearce.jgit.lib.Commit;
-import org.spearce.jgit.lib.Constants;
-import org.spearce.jgit.lib.GitIndex;
-import org.spearce.jgit.lib.ObjectId;
-import org.spearce.jgit.lib.ObjectWriter;
-import org.spearce.jgit.lib.PersonIdent;
-import org.spearce.jgit.lib.RefUpdate;
-import org.spearce.jgit.lib.Repository;
-import org.spearce.jgit.lib.TextProgressMonitor;
-import org.spearce.jgit.transport.FetchConnection;
-import org.spearce.jgit.transport.PushConnection;
-import org.spearce.jgit.transport.Transport;
+import org.eclipse.jgit.lib.Commit;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.GitIndex;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectWriter;
+import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.RefUpdate;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.TextProgressMonitor;
+import org.eclipse.jgit.transport.FetchConnection;
+import org.eclipse.jgit.transport.PushConnection;
+import org.eclipse.jgit.transport.Transport;
 
 public class GITServiceSBTest {
 	

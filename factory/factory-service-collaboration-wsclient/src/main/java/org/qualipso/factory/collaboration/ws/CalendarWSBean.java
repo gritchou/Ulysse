@@ -54,31 +54,10 @@ public class CalendarWSBean extends CollaborationWSUtils implements
     @Override
     public HashMap<String, Object> createEvent(CalendarDTO calendarDTO)
 	    throws Exception {
-	return createEvent(calendarDTO.getName(), calendarDTO.getLocation(),
-		calendarDTO.getDate(), calendarDTO.getStartTime(), calendarDTO
-			.getEndTime(), calendarDTO.getContactName(),
-		calendarDTO.getContactEmail(), calendarDTO.getContactPhone(),
-		calendarDTO.getRecurrence(), calendarDTO.getTimes());
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.qualipso.factory.collaboration.ws.CalendarWService#createEvent(java
-     * .lang.String, java.lang.String, java.lang.String, java.lang.String,
-     * java.lang.String, java.lang.String, java.lang.String, java.lang.String,
-     * java.lang.String, long)
-     */
-    @Override
-    public HashMap<String, Object> createEvent(String name, String location,
-	    String date, String startTime, String endTime, String contactName,
-	    String contactEmail, String contactPhone, String recurrence,
-	    long times) throws Exception {
 	HashMap<String, Object> resultMap = new HashMap<String, Object>(1);
-	OMElement payload = getCreateEventPayLoad(name, location, date,
-		startTime, endTime, contactName, contactEmail, contactPhone,
-		recurrence, times);
+	OMElement payload = getCreateEventPayLoad(calendarDTO.getName(), calendarDTO.getLocation(), calendarDTO.getDate(),
+		calendarDTO.getStartTime(), calendarDTO.getEndTime(), calendarDTO.getContactName(), calendarDTO.getContactEmail(), calendarDTO.getContactPhone(),
+		calendarDTO.getRecurrence(), calendarDTO.getTimes(),calendarDTO.getAttachments(),calendarDTO.getForum());
 	logger.info(payload.toString());
 	Options options = new Options();
 	options.setTo(targetEPR);
@@ -226,8 +205,7 @@ public class CalendarWSBean extends CollaborationWSUtils implements
 			.getFirstChildWithName(OMEUtils.getQName("forumList"));
 		if (omForumList != null) {
 		    Iterator forumIterator = omForumList
-			    .getChildrenWithName(OMEUtils
-				    .getQName("forumItem"));
+			    .getChildrenWithName(OMEUtils.getQName("forumItem"));
 		    if (forumIterator != null) {
 			while (forumIterator.hasNext()) {
 			    OMElement foElement = (OMElement) forumIterator
@@ -272,7 +250,7 @@ public class CalendarWSBean extends CollaborationWSUtils implements
 	OMElement payload = getCreateUpadeEventPayLoad(itemId, seriesId,
 		CollaborationWSUtils.CALENDAR_MODIFY_OC, name, location, date,
 		startTime, endTime, contactName, contactEmail, contactPhone,
-		null, 1, true);
+		null, 1, true,null,null);
 	logger.info(payload.toString());
 	Options options = new Options();
 	options.setTo(targetEPR);
@@ -290,6 +268,36 @@ public class CalendarWSBean extends CollaborationWSUtils implements
 	values.put("statusMessage", omStatusMsg.getText());
 	return values;
     }
+    
+    @Override
+    public HashMap<String, String> updateEventExtra(String itemId, String seriesId,
+	    String name, String location, String date, String startTime,
+	    String endTime, String contactName, String contactEmail,
+	    String contactPhone,HashMap<String, String> documents,String forumId) throws Exception {
+	HashMap<String, String> values = new HashMap<String, String>();
+	OMElement payload = getCreateUpadeEventPayLoad(itemId, seriesId,
+		CollaborationWSUtils.CALENDAR_MODIFY_OC, name, location, date,
+		startTime, endTime, contactName, contactEmail, contactPhone,
+		null, 1, true,documents,forumId);
+	logger.info(payload.toString());
+	Options options = new Options();
+	options.setTo(targetEPR);
+	options.setAction("urn:updateEvent");
+	// Blocking invocation
+	ServiceClient sender = new ServiceClient();
+	sender.setOptions(options);
+	OMElement result = sender.sendReceive(payload);
+	logger.info(result.toString());
+	OMElement omStatus = result.getFirstChildWithName(OMEUtils
+		.getQName("statusCode"));
+	values.put("statusCode", omStatus.getText());
+	OMElement omStatusMsg = result.getFirstChildWithName(OMEUtils
+		.getQName("statusMessage"));
+	values.put("statusMessage", omStatusMsg.getText());
+	return values;
+    }
+    
+    
 
     /*
      * (non-Javadoc)
@@ -308,7 +316,7 @@ public class CalendarWSBean extends CollaborationWSUtils implements
 		.getName(), event.getLocation(), date, event.getStartTime(),
 		event.getEndTime(), event.getContactName(), event
 			.getContactEmail(), event.getContactPhone(),
-		recurrence, times, true);
+		recurrence, times, true,null,null);
 	logger.info(payload.toString());
 	Options options = new Options();
 	options.setTo(targetEPR);
@@ -367,7 +375,7 @@ public class CalendarWSBean extends CollaborationWSUtils implements
      */
     @Override
     public HashMap<String, String> atttachDocumentToEvent(String itemId,
-	    String seriesId, String modify, String[] documents)
+	    String seriesId, String modify, HashMap<String, String> documents)
 	    throws Exception {
 	HashMap<String, String> resultMap = new HashMap<String, String>(1);
 	OMElement payload = createAttachmentPayload(itemId, seriesId, modify,
@@ -421,8 +429,25 @@ public class CalendarWSBean extends CollaborationWSUtils implements
 	return resultMap;
     }
 
+    /**
+     * Creates the attachment payload.
+     * 
+     * @param itemId
+     *            the item id
+     * @param seriesId
+     *            the series id
+     * @param modify
+     *            the modify
+     * @param documents
+     *            the documents
+     * @param forumId
+     *            the forum id
+     * 
+     * @return the oM element
+     */
     private static OMElement createAttachmentPayload(String itemId,
-	    String seriesId, String modify, String[] documents, String forumId) {
+	    String seriesId, String modify, HashMap<String, String> documents,
+	    String forumId) {
 	OMElement method = fac.createOMElement("setAttachmentsForCalendarItem",
 		omNs);
 	OMElement userElement = fac.createOMElement("username", omNs);
@@ -440,14 +465,26 @@ public class CalendarWSBean extends CollaborationWSUtils implements
 	method.addChild(idElement);
 	method.addChild(sIdElement);
 	method.addChild(modifyElement);
-	if (documents != null && documents.length > 0) {
-	    for (int j = 0; j < documents.length; j++) {
+	if (documents != null && documents.size() > 0) {
+	    Iterator<String> hashIterator = documents.keySet().iterator();
+	    while (hashIterator.hasNext()) {
+		String docID = (String) hashIterator.next();
+		String resID = (String) documents.get(docID);
 		OMElement attachmentElement = fac.createOMElement("attachment",
 			omNs);
-		attachmentElement.addChild(fac.createOMText(attachmentElement,
-			documents[j]));
+		OMElement attachDocIdElement = fac.createOMElement(
+			"documentID", omNs);
+		attachDocIdElement.addChild(fac.createOMText(
+			attachDocIdElement, docID));
+		OMElement attachDocResIdElement = fac.createOMElement(
+			"documentResourceID", omNs);
+		attachDocResIdElement.addChild(fac.createOMText(
+			attachDocResIdElement, resID));
+		attachmentElement.addChild(attachDocIdElement);
+		attachmentElement.addChild(attachDocResIdElement);
 		method.addChild(attachmentElement);
 	    }
+
 	}
 	if (forumId != null) {
 	    OMElement forumElement = fac.createOMElement("forumItem", omNs);
@@ -490,80 +527,23 @@ public class CalendarWSBean extends CollaborationWSUtils implements
 	return method;
     }
 
-    /**
-     * Gets the creates the event pay load.
-     * 
-     * @param name
-     *            the name
-     * @param location
-     *            the location
-     * @param date
-     *            the date
-     * @param startTime
-     *            the start time
-     * @param endTime
-     *            the end time
-     * @param contactName
-     *            the contact name
-     * @param contactEmail
-     *            the contact email
-     * @param contactPhone
-     *            the contact phone
-     * @param recurrence
-     *            the recurrence
-     * @param times
-     *            the times
-     * 
-     * @return the creates the event pay load
-     */
+ 
     private static OMElement getCreateEventPayLoad(String name,
 	    String location, String date, String startTime, String endTime,
 	    String contactName, String contactEmail, String contactPhone,
-	    String recurrence, long times) {
+	    String recurrence, long times,HashMap<String, String> documents,
+	    String forumId) {
 	return getCreateUpadeEventPayLoad(null, null, null, name, location,
 		date, startTime, endTime, contactName, contactEmail,
-		contactPhone, recurrence, times, false);
+		contactPhone, recurrence, times, false,documents,forumId);
     }
 
-    /**
-     * Gets the creates the upade event pay load.
-     * 
-     * @param id
-     *            the id
-     * @param seriesId
-     *            the series id
-     * @param modify
-     *            the modify
-     * @param name
-     *            the name
-     * @param location
-     *            the location
-     * @param date
-     *            the date
-     * @param startTime
-     *            the start time
-     * @param endTime
-     *            the end time
-     * @param contactName
-     *            the contact name
-     * @param contactEmail
-     *            the contact email
-     * @param contactPhone
-     *            the contact phone
-     * @param recurrence
-     *            the recurrence
-     * @param times
-     *            the times
-     * @param isUpdate
-     *            the is update
-     * 
-     * @return the creates the upade event pay load
-     */
     private static OMElement getCreateUpadeEventPayLoad(String id,
 	    String seriesId, String modify, String name, String location,
 	    String date, String startTime, String endTime, String contactName,
 	    String contactEmail, String contactPhone, String recurrence,
-	    long times, boolean isUpdate) {
+	    long times, boolean isUpdate,HashMap<String, String> documents,
+	    String forumId) {
 	OMElement method;
 	if (!isUpdate) {
 	    method = fac.createOMElement("createEvent", omNs);
@@ -647,6 +627,34 @@ public class CalendarWSBean extends CollaborationWSUtils implements
 	}
 	method.addChild(contactPersonElement);
 	method.addChild(participantElement);
+	//
+	if (documents != null && documents.size() > 0) {
+	    Iterator<String> hashIterator = documents.keySet().iterator();
+	    while (hashIterator.hasNext()) {
+		String docID = (String) hashIterator.next();
+		String resID = (String) documents.get(docID);
+		OMElement attachmentElement = fac.createOMElement("attachment",
+			omNs);
+		OMElement attachDocIdElement = fac.createOMElement(
+			"documentID", omNs);
+		attachDocIdElement.addChild(fac.createOMText(
+			attachDocIdElement, docID));
+		OMElement attachDocResIdElement = fac.createOMElement(
+			"documentResourceID", omNs);
+		attachDocResIdElement.addChild(fac.createOMText(
+			attachDocResIdElement, resID));
+		attachmentElement.addChild(attachDocIdElement);
+		attachmentElement.addChild(attachDocResIdElement);
+		method.addChild(attachmentElement);
+	    }
+
+	}
+	if (forumId != null) {
+	    OMElement forumElement = fac.createOMElement("forumItem", omNs);
+	    forumElement.addChild(fac.createOMText(forumElement, forumId));
+	    method.addChild(forumElement);
+	}
+	//
 	return method;
     }
 

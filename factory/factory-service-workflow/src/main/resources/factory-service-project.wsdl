@@ -1,0 +1,345 @@
+<definitions name='ProjectService' targetNamespace='http://org.qualipso.factory.ws/service/project' xmlns='http://schemas.xmlsoap.org/wsdl/' xmlns:ns1='http://org.qualipso.factory.ws/resource/project' xmlns:ns2='http://org.qualipso.factory.ws/resource/profile' xmlns:ns3='http://org.qualipso.factory.ws/resource/link' xmlns:ns4='http://org.qualipso.factory.ws/resource/group' xmlns:ns5='http://org.qualipso.factory.ws/resource/folder' xmlns:ns6='http://org.qualipso.factory.ws/resource/file' xmlns:ns7='http://jaxb.dev.java.net/array' xmlns:soap='http://schemas.xmlsoap.org/wsdl/soap/' xmlns:tns='http://org.qualipso.factory.ws/service/project' xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
+ <types>
+  <xs:schema targetNamespace='http://org.qualipso.factory.ws/resource/profile' version='1.0' xmlns:ns1='http://org.qualipso.factory.ws/service/project' xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+   <xs:import namespace='http://org.qualipso.factory.ws/service/project'/>
+   <xs:complexType name='Profile'>
+    <xs:complexContent>
+     <xs:extension base='ns1:factoryResource'>
+      <xs:sequence>
+       <xs:element name='email' type='xs:string'/>
+      </xs:sequence>
+      <xs:attribute name='fullname' type='xs:string' use='required'/>
+      <xs:attribute name='account-status' type='xs:int' use='required'/>
+      <xs:attribute name='online-status' type='xs:int' use='required'/>
+      <xs:attribute name='last-login-date' type='xs:dateTime' use='required'/>
+      <xs:attribute name='id' type='xs:string' use='required'/>
+      <xs:attribute name='path' type='xs:string' use='required'/>
+     </xs:extension>
+    </xs:complexContent>
+   </xs:complexType>
+  </xs:schema>
+  <xs:schema targetNamespace='http://jaxb.dev.java.net/array' version='1.0' xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+   <xs:complexType final='#all' name='stringArray'>
+    <xs:sequence>
+     <xs:element maxOccurs='unbounded' minOccurs='0' name='item' nillable='true' type='xs:string'/>
+    </xs:sequence>
+   </xs:complexType>
+  </xs:schema>
+  <xs:schema targetNamespace='http://org.qualipso.factory.ws/resource/folder' version='1.0' xmlns:ns1='http://org.qualipso.factory.ws/service/project' xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+   <xs:import namespace='http://org.qualipso.factory.ws/service/project'/>
+   <xs:complexType name='Folder'>
+    <xs:complexContent>
+     <xs:extension base='ns1:factoryResource'>
+      <xs:sequence>
+       <xs:element name='name' type='xs:string'/>
+       <xs:element name='description' type='xs:string'/>
+      </xs:sequence>
+      <xs:attribute name='id' type='xs:string' use='required'/>
+      <xs:attribute name='path' type='xs:string' use='required'/>
+     </xs:extension>
+    </xs:complexContent>
+   </xs:complexType>
+  </xs:schema>
+  <xs:schema targetNamespace='http://org.qualipso.factory.ws/resource/link' version='1.0' xmlns:ns1='http://org.qualipso.factory.ws/service/project' xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+   <xs:import namespace='http://org.qualipso.factory.ws/service/project'/>
+   <xs:complexType name='Link'>
+    <xs:complexContent>
+     <xs:extension base='ns1:factoryResource'>
+      <xs:sequence>
+       <xs:element name='link' type='xs:string'/>
+      </xs:sequence>
+      <xs:attribute name='id' type='xs:string' use='required'/>
+      <xs:attribute name='path' type='xs:string' use='required'/>
+     </xs:extension>
+    </xs:complexContent>
+   </xs:complexType>
+  </xs:schema>
+  <xs:schema targetNamespace='http://org.qualipso.factory.ws/resource/group' version='1.0' xmlns:ns1='http://org.qualipso.factory.ws/service/project' xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+   <xs:import namespace='http://org.qualipso.factory.ws/service/project'/>
+   <xs:complexType name='Group'>
+    <xs:complexContent>
+     <xs:extension base='ns1:factoryResource'>
+      <xs:sequence>
+       <xs:element name='name' type='xs:string'/>
+       <xs:element name='description' type='xs:string'/>
+       <xs:element name='members-list' type='xs:string'/>
+      </xs:sequence>
+      <xs:attribute name='id' type='xs:string' use='required'/>
+      <xs:attribute name='path' type='xs:string' use='required'/>
+     </xs:extension>
+    </xs:complexContent>
+   </xs:complexType>
+  </xs:schema>
+  <xs:schema targetNamespace='http://org.qualipso.factory.ws/service/project' version='1.0' xmlns:ns1='http://org.qualipso.factory.ws/resource/folder' xmlns:tns='http://org.qualipso.factory.ws/service/project' xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+   <xs:import namespace='http://org.qualipso.factory.ws/resource/folder'/>
+   <xs:element name='FactoryException' type='tns:FactoryException'/>
+   <xs:element name='ProjectException' type='tns:ProjectException'/>
+   <xs:element name='folder' type='ns1:Folder'/>
+   <xs:complexType name='ProjectException'>
+    <xs:sequence>
+     <xs:element minOccurs='0' name='message' type='xs:string'/>
+    </xs:sequence>
+   </xs:complexType>
+   <xs:complexType abstract='true' name='factoryResource'>
+    <xs:sequence/>
+   </xs:complexType>
+   <xs:complexType name='FactoryException'>
+    <xs:sequence>
+     <xs:element minOccurs='0' name='message' type='xs:string'/>
+    </xs:sequence>
+   </xs:complexType>
+  </xs:schema>
+  <xs:schema targetNamespace='http://org.qualipso.factory.ws/resource/file' version='1.0' xmlns:ns1='http://org.qualipso.factory.ws/service/project' xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+   <xs:import namespace='http://org.qualipso.factory.ws/service/project'/>
+   <xs:complexType name='File'>
+    <xs:complexContent>
+     <xs:extension base='ns1:factoryResource'>
+      <xs:sequence>
+       <xs:element name='name' type='xs:string'/>
+       <xs:element name='description' type='xs:string'/>
+       <xs:element name='size' type='xs:double'/>
+       <xs:element name='content-type' type='xs:string'/>
+       <xs:element name='number-of-reads' type='xs:long'/>
+      </xs:sequence>
+      <xs:attribute name='id' type='xs:string' use='required'/>
+      <xs:attribute name='path' type='xs:string' use='required'/>
+     </xs:extension>
+    </xs:complexContent>
+   </xs:complexType>
+  </xs:schema>
+  <xs:schema targetNamespace='http://org.qualipso.factory.ws/resource/project' version='1.0' xmlns:ns1='http://org.qualipso.factory.ws/service/project' xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+   <xs:import namespace='http://org.qualipso.factory.ws/service/project'/>
+   <xs:complexType name='Project'>
+    <xs:complexContent>
+     <xs:extension base='ns1:factoryResource'>
+      <xs:sequence>
+       <xs:element name='name' type='xs:string'/>
+      </xs:sequence>
+      <xs:attribute name='licence' type='xs:string' use='required'/>
+      <xs:attribute name='summary' type='xs:string' use='required'/>
+      <xs:attribute name='os'>
+       <xs:simpleType>
+        <xs:list itemType='xs:string'/>
+       </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name='spoken_language'>
+       <xs:simpleType>
+        <xs:list itemType='xs:string'/>
+       </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name='topics'>
+       <xs:simpleType>
+        <xs:list itemType='xs:string'/>
+       </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name='intended_audience'>
+       <xs:simpleType>
+        <xs:list itemType='xs:string'/>
+       </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name='dev_status' type='xs:string'/>
+      <xs:attribute name='id' type='xs:string' use='required'/>
+      <xs:attribute name='programming_language'>
+       <xs:simpleType>
+        <xs:list itemType='xs:string'/>
+       </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name='path' type='xs:string' use='required'/>
+     </xs:extension>
+    </xs:complexContent>
+   </xs:complexType>
+  </xs:schema>
+ </types>
+ <message name='ProjectService_updateProject'>
+  <part name='arg0' type='xsd:string'></part>
+  <part name='arg1' type='xsd:string'></part>
+  <part name='arg2' type='xsd:string'></part>
+  <part name='arg3' type='xsd:string'></part>
+  <part name='arg4' type='xsd:string'></part>
+ </message>
+ <message name='ProjectService_getServiceNameResponse'>
+  <part name='return' type='xsd:string'></part>
+ </message>
+ <message name='ProjectService_updateProjectResponse'></message>
+ <message name='ProjectService_findResourceResponse'>
+  <part name='return' type='tns:factoryResource'></part>
+ </message>
+ <message name='ProjectException'>
+  <part element='tns:ProjectException' name='ProjectException'></part>
+ </message>
+ <message name='ProjectService_getServiceName'></message>
+ <message name='FactoryException'>
+  <part element='tns:FactoryException' name='FactoryException'></part>
+ </message>
+ <message name='ProjectService_getResourceTypeList'></message>
+ <message name='ProjectService_findResource'>
+  <part name='arg0' type='xsd:string'></part>
+ </message>
+ <message name='ProjectService_getProjectResponse'>
+  <part name='project' type='ns1:Project'></part>
+ </message>
+ <message name='ProjectService_deleteProjectResponse'></message>
+ <message name='ProjectService_deleteProject'>
+  <part name='arg0' type='xsd:string'></part>
+ </message>
+ <message name='ProjectService_getProject'>
+  <part name='arg0' type='xsd:string'></part>
+ </message>
+ <message name='ProjectService_updateTagsProjectResponse'></message>
+ <message name='ProjectService_createProject'>
+  <part name='arg0' type='xsd:string'></part>
+  <part name='arg1' type='xsd:string'></part>
+  <part name='arg2' type='xsd:string'></part>
+  <part name='arg3' type='xsd:string'></part>
+ </message>
+ <message name='ProjectService_createProjectResponse'></message>
+ <message name='ProjectService_getResourceTypeListResponse'>
+  <part name='return' type='ns7:stringArray'></part>
+ </message>
+ <message name='ProjectService_updateTagsProject'>
+  <part name='arg0' type='xsd:string'></part>
+  <part name='arg1' type='ns7:stringArray'></part>
+  <part name='arg2' type='ns7:stringArray'></part>
+  <part name='arg3' type='ns7:stringArray'></part>
+  <part name='arg4' type='ns7:stringArray'></part>
+  <part name='arg5' type='ns7:stringArray'></part>
+ </message>
+ <portType name='ProjectService'>
+  <operation name='createProject' parameterOrder='arg0 arg1 arg2 arg3'>
+   <input message='tns:ProjectService_createProject'></input>
+   <output message='tns:ProjectService_createProjectResponse'></output>
+   <fault message='tns:ProjectException' name='ProjectException'></fault>
+  </operation>
+  <operation name='deleteProject' parameterOrder='arg0'>
+   <input message='tns:ProjectService_deleteProject'></input>
+   <output message='tns:ProjectService_deleteProjectResponse'></output>
+   <fault message='tns:ProjectException' name='ProjectException'></fault>
+  </operation>
+  <operation name='findResource' parameterOrder='arg0'>
+   <input message='tns:ProjectService_findResource'></input>
+   <output message='tns:ProjectService_findResourceResponse'></output>
+   <fault message='tns:FactoryException' name='FactoryException'></fault>
+  </operation>
+  <operation name='getProject' parameterOrder='arg0'>
+   <input message='tns:ProjectService_getProject'></input>
+   <output message='tns:ProjectService_getProjectResponse'></output>
+   <fault message='tns:ProjectException' name='ProjectException'></fault>
+  </operation>
+  <operation name='getResourceTypeList'>
+   <input message='tns:ProjectService_getResourceTypeList'></input>
+   <output message='tns:ProjectService_getResourceTypeListResponse'></output>
+  </operation>
+  <operation name='getServiceName'>
+   <input message='tns:ProjectService_getServiceName'></input>
+   <output message='tns:ProjectService_getServiceNameResponse'></output>
+  </operation>
+  <operation name='updateProject' parameterOrder='arg0 arg1 arg2 arg3 arg4'>
+   <input message='tns:ProjectService_updateProject'></input>
+   <output message='tns:ProjectService_updateProjectResponse'></output>
+   <fault message='tns:ProjectException' name='ProjectException'></fault>
+  </operation>
+  <operation name='updateTagsProject' parameterOrder='arg0 arg1 arg2 arg3 arg4 arg5'>
+   <input message='tns:ProjectService_updateTagsProject'></input>
+   <output message='tns:ProjectService_updateTagsProjectResponse'></output>
+   <fault message='tns:ProjectException' name='ProjectException'></fault>
+  </operation>
+ </portType>
+ <binding name='ProjectServiceBinding' type='tns:ProjectService'>
+  <soap:binding style='rpc' transport='http://schemas.xmlsoap.org/soap/http'/>
+  <operation name='createProject'>
+   <soap:operation soapAction=''/>
+   <input>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </input>
+   <output>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </output>
+   <fault name='ProjectException'>
+    <soap:fault name='ProjectException' use='literal'/>
+   </fault>
+  </operation>
+  <operation name='deleteProject'>
+   <soap:operation soapAction=''/>
+   <input>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </input>
+   <output>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </output>
+   <fault name='ProjectException'>
+    <soap:fault name='ProjectException' use='literal'/>
+   </fault>
+  </operation>
+  <operation name='findResource'>
+   <soap:operation soapAction=''/>
+   <input>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </input>
+   <output>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </output>
+   <fault name='FactoryException'>
+    <soap:fault name='FactoryException' use='literal'/>
+   </fault>
+  </operation>
+  <operation name='getProject'>
+   <soap:operation soapAction=''/>
+   <input>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </input>
+   <output>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </output>
+   <fault name='ProjectException'>
+    <soap:fault name='ProjectException' use='literal'/>
+   </fault>
+  </operation>
+  <operation name='getResourceTypeList'>
+   <soap:operation soapAction=''/>
+   <input>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </input>
+   <output>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </output>
+  </operation>
+  <operation name='getServiceName'>
+   <soap:operation soapAction=''/>
+   <input>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </input>
+   <output>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </output>
+  </operation>
+  <operation name='updateProject'>
+   <soap:operation soapAction=''/>
+   <input>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </input>
+   <output>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </output>
+   <fault name='ProjectException'>
+    <soap:fault name='ProjectException' use='literal'/>
+   </fault>
+  </operation>
+  <operation name='updateTagsProject'>
+   <soap:operation soapAction=''/>
+   <input>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </input>
+   <output>
+    <soap:body namespace='http://org.qualipso.factory.ws/service/project' use='literal'/>
+   </output>
+   <fault name='ProjectException'>
+    <soap:fault name='ProjectException' use='literal'/>
+   </fault>
+  </operation>
+ </binding>
+ <service name='ProjectService'>
+  <port binding='tns:ProjectServiceBinding' name='ProjectService'>
+   <soap:address location='http://syros.eurodyn.com:8380/factory-service-project/project'/>
+  </port>
+ </service>
+</definitions>

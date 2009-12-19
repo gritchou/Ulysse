@@ -1,24 +1,19 @@
 /*
- * Qualipso Funky Factory
+ *
+ * Qualipso Factory
  * Copyright (C) 2006-2010 INRIA
  * http://www.inria.fr - molli@loria.fr
  *
- * This is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License version 3
- * as published by the Free Software Foundation. See the GNU
- * Lesser General Public License in LGPL.txt for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this software; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of LGPL. See licenses details in LGPL.txt
  *
  * Initial authors :
  *
  * Jérôme Blanchard / INRIA
- * Christophe Bouthier / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
+ * 
  */
 package org.qualipso.factory.notification;
 
@@ -46,11 +41,23 @@ import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.eventqueue.entity.Event;
 
 /**
+ * Implementation of the Notification Service.<br/>
+ * <br/>
+ * Implementation is based on a EJB 3.0 Stateless Session Bean. Because internal
+ * visibility only, this bean does not implement Remote interface but only Local
+ * one. Bean name follow naming conventions of the factory and use the specific
+ * local service prefix.<br/>
+ * <br/>
+ * Bean security is configured for JBoss AS 5 and rely on JAAS to ensure
+ * Authentication and Authorization of user.
+ * 
+ * @author Jerome Blanchard (jayblanc@gmail.com)
  * @author Nicolas HENRY
  * @author Marlène HANTZ
  * @author Jean-François GRAND
  * @author Yiqing LI
  * @author Philippe SCHMUCKER
+ * @date 16 june 2009
  */
 @Stateless(name = NotificationService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + NotificationService.SERVICE_NAME)
 @WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE

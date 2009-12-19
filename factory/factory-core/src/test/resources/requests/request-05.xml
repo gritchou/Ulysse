@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Request>
+    <Subject SubjectCategory="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject">
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-id" DataType="http://www.w3.org/2001/XMLSchema#string">
+            <AttributeValue>/node</AttributeValue>
+        </Attribute>
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-id" DataType="http://www.w3.org/2001/XMLSchema#string">
+            <AttributeValue>/group1</AttributeValue>
+        </Attribute>
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-id" DataType="http://www.w3.org/2001/XMLSchema#string">
+            <AttributeValue>/group2</AttributeValue>
+        </Attribute>
+    </Subject>
+    <Resource>
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id" DataType="http://www.w3.org/2001/XMLSchema#string">
+            <AttributeValue>/subject</AttributeValue>
+        </Attribute>
+    </Resource>
+    <Action>
+        <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" DataType="http://www.w3.org/2001/XMLSchema#string">
+            <AttributeValue>read</AttributeValue>
+        </Attribute>
+    </Action>
+</Request>

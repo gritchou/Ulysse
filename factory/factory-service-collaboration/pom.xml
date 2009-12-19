@@ -2,15 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
-		<artifactId>factory</artifactId>
+		<artifactId>factory-parent</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.5-SNAPSHOT</version>
+		<version>0.5</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-collaboration</artifactId>
 	<name>Qualipso Factory Collaboration Tools</name>
-	<version>0.2.5-SNAPSHOT</version>
+	<version>0.2.8-SNAPSHOT</version>
 	<packaging>ejb</packaging>
 	<scm>
 		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-collaboration</connection>
@@ -45,8 +45,13 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.4.3</version>
 				<configuration>
+					<!--
 					<argLine>
 						-Dsun.lang.ClassLoader.allowArraySyntax=true -Djava.endorsed.dirs=${jboss.home}/lib/endorsed
+					</argLine>
+					-->
+					<argLine>
+						-Dsun.lang.ClassLoader.allowArraySyntax=true
 					</argLine>
 					<test>
 						org.qualipso.factory.collaboration.test.AllTests
@@ -65,22 +70,48 @@
 					</archive>
 				</configuration>
 			</plugin>
-			<!--
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
 				<version>2.0-beta-7</version>
 				<configuration>
-					<templateFile>${project.parent.basedir}/src/site/resources/qualipso-factory-template.vm
-					</templateFile>
-					<outputDirectory>${project.parent.reporting.outputDirectory}/${name}
-					</outputDirectory>
+					<templateFile>${project.parent.basedir}/src/site/resources/qualipso-factory-template.vm</templateFile>
+					<outputDirectory>${project.parent.reporting.outputDirectory}/${name}</outputDirectory>
 				</configuration>
-			</plugin>
-			-->
+			</plugin>			
 		</plugins>
 	</build>
 	<dependencies>
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-core</artifactId>
+			<version>0.4.0-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-service-collaboration-wsclient</artifactId>
+			<version>0.2.8-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- axis -->
+		<dependency>
+			<groupId>org.apache.axis2</groupId>
+			<artifactId>axis2</artifactId>
+			<version>1.5</version>
+			<scope>runtime</scope>
+			<type>jar</type>
+			<!--<scope>provided</scope>-->
+		</dependency>
+		<dependency>
+			<groupId>org.apache.axis2</groupId>
+			<artifactId>axis2-adb</artifactId>
+			<version>1.5</version>
+			<scope>runtime</scope>
+			<type>jar</type>
+			<!--<scope>provided</scope>-->
+		</dependency>
+		<!-- others  -->	
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
@@ -102,13 +133,13 @@
 		<dependency>
 			<groupId>org.jboss.ws.native</groupId>
 			<artifactId>jbossws-native-core</artifactId>
-			<version>3.0.5.GA</version>
+			<version>3.1.2.GA</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.jbossas</groupId>
-			<artifactId>jboss-as-embedded</artifactId>
-			<version>5.0.1.GA</version>
+			<artifactId>jboss-as-ejb3</artifactId>
+			<version>5.1.0.GA</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -129,17 +160,6 @@
 			<version>4.5</version>
 			<type>jar</type>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.qualipso</groupId>
-			<artifactId>factory-core</artifactId>
-			<version>0.3.3-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.qualipso</groupId>
-			<artifactId>factory-service-collaboration-wsclient
-			</artifactId>
-			<version>0.2.5-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>

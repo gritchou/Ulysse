@@ -1,0 +1,14 @@
+ ------
+Next Generation Forge
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster, Christophe Bouthier
+ ------
+June 2009
+ ------
+ 
+Factory Service Git
+
+* Description
+
+  The factory service git module provide a git service for the Qualipso Factory, allowing the user to access a git repository.
+   

@@ -3,15 +3,16 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
-		<artifactId>factory</artifactId>
+		<artifactId>factory-parent</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.4-SNAPSHOT</version>
+		<version>0.5</version>
+		<relativePath>../factory-parent</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-bugtracker-test</artifactId>
 	<name>BugTracker services - Fonctional tests</name>
-	<version>0.2.3-SNAPSHOT</version>
+	<version>0.2.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<scm>
@@ -48,8 +49,8 @@
 						<configuration>
 							<wsdlUrls>
 								<!-- TODO externalize server address in settings.xml -->
-								<wsdlUrl>http://localhost:8080/factory-service-bugtracker/bugtracker?wsdl</wsdlUrl>
-								<wsdlUrl>http://localhost:8080/factory-service-project/project?wsdl</wsdlUrl>
+								<wsdlUrl>http://localhost:8080/factory-bugtracker/bugtracker?wsdl</wsdlUrl>
+								<wsdlUrl>http://localhost:8080/factory-project/project?wsdl</wsdlUrl>
 								<wsdlUrl>http://localhost:8080/factory-core/bootstrap?wsdl</wsdlUrl>
 							</wsdlUrls>
 							<packageName>org.qualipso.factory.bugtracker.client.ws</packageName>
@@ -115,7 +116,7 @@
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-core</artifactId>
-			<version>0.3.3-SNAPSHOT</version>
+			<version>0.4.0-SNAPSHOT</version>
 		</dependency>
 		
 		<dependency>

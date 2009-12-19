@@ -1,7 +1,17 @@
 package org.qualipso.factory.collaboration.utils;
 
+/**
+ * The Class TestUtils.
+ */
 public class TestUtils {
 
+    /**
+     * Normalize for path.
+     * 
+     * @param name the name
+     * 
+     * @return the string
+     */
     public static String normalizeForPath(String name) {
 	String formatedText = name;
 	try {

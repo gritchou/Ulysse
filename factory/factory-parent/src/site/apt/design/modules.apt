@@ -1,0 +1,31 @@
+ ------
+Next Generation Forge Documentation - Introduction
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster, Christophe Bouthier
+ ------
+June 2009
+ ------
+ 
+Qualipso Factory Modules
+
+* Principles
+
+  The Qualipso Factory is designed following a modular approach. 
+  A central kernel module, factory-core, implements the necessary low-level services that other modules can access and use in order to implement functionalities. 
+  Those low-level services are more oriented toward component services (allowing a component to find another component, two components to discuss together, etc.) than factory-oriented.
+  
+  The real services are implemented by modules, like the factory-service-project or factory-service-git.
+
+* List of module
+
+  ** factory-service-project
+    
+    This module add a Project service, allowing the user to create and manage project.
+  
+  ** factory-service-git 
+  
+    This module add a Git service, allowing the user to access a git repository
+
+* More information
+
+  For more information about a specific module, just click on its name on the left-hand menu, under the "Modules" section.

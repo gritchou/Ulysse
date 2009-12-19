@@ -69,6 +69,9 @@ import org.qualipso.factory.security.pep.PEPService;
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class BugTrackerServiceBean implements BugTrackerService {
 
+	/**
+	 * Logger
+	 */
 	private static Log logger = LogFactory.getLog(BugTrackerServiceBean.class);
 
 	private BindingService binding;
@@ -80,6 +83,19 @@ public class BugTrackerServiceBean implements BugTrackerService {
 	private EntityManager em;
 	private IBugTrackerManager  bugTrackerManager;
 	
+	
+//	private ForumService forumService;
+//	private DocumentService documentService;
+//	
+//	/**
+//	 * name of the document folder created by default
+//	 */
+//	private static final String DOCUMENT_FOLDER_NAME = "issue_document_folder";
+//	
+//	/**
+//	 * name of the forum created by default
+//	 */
+//	private static final String FORUM_NAME = "issue_forum";
 
 
 
@@ -149,6 +165,25 @@ public class BugTrackerServiceBean implements BugTrackerService {
 		return this.membership;
 	}
 	
+//	public ForumService getForumService() {
+//		return forumService;
+//	}
+//
+//	@EJB(name = "ForumService")
+//	public void setForumService(ForumService forumService) {
+//		this.forumService = forumService;
+//	}
+//
+//
+//	public DocumentService getDocumentService() {
+//		return documentService;
+//	}
+//
+//	@EJB(name = "DocumentService")
+//	public void setDocumentService(DocumentService documentService) {
+//		this.documentService = documentService;
+//	}
+
 	/**
 	 * @return the bugTrackerManager
 	 * @throws BugTrackerServiceException if an error occurred
@@ -210,7 +245,8 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			// Checking if the connected user has the permission to getAllIssues
 			// the resource giving pep :
 			String caller = membership.getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, projectPath, "getAllIssues");
+			String[] subjects = membership.getConnectedIdentifierSubjects();
+			pep.checkSecurity(subjects, projectPath, "getAllIssues");
 
 			
 			//Search the project
@@ -222,7 +258,7 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			List<IssueExternal> issueExternals = getBugTrackerManager().getIssues(identifier, projectPath, null, null);
 			//END OF EXTERNAL INVOCATION
 			
-			bugs = constructIssueDtoArray(caller, projectPath, issueExternals);
+			bugs = constructIssueDtoArray(subjects, projectPath, issueExternals);
 			
 			// Using the notification service to throw an event :
 			notification.throwEvent(new Event(projectPath, caller, "Issue", "project.allIssues", projectPath));
@@ -258,7 +294,8 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			// Checking if the connected user has the permission to getAllIssues
 			// the resource giving pep :
 			String caller = membership.getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, projectPath, "getModifiedIssues");
+			String[] subjects = membership.getConnectedIdentifierSubjects();
+			pep.checkSecurity(subjects, projectPath, "getModifiedIssues");
 
 			
 			//Search the project
@@ -272,7 +309,7 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			
 			
 			
-			bugs = constructIssueDtoArray(caller, projectPath, issueExternals);
+			bugs = constructIssueDtoArray(subjects, projectPath, issueExternals);
 			
 			// Using the notification service to throw an event :
 			notification.throwEvent(new Event(projectPath, caller, "Issue", "project.modifiedIssues", projectPath));
@@ -309,7 +346,8 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			// Checking if the connected user has the permission to getAllIssues
 			// the resource giving pep :
 			String caller = membership.getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, projectPath, "getNewIssues");
+			String[] subjects = membership.getConnectedIdentifierSubjects();
+			pep.checkSecurity(subjects, projectPath, "getNewIssues");
 
 			
 			//Search the project
@@ -323,7 +361,7 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			
 			
 			
-			bugs = constructIssueDtoArray(caller, projectPath, issueExternals);
+			bugs = constructIssueDtoArray(subjects, projectPath, issueExternals);
 			
 			// Using the notification service to throw an event :
 			notification.throwEvent(new Event(projectPath, caller, "Issue", "project.newIssues", projectPath));
@@ -361,7 +399,7 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			
 			//Path of the issue
 			final String path = Utils.generatePathIssueFactory(projectPath, numIssue);
-			final Issue issueInternal = getIssueInternal(path, caller);
+			final Issue issueInternal = getIssueInternal(path, membership.getConnectedIdentifierSubjects());
 			
 			if (issueInternal == null) {
 				throw new BugTrackerServiceException(
@@ -428,7 +466,7 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			//  - the parent of the path (we check the 'create' permission on the parent of the given path)
 			//  - the name of the permission to check ('create')
 			String caller = membership.getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, projectPath, "create");
+			pep.checkSecurity(membership.getConnectedIdentifierSubjects(), projectPath, "create");
 			
 			
 			//Search the project
@@ -466,6 +504,14 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			binding.setProperty(pathIssue, FactoryResourceProperty.OWNER, caller);
 			binding.setProperty(pathIssue, FactoryResourceProperty.POLICY_ID, policyId);
 			
+			
+//			//Create forum
+//			forumService.createForum(pathIssue, FORUM_NAME);
+//			
+//			//Create document folder
+//			documentService.createFolder(pathIssue, DOCUMENT_FOLDER_NAME, "document folder for the issue");
+//			
+			
 			//Using the notification service to throw an event : 
 			notification.throwEvent(new Event(pathIssue, caller, "Issue", "issue.create", idIssue));
 			
@@ -500,7 +546,7 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			//  - the parent of the path (we check the 'create' permission on the parent of the given path)
 			//  - the name of the permission to check ('create')
 			String caller = membership.getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "update");
+			pep.checkSecurity(membership.getConnectedIdentifierSubjects(), path, "update");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceTypeIssue(identifier);
@@ -511,7 +557,6 @@ public class BugTrackerServiceBean implements BugTrackerService {
 				throw new BugTrackerServiceException("unable to find an issue for id " + issueDto.getNum());
 			}
 			issue.setAssigned(issueDto.getAssignee());
-			// FIXME voir s'il faut faire un merge
 			
 			//STARTING SPECIFIC EXTERNAL SERVICE RESOURCE CREATION OR METHOD CALL
 			getBugTrackerManager().updateIssue(issueDto, path);
@@ -557,7 +602,7 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			//  - the parent of the path (we check the 'create' permission on the parent of the given path)
 			//  - the name of the permission to check ('create')
 			String caller = membership.getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "delete");
+			pep.checkSecurity(membership.getConnectedIdentifierSubjects(), path, "delete");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceTypeIssue(identifier);
@@ -657,22 +702,23 @@ public class BugTrackerServiceBean implements BugTrackerService {
 	/**
 	 * Return an issue
 	 * @param path of the issue
+	 * @param subjects for checkSecurity
 	 * @return an Issue (Factory)
 	 * @throws Exception if an error occurred
 	 */
-	private Issue getIssueInternal(String path, String caller) throws Exception {
+	private Issue getIssueInternal(String path, String[] subjects) throws Exception {
 		if (StringUtils.isEmpty(path)) {
 			throw new BugTrackerServiceException("getIssue: arg path cannot be null");
 		}
-		
-			// Checking if the connected user has the permission to getIssue
-			// the resource giving pep :
-			pep.checkSecurity(caller, path, "read");
 			//Search the issue
 			// Performing a lookup in the naming to recover the Resource
 			// Identifier
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceTypeIssue(identifier);
+			
+			// Checking if the connected user has the permission to getIssue
+			// the resource giving pep :
+			pep.checkSecurity(subjects, path, "read");
 			
 			String id = Utils.getIdIssue(path);
 			//STARTING INTERNAL INVOCATION
@@ -685,13 +731,13 @@ public class BugTrackerServiceBean implements BugTrackerService {
 	
 	/**
 	 * Construct an array of issueDto
-	 * @param caller of the service
+	 * @param subjects for checkSecurity
 	 * @param projectPath of the IssueExternal[]
 	 * @param issueExternals of the projectPath
 	 * @return IssueDto[]
 	 * @throws Exception if an error occurred
 	 */
-	private IssueDto[] constructIssueDtoArray(String caller, String projectPath, List<IssueExternal> issueExternals) throws Exception {
+	private IssueDto[] constructIssueDtoArray(String[] subjects, String projectPath, List<IssueExternal> issueExternals) throws Exception {
 		IssueDto[] bugs = new IssueDto[0];
 		if (issueExternals != null && !issueExternals.isEmpty()) {
 			bugs = new IssueDto[issueExternals.size()];
@@ -699,7 +745,7 @@ public class BugTrackerServiceBean implements BugTrackerService {
 				final IssueExternal issueExternal = issueExternals.get(i);
 				//STARTING INTERNAL INVOCATION
 				final String issuePath = Utils.generatePathIssueFactory(projectPath, issueExternal.getId());
-				final Issue issueInternal = getIssueInternal(issuePath, caller);
+				final Issue issueInternal = getIssueInternal(issuePath, subjects);
 				if (issueInternal == null) {
 					throw new BugTrackerServiceException(
 							"Issue doesn't exist in factory with id " + issueExternal.getId());
@@ -722,9 +768,9 @@ public class BugTrackerServiceBean implements BugTrackerService {
 		logger.info("findResource(...) called");
 		logger.debug("params : path=" + path);
 		try {
-			String caller = membership.getProfilePathForConnectedIdentifier();
+			String[] subjects = membership.getConnectedIdentifierSubjects();
 			
-			return getIssueInternal(path, caller);
+			return getIssueInternal(path, subjects);
 
 		} catch (Exception e) {
 			throw new CoreServiceException("unable to find the resource at path " + path, e);
@@ -744,21 +790,33 @@ public class BugTrackerServiceBean implements BugTrackerService {
 		issueComplexe.setIssue(issueExternal);
 		issueComplexe.setProjectPath(projectPath);
 		//Reporter
-		if (issueInternal.getReporter() != null) {
-			Profile reporter = membership.readProfile(issueInternal.getReporter());
-			
+		if (!StringUtils.isEmpty(issueInternal.getReporter())) {
+			FactoryResourceIdentifier identifierReporter = binding.lookup(issueInternal.getReporter());
+			if (identifierReporter == null || !Profile.RESOURCE_NAME.equals(identifierReporter.getType())) {
+				throw new BugTrackerServiceException("Reporter " + issueInternal.getReporter() + " is not a path for a profile");
+			}
+			issueComplexe.setReporterFullName(issueInternal.getReporter());
+			/* TODO use membership service
+			 Profile reporter = membership.readProfile(issueInternal.getReporter());
 			if (reporter != null) {
 				issueComplexe.setReporterFullName(reporter.getFullname());
-			}
+			}*/
 			
 		}
 		//Assigned
-		if (issueInternal.getAssigned() != null) {
+		if (!StringUtils.isEmpty(issueInternal.getAssigned())) {
+			FactoryResourceIdentifier identifierAssigned = binding.lookup(issueInternal.getAssigned());
+			if (identifierAssigned == null || !Profile.RESOURCE_NAME.equals(identifierAssigned.getType())) {
+				throw new BugTrackerServiceException("Assigned " + issueInternal.getAssigned() + " is not a path for a profile");
+			}
+			issueComplexe.setAssignedFullName(issueInternal.getAssigned());
+			/* TODO use membership service
 			Profile assigned = membership.readProfile(issueInternal.getAssigned());
 			
 			if (assigned != null) {
 				issueComplexe.setAssignedFullName(assigned.getFullname());
 			}
+			*/
 		}
 		issueComplexe.setIssuePath(issueInternal.getResourcePath());
 		

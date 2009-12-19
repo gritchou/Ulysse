@@ -18,9 +18,9 @@ import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.entity.Node;
 import org.qualipso.factory.browser.BrowserService;
+import org.qualipso.factory.collaboration.beans.DocumentDetails;
 import org.qualipso.factory.collaboration.document.DocumentService;
 import org.qualipso.factory.collaboration.document.DocumentServiceBean;
-import org.qualipso.factory.collaboration.document.entity.Document;
 import org.qualipso.factory.collaboration.document.entity.CollaborationFolder;
 import org.qualipso.factory.collaboration.document.entity.Document;
 import org.qualipso.factory.collaboration.utils.CollaborationUtils;
@@ -36,28 +36,58 @@ import org.qualipso.factory.security.pep.PEPService;
 
 import com.bm.testsuite.BaseSessionBeanFixture;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class DocumentServiceTest.
+ */
 public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceBean>
 {
 
+    /** The logger. */
     private static Log logger = LogFactory.getLog(DocumentServiceTest.class);
 
+    /** The Constant usedBeans. */
     @SuppressWarnings("unchecked")
     private static final Class[] usedBeans = { Document.class,CollaborationFolder.class, Node.class, Profile.class };
 
+    /** The mockery. */
     private Mockery mockery;
+    
+    /** The binding. */
     private BindingService binding;
+    
+    /** The membership. */
     private MembershipService membership;
+    
+    /** The pep. */
     private PEPService pep;
+    
+    /** The pap. */
     private PAPService pap;
+    
+    /** The notification. */
     private NotificationService notification;
+    
+    /** The browser. */
     private BrowserService browser;
+    
+    /** The core. */
     private CoreService core;
+    
+    /** The document ws. */
     private DocumentWService documentWS;
+    
+    /**
+     * Instantiates a new document service test.
+     */
     public DocumentServiceTest()
     {
 	super(DocumentServiceBean.class, usedBeans);
     }
 
+    /* (non-Javadoc)
+     * @see com.bm.testsuite.BaseSessionBeanFixture#setUp()
+     */
     public void setUp() throws Exception
     {
 	super.setUp();
@@ -82,6 +112,9 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
     }
     
 
+    /**
+     * Test crud document folder.
+     */
     public void testCRUDDocumentFolder()
     {
 	logger.debug("****************************************************************");
@@ -240,10 +273,10 @@ public class DocumentServiceTest extends BaseSessionBeanFixture<DocumentServiceB
 			oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(DocumentService.SERVICE_NAME,Document.RESOURCE_NAME,"create")))); inSequence(sequence1);
 		}
 	    });
-	    
-	    service.createDocumentSimple(docParentPath, "My Doc 1.1", "2009-08-27",
+	    DocumentDetails ddt = new DocumentDetails( "My Doc 1.1", "2009-08-27",
 		    CollaborationUtils.TYPE_8, "qualipso,factory", "1.0",
 		    CollaborationUtils.STATUS_DRAFT, fileName, "text/plain", "TG9yZW0gaXBzdW0=".getBytes());
+	    service.createDocument(docParentPath, ddt);
 	    //TEST Read Document
 	    mockery.checking(new Expectations()
 	    {

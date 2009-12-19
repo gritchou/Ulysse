@@ -1,106 +1,94 @@
+/*
+ *
+ * Qualipso Factory
+ * Copyright (C) 2006-2010 INRIA
+ * http://www.inria.fr - molli@loria.fr
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of LGPL. See licenses details in LGPL.txt
+ *
+ * Initial authors :
+ *
+ * Jérôme Blanchard / INRIA
+ * Pascal Molli / Nancy Université
+ * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
+ * 
+ */
 package org.qualipso.factory.test;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
+
 import org.qualipso.factory.binding.InvalidPathException;
 import org.qualipso.factory.binding.PathHelper;
 
+
 public class PathHelperTest {
-	
-	private String[] validPaths = new String[] {
-			"/toto", 
-			"/toto/tutu", 
-			"/~home", 
-			"/toto-tutu",
-			"/titi.tutu",
-			"/toto_tata",
-			"/",
-			"/_____test",
-			"/toto-tutu/titi.tutu/toto_tata/____test",
-			"/test1234/8917",
-			"/."};
-	
-	private String[] invalidPaths = new String[] {
-			"toto", 
-			"", 
-			"~home", 
-			"toto-tutu",
-			"titi.tutu",
-			"toto_tata",
-			"toto/tutu",
-			"_____test",
-			"toto-tutu/titi.tutu/toto_tata/____test",
-			"/toto|2",
-			"/(aka12)",
-			"//test",
-			"///test",
-			"/tésté", 
-			"/éèëêôöûüùîïÿ",
-			"/./",
-			"//",
-			"////"};
-	
-	private String [] normalizePaths = new String[] {
-			"",
-			"toto",
-			"toto/tutu",
-			"//test",
-			"//",
-			"///test///.//ttest"};
-	
-	@Test
+    private String[] validPaths = new String[] {
+            "/toto", "/toto/tutu", "/~home", "/toto-tutu", "/titi.tutu", "/toto_tata", "/", "/_____test", "/toto-tutu/titi.tutu/toto_tata/____test",
+            "/test1234/8917", "/."
+        };
+    private String[] invalidPaths = new String[] {
+            "toto", "", "~home", "toto-tutu", "titi.tutu", "toto_tata", "toto/tutu", "_____test", "toto-tutu/titi.tutu/toto_tata/____test", "/toto|2",
+            "/(aka12)", "//test", "///test", "/tésté", "/éèëêôöûüùîïÿ", "/./", "//", "////"
+        };
+    private String[] normalizePaths = new String[] { "", "toto", "toto/tutu", "//test", "//", "///test///.//ttest" };
+
+    @Test
     public void testValidPath() throws Exception {
-    	for (String path : validPaths) {
-    		try {
-    			PathHelper.valid(path);
-    		} catch ( InvalidPathException ive ) {
-    			fail("path [" + path + "] should be valid");
-    		}
-    	}
+        for (String path : validPaths) {
+            try {
+                PathHelper.valid(path);
+            } catch (InvalidPathException ive) {
+                fail("path [" + path + "] should be valid");
+            }
+        }
     }
-    
+
     @Test
     public void testValidPath2() throws Exception {
-    	for (String path : invalidPaths) {
-    		try {
-    			PathHelper.valid(path);
-    			fail("path [" + path + "] should NOT be valid");
-    		} catch ( InvalidPathException ive ) {
-    			//
-    		}
-    	}
+        for (String path : invalidPaths) {
+            try {
+                PathHelper.valid(path);
+                fail("path [" + path + "] should NOT be valid");
+            } catch (InvalidPathException ive) {
+                //
+            }
+        }
     }
 
     @Test
     public void testNormalizePath() {
-        for ( String path : normalizePaths ) {
-        	try {
-    			PathHelper.valid(path);
-    			fail("path [" + path + "] should NOT be valid BEFORE normalization");
-    		} catch ( InvalidPathException ive ) {
-    			//
-    		}
-    		try {
-    			PathHelper.valid(PathHelper.normalize(path));
-    		} catch ( InvalidPathException ive ) {
-    			fail("path [" + path + "] should be valid AFTER normalization");
-    		}
+        for (String path : normalizePaths) {
+            try {
+                PathHelper.valid(path);
+                fail("path [" + path + "] should NOT be valid BEFORE normalization");
+            } catch (InvalidPathException ive) {
+                //
+            }
+
+            try {
+                PathHelper.valid(PathHelper.normalize(path));
+            } catch (InvalidPathException ive) {
+                fail("path [" + path + "] should be valid AFTER normalization");
+            }
         }
+
         try {
-	        assertEquals("/test", PathHelper.normalize("/././././test/./"));
-	        assertEquals("/", PathHelper.normalize("/test/../../../bidi/../../.."));
-	        assertEquals("/bidi", PathHelper.normalize("/test/../../../bidi"));
-	        assertEquals("/bidi/budu", PathHelper.normalize("/test/../bidi/bada/../budu"));
-	        assertEquals("/bidi/budu", PathHelper.normalize("/test/../bidi/bada/byby/.././../budu"));
-        } catch ( Exception e ) {
-        	fail(e.getMessage());
+            assertEquals("/test", PathHelper.normalize("/././././test/./"));
+            assertEquals("/", PathHelper.normalize("/test/../../../bidi/../../.."));
+            assertEquals("/bidi", PathHelper.normalize("/test/../../../bidi"));
+            assertEquals("/bidi/budu", PathHelper.normalize("/test/../bidi/bada/../budu"));
+            assertEquals("/bidi/budu", PathHelper.normalize("/test/../bidi/bada/byby/.././../budu"));
+        } catch (Exception e) {
+            fail(e.getMessage());
         }
     }
 
-    
     @Test
     public void testPathDepth() {
         try {
@@ -118,10 +106,10 @@ public class PathHelperTest {
         assertEquals("/toto", PathHelper.getParentPath("/toto/titi.tata"));
         assertEquals("/toto.titi", PathHelper.getParentPath("/toto.titi/tata"));
     }
-    
+
     @Test
     public void testGetPathPart() throws Exception {
-    	assertEquals("", PathHelper.getPathPart("/"));
+        assertEquals("", PathHelper.getPathPart("/"));
         assertEquals("toto", PathHelper.getPathPart("/toto"));
         assertEquals("titi", PathHelper.getPathPart("/toto/titi"));
         assertEquals("titi.tata", PathHelper.getPathPart("/toto/titi.tata"));
@@ -139,5 +127,4 @@ public class PathHelperTest {
             fail(e.getMessage());
         }
     }
-
 }

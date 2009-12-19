@@ -1,27 +1,40 @@
 package org.factory.qualipso.service.skillmanagement;
 
+//import java.util.Map;
+
+import java.util.Map;
+
 import javax.ejb.Stateless;
-import org.factory.qualipso.service.skillmanagement.SkillService;
+import org.factory.qualipso.service.skillmanagement.*;
+//import org.factory.qualipso.service.skillmanagement.SkillService;
 import org.factory.qualipso.service.tempuri.*;
+import org.factory.qualipso.service.wsclientmember.ws.factory.qualipso.org.service.membership.Membership;
+import org.factory.qualipso.service.wsclientmember.ws.factory.qualipso.org.service.membership.MembershipServiceException_Exception;
+import org.factory.qualipso.service.wsclientmember.ws.factory.qualipso.org.service.membership.Membership_Service;
 
 import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.FactoryException;
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 import javax.jws.soap.SOAPBinding.Style;
+import javax.xml.ws.BindingProvider;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.SecurityDomain;
 import org.jboss.ws.annotation.EndpointConfig;
+import org.jboss.ws.core.StubExt;
 import org.jboss.wsf.spi.annotation.WebContext;
 
 
-@Stateless(mappedName = "SkillService")
-@WebService(endpointInterface = "org.factory.qualipso.service.skillmanagement.SkillService", targetNamespace = "http://org.qualipso.factory.ws/service/skillmanagement", serviceName = "SkillService", portName = "SkillService")
-@WebContext(contextRoot = "/factory-service-skillmanagement", urlPattern = "/skillmanagement")
+
+@Stateless(name=SkillService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + SkillService.SERVICE_NAME)
+@WebService(endpointInterface = "org.factory.qualipso.service.skillmanagement.SkillService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + SkillService.SERVICE_NAME, serviceName = SkillService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_ROOT_MODULE_CONTEXT + "-" + SkillService.SERVICE_NAME, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + SkillService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
@@ -42,6 +55,9 @@ private static Log logger = LogFactory.getLog(SkillServiceBean.class);
     public String getServiceName() {
             return "SkillService";
     }
+    
+    
+    
     
     @Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
@@ -325,4 +341,21 @@ private static Log logger = LogFactory.getLog(SkillServiceBean.class);
     	Service1 serv=new Service1();
     	return serv.getService1Soap().searchTopUser(iduser, idtop);
     }
+    
+    @Override
+    public String getProfilesPath() throws SkillServiceException
+    {
+    	Membership mem=new Membership_Service().getMembershipServiceBeanPort();
+    	try {
+    				
+ 			return mem.getProfilesPath().toString();
+		} catch (MembershipServiceException_Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "ciao";
+			
+		}
+    }
+    
+    
 }

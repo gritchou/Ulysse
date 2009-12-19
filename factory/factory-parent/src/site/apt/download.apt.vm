@@ -1,0 +1,37 @@
+ ------
+Download Qualipso Factory EAR
+ ------
+Jérôme Blanchard, Christophe Bouthier, Pascal Molli, Gérald Oster
+ ------
+
+Download QualiPSo Factory EAR
+
+  QualiPSo Factory EAR is distributed under the {{{license.html} LGPL License, version 2.1}}.
+
+* Distribution Files
+
+*-------------------------+---------+
+|                         | Mirrors |
+*-------------------------+---------+
+| QualiPSo Factory EAR | {{{factory-package-basic/download/factory-package-basic-0.4-SNAPSHOT.ear}factory-package-basic-0.4-SNAPSHOT.ear}} | 
+*-------------------------+---------+
+
+
+* System {Requirements}
+
+*----------------------+---------------------------------------------------------------------------------------------+
+| <<JDK>>              | 1.6 or above 
+*----------------------+---------------------------------------------------------------------------------------------+
+| <<Memory>>           | No minimum requirement
+*----------------------+---------------------------------------------------------------------------------------------+
+| <<Disk>>             | No minimum requirement. 
+*----------------------+---------------------------------------------------------------------------------------------+
+| <<Operating System>> | No minimum requirement. Tested on Windows XP, Ubuntu and Mac OS X.
+*----------------------+---------------------------------------------------------------------------------------------+
+
+* {Installation} Instructions
+
+  <QualiPSo Factory EAR is a Java software, so you must have {{{http://java.sun.com}Java}} installed in order to proceed. More precisely,
+  you need a Java Development Kit (JDK), the Java Runtime Environment (JRE) is not sufficient.>
+
+

@@ -9,12 +9,17 @@ import javax.jws.soap.SOAPBinding;
 
 import org.factory.qualipso.service.tempuri.*;
 import org.qualipso.factory.FactoryService;
+import org.qualipso.factory.FactoryNamingConvention;
+
 
 @Remote
-@WebService(name = "SkillService", targetNamespace = "http://org.qualipso.factory.ws/service/skillmanagement")
+@WebService(name = SkillService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + SkillService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface SkillService extends FactoryService {
-		
+	
+	public static final String SERVICE_NAME = "skill";
+	
+	
 	@WebMethod
 	@WebResult(name="ArrayOfSupportSQLUser")
 	public ArrayOfSupportSQLUser selectMyUser(int id,String iduser) throws SkillServiceException;
@@ -153,5 +158,10 @@ public interface SkillService extends FactoryService {
 	@WebMethod
 	@WebResult(name="ArrayOfSupportSQLUser")
 	public ArrayOfSupportSQLUser searchTopUser(int id,String iduser,int idtop) throws SkillServiceException;
+	
+	@WebMethod
+	@WebResult(name="String")
+	public String getProfilesPath() throws SkillServiceException;
+	
 	
 }

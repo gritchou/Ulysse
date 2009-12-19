@@ -30,8 +30,9 @@ import javax.xml.soap.SOAPFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-
 import org.junit.Test;
+
+import org.qualipso.factory.qualipsoServlet.*;
 
 /**
  * Unit test for implementation of objects managing soap messages

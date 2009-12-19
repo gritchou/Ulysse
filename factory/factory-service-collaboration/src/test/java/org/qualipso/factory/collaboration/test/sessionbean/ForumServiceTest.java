@@ -17,8 +17,7 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.browser.BrowserService;
-import org.qualipso.factory.collaboration.calendar.CalendarService;
-import org.qualipso.factory.collaboration.calendar.entity.CalendarItem;
+import org.qualipso.factory.collaboration.beans.ThreadMessageDetails;
 import org.qualipso.factory.collaboration.document.DocumentService;
 import org.qualipso.factory.collaboration.forum.ForumService;
 import org.qualipso.factory.collaboration.forum.ForumServiceBean;
@@ -26,40 +25,73 @@ import org.qualipso.factory.collaboration.forum.entity.Forum;
 import org.qualipso.factory.collaboration.forum.entity.ThreadMessage;
 import org.qualipso.factory.collaboration.utils.CollaborationUtils;
 import org.qualipso.factory.collaboration.ws.ForumWService;
+import org.qualipso.factory.collaboration.ws.beans.ForumDTO;
+import org.qualipso.factory.collaboration.ws.beans.MessageDTO;
 import org.qualipso.factory.core.CoreService;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.notification.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
-import org.qualipso.factory.collaboration.ws.beans.ForumDTO;
-import org.qualipso.factory.collaboration.ws.beans.MessageDTO;
 
 import com.bm.testsuite.BaseSessionBeanFixture;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ForumServiceTest.
+ */
 public class ForumServiceTest extends BaseSessionBeanFixture<ForumServiceBean>
 {
+    
+    /** The logger. */
     private static Log logger = LogFactory.getLog(ForumServiceTest.class);
+    
+    /** The Constant usedBeans. */
     @SuppressWarnings("unchecked")
     private static final Class[] usedBeans = { Forum.class,ThreadMessage.class };
 
+    /** The mockery. */
     private Mockery mockery;
+    
+    /** The binding. */
     private BindingService binding;
+    
+    /** The membership. */
     private MembershipService membership;
+    
+    /** The pep. */
     private PEPService pep;
+    
+    /** The pap. */
     private PAPService pap;
+    
+    /** The notification. */
     private NotificationService notification;
+    
+    /** The browser. */
     private BrowserService browser;
+    
+    /** The core. */
     private CoreService core;
+    
+    /** The forum ws. */
     private ForumWService forumWS;
+    
+    /** The document service. */
     private DocumentService documentService;
     
 
+    /**
+     * Instantiates a new forum service test.
+     */
     public ForumServiceTest()
     {
 	super(ForumServiceBean.class, usedBeans);
     }
 
+    /* (non-Javadoc)
+     * @see com.bm.testsuite.BaseSessionBeanFixture#setUp()
+     */
     public void setUp() throws Exception
     {
 	super.setUp();
@@ -86,6 +118,9 @@ public class ForumServiceTest extends BaseSessionBeanFixture<ForumServiceBean>
     }
     
 
+    /**
+     * Test crd.
+     */
     public void testCRD()
     {
 	logger.debug("****************************************************************");
@@ -126,7 +161,7 @@ public class ForumServiceTest extends BaseSessionBeanFixture<ForumServiceBean>
 	    });
 	    service.createForum(rootForums, forumName);
 	    
-	    // TEST Read Forum
+	    // TEST Read Forum properties
 	    mockery.checking(new Expectations()
 	    {
 		{
@@ -147,7 +182,7 @@ public class ForumServiceTest extends BaseSessionBeanFixture<ForumServiceBean>
 		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(ForumService.SERVICE_NAME,Forum.RESOURCE_NAME,"read"))));inSequence(sequence1);
 		}
 	    });
-	    Forum myForum = service.readForum("/forums/" + forumId);
+	    Forum myForum = service.readForumProperties("/forums/" + forumId);
 	    assertNotNull(myForum);
 	    assertTrue(myForum.getName().equals(forumName));
 	    logger.debug("****************************************************************");
@@ -157,7 +192,6 @@ public class ForumServiceTest extends BaseSessionBeanFixture<ForumServiceBean>
 	    final String threadId = CollaborationUtils.normalizeForPath(UUID.randomUUID().toString());
 	    final String threadName = "T" + System.currentTimeMillis();
 	    final String randomText = "Lorem Ipsum "+System.currentTimeMillis();
-	    //final String threadNameNorm = CollaborationUtils.normalizeForPath(threadName);
 	    // TEST Create Thread
 	    mockery.checking(new Expectations()
 	    {
@@ -170,7 +204,7 @@ public class ForumServiceTest extends BaseSessionBeanFixture<ForumServiceBean>
 		    resultMap.put("statusCode", "SUCCESS");
 		    resultMap.put("statusMessage", "done");
 		    resultMap.put("messageId", threadId);
-		    oneOf(forumWS).createThreadMessage(with(any(String.class)), with(any(String.class)), with(any(String.class)), with(any(String.class)), with(any(boolean.class)));will(returnValue(resultMap));inSequence(sequence1);
+		    oneOf(forumWS).createThreadMessage(with(any(MessageDTO.class)),with(any(String[].class)));will(returnValue(resultMap));inSequence(sequence1);
 		    //
 		    oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)),with(equal(rootForums+"/"+ forumId+"/"+threadId)));will(saveParams(params2));inSequence(sequence1);
 		    oneOf(binding).setProperty(with(equal("/forums/" + forumId+"/"+threadId)),with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)),with(any(String.class)));inSequence(sequence1);
@@ -182,7 +216,8 @@ public class ForumServiceTest extends BaseSessionBeanFixture<ForumServiceBean>
 		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(ForumService.SERVICE_NAME,ThreadMessage.RESOURCE_NAME,"create"))));inSequence(sequence1);
 		}
 	    });
-	    service.createThreadMessage("/forums/" + forumId, threadName, myForum.getId(), randomText, "2009-08-28", "false");
+	    ThreadMessageDetails tmd = new ThreadMessageDetails(threadName, myForum.getId(), randomText, "2009-08-28", false);
+	    service.createThreadMessage("/forums/"+ forumId, tmd);
     
 	    // TEST Read Thread
 	    mockery.checking(new Expectations()
@@ -207,7 +242,7 @@ public class ForumServiceTest extends BaseSessionBeanFixture<ForumServiceBean>
 		    oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(ForumService.SERVICE_NAME,ThreadMessage.RESOURCE_NAME,"read"))));inSequence(sequence1);
 		}
 	    });
-	    ThreadMessage myMsg = service.readThreadMessage(rootForums+"/"+ forumId+"/" + threadId);
+	    ThreadMessage myMsg = service.readThreadMessageProperties(rootForums+"/"+ forumId+"/" + threadId);
 	    assertNotNull(myMsg);
 	    assertTrue(myMsg.getName().equals(threadName));
 	    // TEST Delete thread

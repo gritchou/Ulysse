@@ -12,13 +12,18 @@
  * Jérôme Blanchard / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
- *
+ * Christophe Bouthier / INRIA
+ * 
  */
 package org.qualipso.factory;
 
+import org.qualipso.factory.binding.InvalidPathException;
+import org.qualipso.factory.binding.PathNotFoundException;
+import org.qualipso.factory.security.pep.AccessDeniedException;
+
 
 /**
- * The interface for all factory services. A factory service may manage one or more resources but can 
+ * The interface for all factory services. A factory service may manage one or more resources but can
  * also provide functionalities which doesn't implies resources.<br/>
  * <br/>
  * Depending on the visibility of a service, it can be internal or external to the factory. An internal service
@@ -26,33 +31,32 @@ package org.qualipso.factory;
  * <br/>
  * A factory service must define some properties :
  * <ul>
- * <li>a unique service name, 
+ * <li>a unique service name,
  * <li>the list of resource types managed by this service.
  * </ul>
  * <br/>
  * A factory service must also offer the findResource operation for a given path.<br/>
- * 
- * 
+ *
+ *
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 20 May 2009
  */
 public interface FactoryService {
-	
-	/**
-	 * @return the service name
-	 */
-	public abstract String getServiceName();
+    /**
+     * @return the service name
+     */
+    public abstract String getServiceName();
 
     /**
      * @return the list of resource types managed by this service
      */
     public abstract String[] getResourceTypeList();
-    
+
     /**
      * @param path the path of the resource to find
      * @return the resource binded to this path
      * @throws FactoryException if the resource has not been found
      */
-    public abstract FactoryResource findResource(String path) throws FactoryException;
-    
+    public abstract FactoryResource findResource(String path)
+        throws FactoryException, AccessDeniedException, InvalidPathException, PathNotFoundException;
 }

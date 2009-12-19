@@ -8,7 +8,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.sshd.server.CommandFactory.ExitCallback;
 import org.qualipso.factory.ssh.command.SSHCommand;
-import org.qualipso.factory.svn.utils.SubversionResources;
+import org.qualipso.factory.svn.ssh.command.filter.RequestFilter;
+import org.qualipso.factory.svn.utils.SVNProperties;
 
 /**
  * @author Gerald Oster (oster@loria.fr)
@@ -40,6 +41,12 @@ public class SVNServeSSHCommand extends SSHCommand {
 	 * OutputStream of ssh command errors
 	 */
 	private OutputStream err;
+	
+	
+	private Thread s2cError;
+	private Thread s2c;
+	private Thread c2s;
+	
 	
 	public SVNServeSSHCommand() {
 		super();
@@ -103,8 +110,8 @@ public class SVNServeSSHCommand extends SSHCommand {
 	public void runImpl() {
 		logger.debug("starting SvnServerCommand");
 
-		String repositoryPath = SubversionResources.getInstance().getRootDirRepositories();
-		String cmdSvnserve = SubversionResources.getInstance().getCmdSvnServe();
+		String repositoryPath = SVNProperties.getInstance().getRootDirRepositories();
+		String cmdSvnserve = SVNProperties.getInstance().getCmdSvnServe();
 		
 		logger.debug("repositoryPath = " + repositoryPath);
 		logger.debug("cmdSvnserve = " + cmdSvnserve);
@@ -114,10 +121,13 @@ public class SVNServeSSHCommand extends SSHCommand {
 		Process process;
 		try {
 			process = pb.start();
-				
-			Thread s2c = new Thread(new PumpingTask(process.getInputStream(), out, "s2c"), "s2c");
-			Thread c2s = new Thread(new PumpingTask(in, process.getOutputStream(), "c2s"), "c2s");
-			Thread s2cError = new Thread(new PumpingTask(process.getErrorStream(), err, "s2cError"), "s2cError");
+			
+			
+			RequestFilter queryAnalyser = new RequestFilter();
+			
+			s2cError = new Thread(new PumpingTaskError(process.getErrorStream(), err, this), TaskType.ERROR.toString());
+			s2c = new Thread(new PumpingTaskS2C(process.getInputStream(), out, this, queryAnalyser), TaskType.S2C.toString());
+			c2s = new Thread(new PumpingTaskC2S(in, process.getOutputStream(), this, queryAnalyser), TaskType.C2S.toString());
 
 			s2c.setDaemon(true);
 			c2s.setDaemon(true);
@@ -150,5 +160,13 @@ public class SVNServeSSHCommand extends SSHCommand {
 		}
 	}
 	
+	public synchronized void stopThread() {
+		s2c.interrupt();
+		c2s.interrupt();
+		s2cError.interrupt();
+		
+		callback.onExit(-1);
+		logger.info("completing SvnServerCommand");
+	}
 }
 

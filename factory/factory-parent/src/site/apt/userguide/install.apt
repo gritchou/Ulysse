@@ -1,0 +1,66 @@
+ ------
+Next Generation Forge Documentation
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster
+ ------
+June 2009
+ ------
+
+Installing and running the Qualipso Factory
+  
+* Prerequisites
+
+   * A working JBoss AS server 5.0.1 installation
+
+   * A factory-package-basic.ear file
+
+* Installing the Factory
+
+  Copy the "factory-package-basic.ear" file in the "deploy" folder, in the JBoss installation folder corresponding to the configuration of the server that is running (generally, in "server/default")
+  
+* Configuring JBoss
+  
+  You need to configure the security part of JBoss to match the security parameters of the Qualipso Factory.
+  In the "conf" folder, edit the "login-config.xml" file and add the following lines:
+
+-----------------------------------
+  <application-policy name="JBossWSDigest">
+    <authentication>
+      <login-module code="org.jboss.security.auth.spi.UsersRolesLoginModule" flag="sufficient">
+        <module-option name="usersProperties">props/jbossws-users.properties</module-option>
+        <module-option name="rolesProperties">props/jbossws-roles.properties</module-option>
+        <module-option name="hashAlgorithm">SHA</module-option>
+        <module-option name="hashEncoding">BASE64</module-option>
+        <module-option name="hashUserPassword">false</module-option>
+        <module-option name="hashStorePassword">true</module-option>
+        <module-option name="storeDigestCallback">org.jboss.ws.extensions.security.auth.callback.UsernameTokenCallback</module-option>
+        <module-option name="unauthenticatedIdentity">guest</module-option>
+      </login-module>
+      <login-module code="org.jboss.security.auth.spi.UsersRolesLoginModule" flag="sufficient">
+        <module-option name="usersProperties">props/jbossws-users.properties</module-option>
+        <module-option name="rolesProperties">props/jbossws-roles.properties</module-option>
+        <module-option name="unauthenticatedIdentity">guest</module-option>
+      </login-module>
+    </authentication>
+  </application-policy>
+-----------------------------------  
+
+* Running the Factory
+ 
+  Launch JBoss AS server, for exemple by running the bin/run.sh script.
+
+* Test that the Factory is working
+
+  To test that the factory is working, you can run the functional tests of "factory-core".
+  Go in the "factory-core-tests" folder, and type the following command:
+
+-----------------------------------
+mvn test
+-----------------------------------  
+
+  If you get an indication that all tests passed without error or failure, then the Factory is running correctly.
+
+* More information
+
+  More detailled information are available in the {{{../Install/install-env-service.html}developer section}}
+

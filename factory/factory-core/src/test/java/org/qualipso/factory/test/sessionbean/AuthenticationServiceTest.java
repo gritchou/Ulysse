@@ -12,16 +12,18 @@
  * Jérôme Blanchard / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
- *
+ * Christophe Bouthier / INRIA
+ * 
  */
 package org.qualipso.factory.test.sessionbean;
 
+import com.bm.testsuite.BaseSessionBeanFixture;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.qualipso.factory.security.auth.AuthenticationService;
 import org.qualipso.factory.security.auth.AuthenticationServiceBean;
-
-import com.bm.testsuite.BaseSessionBeanFixture;
 
 
 /**
@@ -29,16 +31,14 @@ import com.bm.testsuite.BaseSessionBeanFixture;
  * @date 20 May 2009
  */
 public class AuthenticationServiceTest extends BaseSessionBeanFixture<AuthenticationServiceBean> {
-    
-	private static Log logger = LogFactory.getLog(AuthenticationServiceTest.class);
-    
-	@SuppressWarnings("unchecked")
-	private static final Class[] usedBeans = { };
-    
+    private static Log logger = LogFactory.getLog(AuthenticationServiceTest.class);
+    @SuppressWarnings("unchecked")
+    private static final Class[] usedBeans = {  };
+
     public AuthenticationServiceTest() {
-    	super(AuthenticationServiceBean.class, usedBeans);
+        super(AuthenticationServiceBean.class, usedBeans);
     }
-    
+
     public void testGetConnectedUserIdentifier() {
         logger.debug("testing getConnectedIdentifier()");
 
@@ -48,6 +48,7 @@ public class AuthenticationServiceTest extends BaseSessionBeanFixture<Authentica
             assertTrue(service.getConnectedIdentifier().equals("anonymouse"));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+
             //fail(e.getMessage());
         }
     }
@@ -64,6 +65,7 @@ public class AuthenticationServiceTest extends BaseSessionBeanFixture<Authentica
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
+
             //fail(e.getMessage());
         }
     }

@@ -1,0 +1,321 @@
+@charset "utf-8";
+
+body {
+	margin:0px;
+	padding:0px;
+	color: #464646;
+	background-color:#f4e7bd;
+  font-family: "Bitstream Vera Serif", serif;
+  font-size: 12px;
+}
+
+h1,h2,h3,h4,h5,h6,span,div,p {
+	margin:0px;
+	padding:0px;
+}
+
+p {
+  margin: 4px 0;
+}
+
+ol, ul {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+#wrapper {
+	float: none;
+	width:1004px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+h1 {
+  height: 90px;
+  text-align: center;
+  padding: 50px 0;
+  border-bottom: 5px solid #c0943b;
+  color: #e7cd90;
+  background-color: #b44d12;
+  font-size: 42px;
+}
+
+h2 {
+  margin-bottom: 20px;
+  color: #7b8901;
+  font-size: 24px;
+  font-weight:normal;
+}
+
+h3 {
+  margin-bottom: 10px;
+  color: #b22d00;
+  font-size: 16px;
+  font-weight:bold;
+}
+
+h4 {
+  margin-bottom: 24px;
+  color: #c0943c;
+  font-weight:bold;
+}
+
+a {
+  color: #8b2c00;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+#menu {
+  float: left;
+  width: 215px;
+  margin:0px;
+	padding:34px 0 33px 52px;
+}
+
+#content {
+  float: left;
+  width: 615px;
+  margin:0px;
+	padding:34px 0 40px 34px;
+	background-image:url(../images/vline.jpg);
+  background-repeat:repeat-y;
+}
+
+#back {
+  padding-top: 30px;
+}
+
+#introduction, #global-introduction {
+  padding-bottom: 44px;
+}
+
+#introduction, #global-introduction ul {
+  margin-bottom: 10px;
+}
+
+#introduction, #global-introduction li {
+  margin-bottom: 5px;
+}
+
+#checklist {
+  padding-bottom: 44px;
+}
+
+#checklist li {
+  list-style-image: url(../images/check.png);
+  margin: 2px 0;
+  font-family: "Bitstream Vera", sans-serif;
+}
+
+#checklist a {
+  color:#c17305;
+}
+
+.step {
+  margin-bottom: 60px;
+}
+
+.step p {
+  margin: 15px 0 5px 0;
+}
+
+.step .steps {
+  margin-top: 30px;
+}
+
+.step li ul {
+  margin: 10px 0 20px 0;
+}
+
+.step .projects li {
+  margin: 0;
+  padding: 3px 0;
+}
+
+samp {
+  display: block;
+  margin: 20px 10px;
+  padding: 15px;
+  color: #462c00;
+  background-color: #f1e0ac;
+  border: 1px solid #d1c088;
+  font-family: Courrier, monospace;
+}
+
+samp kbd {
+  display: block;
+  margin: 0 0 3px 0;
+  padding: 0;
+  border-width: 0;
+  font-style: italic;
+}
+
+samp samp {
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+}
+
+samp .new {
+  display: inline;
+  margin: 0;
+  color: #8b2c00;
+  font-weight: normal;
+  font-style: normal;
+  
+}
+
+kbd, code {
+  color: #462c00;
+  font-family: Courrier, monospace;
+  font-style: italic;
+}
+
+.step li {
+  margin: 15px 0 40px 0;
+}
+
+.step img {
+  display: block;
+  margin: 10px 0;
+  padding: 5px;
+  background-color: #f1e0ac;
+}
+
+.step a img {
+  border: 2px dashed #c0943b;
+}
+
+.step a:hover img {
+  border: 2px dashed #8b2c00;
+}
+
+dt samp {
+  color: #462c00;;
+  font-weight: bold;
+  background-color: #f4e7bd;
+  border: none;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+dd {
+  margin-top: 5px;
+  margin-bottom: 10px;
+}
+
+.step dd li {
+  margin: 0;
+  padding: 5px 0;
+}
+
+#menu h2 {
+    margin-bottom: 0px;
+    font-size: 20px;
+} 
+
+#menu_local ul {
+  padding-left: 20px;
+  list-style-image: url(../images/arrow.jpg);
+  font-family: "Bitstream Vera", sans-serif;
+  font-weight:normal;
+}
+
+#menu_local li {
+  margin-right: 25px;
+  padding:3px 0px 3px 0px;
+  background-position: bottom left;
+  background-image:url(../images/hline.jpg);
+  background-repeat:repeat-x;
+}
+
+#menu_local a {
+  color:#464646;
+  text-decoration:none;
+}
+
+#menu_local a:hover {
+  color:#B22D00;
+  font-weight:bold;
+}
+
+#menu_global ol {
+  margin-bottom: 40px;
+  padding-left: 20px;
+  font-family: "Bitstream Vera", sans-serif;
+  font-weight:normal;
+}
+
+#menu_global li {
+  padding-bottom: 5px;
+}
+
+#menu_global a {
+  color:#c17305;
+  text-decoration:none;
+}
+
+#menu_global a:hover {
+  text-decoration: underline;
+}
+
+#menu_global #selected a {
+  color: #b22d00;
+}
+
+#menu_all {
+  position: absolute;
+  top: 161px;
+  right: 0px;
+}
+
+#menu_all li {
+  display: block;
+  float: left;
+  background-color: #b28937;
+  margin: 0 2px;
+  padding: 5px 10px;
+  font-weight: bold;
+}
+
+#menu_all a {
+  color: #EEE;
+}
+
+#menu_all .selected {
+  background-color: #c0943b;
+}
+
+#menu_all .selected a {
+  color: #FFF;
+}
+
+#footer {
+  float: left;
+  width: 100%;
+  height: 40px;
+  background-color: #8d2c01;
+  border-top: 5px solid #c0943b;
+}
+
+#validation {
+  margin: 10px auto;
+  font-weight:bold;
+  text-align:center;
+}
+
+#validation a {
+  color:#EE7E1F;
+  margin: 0 10px;
+}
+
+#validation a:hover {
+  text-decoration:underline;
+}
+

@@ -105,11 +105,12 @@ public class QualipsoServletClass extends HttpServlet
  			e.printStackTrace();
  			throw new ServletException("Error in soap object : " + e.getMessage());
  		}
- 		catch(Exception except)
+ 		/*catch(Exception except)
  		{
  			except.printStackTrace();
  			throw new IOException("Exception error in iostream : " + except.getMessage());
  		}
+ 		*/
  	}
  	
  	

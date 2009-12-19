@@ -5,6 +5,7 @@ import javax.persistence.Query;
 
 import org.apache.log4j.Logger;
 import org.asteriskjava.live.ManagerCommunicationException;
+import org.qualipso.factory.voipservice.VoIPConferenceServiceException;
 import org.qualipso.factory.voipservice.entity.ConferenceUser;
 import org.qualipso.factory.voipservice.entity.MeetMe;
 import org.qualipso.factory.voipservice.entity.SipConf;
@@ -13,6 +14,7 @@ import org.qualipso.factory.voipservice.security.AsteriskConferenceSecurity;
 import org.qualipso.factory.voipservice.security.AsteriskConferenceSecurityParams;
 import org.qualipso.factory.voipservice.security.AuthenticationModule;
 import org.qualipso.factory.voipservice.utils.AsteriskConferenceUtils;
+import org.qualipso.factory.voipservice.utils.AuthData;
 
 
 /**
@@ -30,9 +32,11 @@ public class AsteriskConferenceManagement implements AsteriskConferenceSecurity 
 	
 	/**
 	 * @param userId
+	 * @throws VoIPConferenceServiceException 
+	 * @throws SecurityException 
 	 */
-	public AsteriskConferenceManagement(String userId, String pass) {
-		AuthenticationModule.authenticate(userId, pass);
+	public AsteriskConferenceManagement(String userId, String pass, AuthData authData) throws SecurityException, VoIPConferenceServiceException {
+		AuthenticationModule.authenticate(userId, pass, authData);
 	}
 
 	/**

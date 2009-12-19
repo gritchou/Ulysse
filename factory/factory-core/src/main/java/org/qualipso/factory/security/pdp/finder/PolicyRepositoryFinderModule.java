@@ -1,22 +1,21 @@
+/*
+ *
+ * Qualipso Factory
+ * Copyright (C) 2006-2010 INRIA
+ * http://www.inria.fr - molli@loria.fr
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of LGPL. See licenses details in LGPL.txt
+ *
+ * Initial authors :
+ *
+ * Jérôme Blanchard / INRIA
+ * Pascal Molli / Nancy Université
+ * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
+ * 
+ */
 package org.qualipso.factory.security.pdp.finder;
-
-import java.io.ByteArrayInputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.qualipso.factory.security.repository.PolicyRepository;
-import org.qualipso.factory.security.repository.PolicyRepositoryException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.sun.xacml.AbstractPolicy;
 import com.sun.xacml.EvaluationCtx;
@@ -34,7 +33,38 @@ import com.sun.xacml.finder.PolicyFinder;
 import com.sun.xacml.finder.PolicyFinderModule;
 import com.sun.xacml.finder.PolicyFinderResult;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
+import org.qualipso.factory.security.repository.PolicyRepository;
+import org.qualipso.factory.security.repository.PolicyRepositoryException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import java.io.ByteArrayInputStream;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+
+/**
+ * The PolicyRepositoryFinderModule to allow PDP being capable of retrieving policies from the local repository policy.<br/>
+ * <br/>
+ * This finder module implementation is capable of combining policies using a permit override policy combination algorithm. This
+ * significate that if only one policy permit the action, it is sufficient.<br/>
+ * <br/>
+ * @author Jerome Blanchard (jayblanc@gmail.com)
+ * @date 20 May 2009
+ */
 public class PolicyRepositoryFinderModule extends PolicyFinderModule {
     private static URI parentPolicyId = null;
     private Log logger = LogFactory.getLog(this.getClass());

@@ -14,21 +14,46 @@ import org.apache.axis2.client.ServiceClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.qualipso.factory.collaboration.ws.beans.DocumentDTO;
+import org.qualipso.factory.collaboration.ws.beans.FolderDTO;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class DocumentWSBean.
+ */
 @Stateless(name = "DocumentWSBean", mappedName = "DocumentWService")
 public class DocumentWSBean extends CollaborationWSUtils implements
 	DocumentWService {
+
+    /**
+     * Instantiates a new document ws bean.
+     */
     public DocumentWSBean() {
 
     }
 
+    /** The target epr. */
     private EndpointReference targetEPR = new EndpointReference(
 	    CollaborationProperties.getInstance().MERMIG_ENDPOINT);
+
+    /** The fac. */
     private static OMFactory fac = OMAbstractFactory.getOMFactory();
+
+    /** The om ns. */
     private static OMNamespace omNs = fac.createOMNamespace(
 	    CollaborationWSUtils.NAME_SPACE, "ns");
+
+    /** The logger. */
     private static Log logger = LogFactory.getLog(DocumentWSBean.class);
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.qualipso.factory.collaboration.ws.DocumentWService#createDocument
+     * (java.lang.String, java.lang.String, java.lang.String, java.lang.String,
+     * java.lang.String, java.lang.String, java.lang.String, java.lang.String,
+     * java.lang.String, byte[])
+     */
     @Override
     public HashMap<String, String> createDocument(String parentFolderId,
 	    String name, String date, String type, String keywords,
@@ -61,6 +86,13 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return values;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.qualipso.factory.collaboration.ws.DocumentWService#readDocument(java
+     * .lang.String)
+     */
     @Override
     public HashMap<String, Object> readDocument(String docId) throws Exception {
 	HashMap<String, Object> values = new HashMap<String, Object>();
@@ -69,12 +101,30 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return values;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.qualipso.factory.collaboration.ws.DocumentWService#readDocumentProperties
+     * (java.lang.String)
+     */
     @Override
     public HashMap<String, Object> readDocumentProperties(String docId)
 	    throws Exception {
 	return callReadDocument(docId, false, null);
     }
 
+    /**
+     * Call read document.
+     * 
+     * @param docId the doc id
+     * @param getContent the get content
+     * @param values the values
+     * 
+     * @return the hash map< string, object>
+     * 
+     * @throws Exception the exception
+     */
     private HashMap<String, Object> callReadDocument(String docId,
 	    boolean getContent, HashMap<String, Object> values)
 	    throws Exception {
@@ -110,13 +160,10 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 		if (omDocProp != null) {
 		    doc = new DocumentDTO();
 		    doc.setId(docId);
-		    //
-		    // OMElement omDocName =
-		    // omDocProp.getFirstChildWithName(OMEUtils.getQName("documentName"));
-		    // doc.setName(omDocName.getText());
-		    // OMElement omDocSubj =
-		    // omDocProp.getFirstChildWithName(OMEUtils.getQName("documentSubject"));
-		    // doc.setName(omDocSubj.getText());
+		    OMElement omDocRes = omDocProp
+			    .getFirstChildWithName(OMEUtils
+				    .getQName("documentResourceID"));
+		    doc.setResourceId(omDocRes.getText());
 		    OMElement omDocDate = omDocProp
 			    .getFirstChildWithName(OMEUtils
 				    .getQName("documentDate"));
@@ -144,6 +191,9 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 			    .getFirstChildWithName(OMEUtils
 				    .getQName("mimeType"));
 		    doc.setMimeType(omDocMime.getText());
+		    OMElement omDocFile = omDocProp.getFirstChildWithName(OMEUtils
+			    .getQName("fileName"));
+		    doc.setFileName(omDocFile.getText());
 		    values.put("document", doc);
 		}
 	    } else {
@@ -171,6 +221,14 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return values;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.qualipso.factory.collaboration.ws.DocumentWService#updateDocument
+     * (java.lang.String, java.lang.String, java.lang.String, java.lang.String,
+     * java.lang.String, java.lang.String, java.lang.String, byte[])
+     */
     @Override
     public HashMap<String, String> updateDocument(String documentID,
 	    String name, String type, String keywords, String status,
@@ -198,6 +256,14 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return values;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.qualipso.factory.collaboration.ws.DocumentWService#uploadDocumentVersion
+     * (java.lang.String, java.lang.String, java.lang.String, java.lang.String,
+     * java.lang.String, java.lang.String, byte[])
+     */
     @Override
     public HashMap<String, String> uploadDocumentVersion(String documentID,
 	    String name, String version, String status, String fileName,
@@ -208,7 +274,7 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	logger.info(payload.toString());
 	Options options = new Options();
 	options.setTo(targetEPR);
-	options.setAction("urn:updateDocument");
+	options.setAction("urn:uploadNewVersion");
 	// Blocking invocation
 	ServiceClient sender = new ServiceClient();
 	sender.setOptions(options);
@@ -223,13 +289,13 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return values;
     }
 
-    private OMElement getUploadVersionPayLoad(String documentID, String name,
-	    String version, String status, String fileName, String mimeType,
-	    byte[] binaryContent) {
-	// TODO Auto-generated method stub
-	return null;
-    }
-
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.qualipso.factory.collaboration.ws.DocumentWService#deleteDocument
+     * (java.lang.String)
+     */
     @Override
     public HashMap<String, String> deleteDocument(String id) throws Exception {
 	HashMap<String, String> values = new HashMap<String, String>();
@@ -251,6 +317,13 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return values;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.qualipso.factory.collaboration.ws.DocumentWService#createFolder(java
+     * .lang.String, java.lang.String, java.lang.String)
+     */
     @Override
     public HashMap<String, String> createFolder(String name,
 	    String parentFolderID, String abstractText) throws Exception {
@@ -282,9 +355,16 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return values;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.qualipso.factory.collaboration.ws.DocumentWService#readFolder(java
+     * .lang.String)
+     */
     @Override
-    public HashMap<String, String> readFolder(String folderId) throws Exception {
-	HashMap<String, String> values = new HashMap<String, String>();
+    public HashMap<String, Object> readFolder(String folderId) throws Exception {
+	HashMap<String, Object> values = new HashMap<String, Object>();
 	//
 	OMElement payload = getReadFolderPayLoad(folderId);
 	logger.info(payload.toString());
@@ -306,19 +386,29 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	if (omStatus.getText().equals(SUCCESS_CODE)) {
 	    OMElement omFolder = result.getFirstChildWithName(OMEUtils
 		    .getQName("folderProperties"));
-	    // OMElement omTitle =
-	    // omFolder.getFirstChildWithName(OMEUtils.getQName("title"));
-	    // values.put("title", omTitle.getText());
+	    OMElement omTitle = omFolder.getFirstChildWithName(OMEUtils
+		    .getQName("title"));
 	    OMElement omAbstract = omFolder.getFirstChildWithName(OMEUtils
 		    .getQName("abstract"));
-	    values.put("abstract", omAbstract.getText());
 	    OMElement omDateCreated = omFolder.getFirstChildWithName(OMEUtils
 		    .getQName("dateCreated"));
-	    values.put("dateCreated", omDateCreated.getText());
+	    FolderDTO folder = new FolderDTO();
+	    folder.setDate(omDateCreated.getText());
+	    folder.setDescription(omAbstract.getText());
+	    folder.setId(folderId);
+	    folder.setName(omTitle.getText());
+	    values.put("folder", folder);
 	}
 	return values;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.qualipso.factory.collaboration.ws.DocumentWService#updateFolder(java
+     * .lang.String, java.lang.String, java.lang.String)
+     */
     @Override
     public HashMap<String, String> updateFolder(String folderId, String name,
 	    String abstractText) throws Exception {
@@ -345,6 +435,13 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return values;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.qualipso.factory.collaboration.ws.DocumentWService#deleteFolder(java
+     * .lang.String)
+     */
     @Override
     public HashMap<String, String> deleteFolder(String folderId)
 	    throws Exception {
@@ -370,6 +467,13 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return values;
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see
+     * org.qualipso.factory.collaboration.ws.DocumentWService#searchForDocument
+     * (java.lang.String[][], java.lang.String[])
+     */
     @Override
     public HashMap<String, Object> searchForDocument(String[][] metadataFilter,
 	    String[] versionFilter) throws Exception {
@@ -408,6 +512,22 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return values;
     }
 
+    /**
+     * Gets the creates the document pay load.
+     * 
+     * @param parentFolderId the parent folder id
+     * @param name the name
+     * @param date the date
+     * @param type the type
+     * @param keywords the keywords
+     * @param version the version
+     * @param status the status
+     * @param docname the docname
+     * @param mimeType the mime type
+     * @param binaryContent the binary content
+     * 
+     * @return the creates the document pay load
+     */
     private static OMElement getCreateDocumentPayLoad(String parentFolderId,
 	    String name, String date, String type, String keywords,
 	    String version, String status, String docname, String mimeType,
@@ -417,6 +537,24 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 		binaryContent);
     }
 
+    /**
+     * Gets the creates the update document pay load.
+     * 
+     * @param documentID the document id
+     * @param isUpdate the is update
+     * @param parentFolderId the parent folder id
+     * @param name the name
+     * @param date the date
+     * @param type the type
+     * @param keywords the keywords
+     * @param version the version
+     * @param status the status
+     * @param docname the docname
+     * @param mimeType the mime type
+     * @param binaryContent the binary content
+     * 
+     * @return the creates the update document pay load
+     */
     private static OMElement getCreateUpdateDocumentPayLoad(String documentID,
 	    boolean isUpdate, String parentFolderId, String name, String date,
 	    String type, String keywords, String version, String status,
@@ -509,6 +647,80 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return method;
     }
 
+    /**
+     * Gets the upload version pay load.
+     * 
+     * @param documentID the document id
+     * @param name the name
+     * @param version the version
+     * @param status the status
+     * @param fileName the file name
+     * @param mimeType the mime type
+     * @param binaryContent the binary content
+     * 
+     * @return the upload version pay load
+     */
+    private OMElement getUploadVersionPayLoad(String documentID, String name,
+	    String version, String status, String fileName, String mimeType,
+	    byte[] binaryContent) {
+	OMElement method = fac.createOMElement("uploadNewVersion", omNs);
+
+	OMElement userElement = fac.createOMElement("username", omNs);
+	userElement.addChild(fac.createOMText(userElement, USER_NAME));
+	OMElement pwdElement = fac.createOMElement("password", omNs);
+	pwdElement.addChild(fac.createOMText(pwdElement, USER_PWD));
+	method.addChild(userElement);
+	method.addChild(pwdElement);
+	// documentProperties
+	OMElement docElement = fac.createOMElement("documentProperties", omNs);
+	OMElement idElement = fac.createOMElement("documentID", omNs);
+	idElement.addChild(fac.createOMText(idElement, documentID));
+	docElement.addChild(idElement);
+	OMElement subjectElement = fac.createOMElement("documentSubject", omNs);
+	subjectElement.addChild(fac.createOMText(subjectElement, name));
+	docElement.addChild(subjectElement);
+	OMElement versionElement = fac.createOMElement("version", omNs);
+	versionElement.addChild(fac.createOMText(versionElement, version));
+	docElement.addChild(versionElement);
+	OMElement statusElement = fac.createOMElement("status", omNs);
+	statusElement.addChild(fac.createOMText(statusElement, status));
+	docElement.addChild(statusElement);
+	OMElement authorElement = fac.createOMElement("author", omNs);
+	authorElement.addChild(fac.createOMText(authorElement, USER_NAME));
+	docElement.addChild(authorElement);
+	// the upload is optional
+	if (fileName != null && !fileName.equals("") && binaryContent != null
+		&& binaryContent.length > 0) {
+	    OMElement uploadFileElement = fac.createOMElement("uploadFile",
+		    omNs);
+	    OMElement fileNameElement = fac.createOMElement("fileName", omNs);
+	    fileNameElement.addChild(fac
+		    .createOMText(fileNameElement, fileName));
+	    OMElement mimeElement = fac.createOMElement("mimeType", omNs);
+	    mimeElement.addChild(fac.createOMText(mimeElement, mimeType));
+	    OMElement contentElement = fac.createOMElement("binaryContent",
+		    omNs);
+	    contentElement.addChild(fac.createOMText(contentElement,
+		    new String(binaryContent)));
+	    //
+	    uploadFileElement.addChild(fileNameElement);
+	    uploadFileElement.addChild(mimeElement);
+	    uploadFileElement.addChild(contentElement);
+	    docElement.addChild(uploadFileElement);
+	}
+	//
+	method.addChild(docElement);
+	return method;
+    }
+
+    /**
+     * Gets the read document pay load.
+     * 
+     * @param id the id
+     * @param getContent the get content
+     * 
+     * @return the read document pay load
+     */
     private static OMElement getReadDocumentPayLoad(String id,
 	    boolean getContent) {
 	OMElement method;
@@ -530,6 +742,13 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return method;
     }
 
+    /**
+     * Gets the delete document pay load.
+     * 
+     * @param id the id
+     * 
+     * @return the delete document pay load
+     */
     private static OMElement getDeleteDocumentPayLoad(String id) {
 
 	OMElement method = fac.createOMElement("deleteDocument", omNs);
@@ -546,12 +765,32 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return method;
     }
 
+    /**
+     * Gets the creates the folder pay load.
+     * 
+     * @param name the name
+     * @param parentFolderID the parent folder id
+     * @param abstractText the abstract text
+     * 
+     * @return the creates the folder pay load
+     */
     private static OMElement getCreateFolderPayLoad(String name,
 	    String parentFolderID, String abstractText) {
 	return getCreateUpdateFolderPayLoad(null, false, name, parentFolderID,
 		abstractText);
     }
 
+    /**
+     * Gets the creates the update folder pay load.
+     * 
+     * @param folderID the folder id
+     * @param isUpdate the is update
+     * @param name the name
+     * @param parentFolderID the parent folder id
+     * @param abstractText the abstract text
+     * 
+     * @return the creates the update folder pay load
+     */
     private static OMElement getCreateUpdateFolderPayLoad(String folderID,
 	    boolean isUpdate, String name, String parentFolderID,
 	    String abstractText) {
@@ -611,6 +850,13 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return method;
     }
 
+    /**
+     * Gets the read folder pay load.
+     * 
+     * @param id the id
+     * 
+     * @return the read folder pay load
+     */
     private static OMElement getReadFolderPayLoad(String id) {
 	OMElement method = fac.createOMElement("getFolderProperties", omNs);
 	OMElement userElement = fac.createOMElement("username", omNs);
@@ -626,6 +872,13 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return method;
     }
 
+    /**
+     * Gets the delete folder pay load.
+     * 
+     * @param id the id
+     * 
+     * @return the delete folder pay load
+     */
     private static OMElement getDeleteFolderPayLoad(String id) {
 	OMElement method = fac.createOMElement("deleteFolder", omNs);
 	OMElement userElement = fac.createOMElement("username", omNs);
@@ -641,6 +894,14 @@ public class DocumentWSBean extends CollaborationWSUtils implements
 	return method;
     }
 
+    /**
+     * Gets the search payload.
+     * 
+     * @param metadataFilter the metadata filter
+     * @param versionFilter the version filter
+     * 
+     * @return the search payload
+     */
     private static OMElement getSearchPayload(String[][] metadataFilter,
 	    String[] versionFilter) {
 	OMElement method = fac.createOMElement("deleteDocument", omNs);

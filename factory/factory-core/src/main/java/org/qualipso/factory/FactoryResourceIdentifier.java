@@ -12,7 +12,8 @@
  * Jérôme Blanchard / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
- *
+ * Christophe Bouthier / INRIA
+ * 
  */
 package org.qualipso.factory;
 
@@ -33,9 +34,9 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * <li> the type of the resource,
  * <li> the external id of this resource.
  * </ul>
- * The external id is used to be able for a service to recover the real resource data in 
- * the external storage subsysteme.  
- * 
+ * The external id is used to be able for a service to recover the real resource data in
+ * the external storage subsysteme.
+ *
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 20 May 2009
  */
@@ -55,7 +56,7 @@ public class FactoryResourceIdentifier implements Serializable {
 
     /**
      * Class constructor specifying the service name, the resource type and the resource id
-     * 
+     *
      * @param service the name of service which manage this resource
      * @param type the type of this resource
      * @param id the external id of this resource
@@ -113,50 +114,57 @@ public class FactoryResourceIdentifier implements Serializable {
         return "Service:" + getService() + "; Type:" + getType() + "; Id:" + getId();
     }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((service == null) ? 0 : service.hashCode());
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = (prime * result) + ((id == null) ? 0 : id.hashCode());
+        result = (prime * result) + ((service == null) ? 0 : service.hashCode());
+        result = (prime * result) + ((type == null) ? 0 : type.hashCode());
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		FactoryResourceIdentifier other = (FactoryResourceIdentifier) obj;
-		if (id == null) {
-			if (other.id != null) {
-				return false;
-			}
-		} else if (!id.equals(other.id)) {
-			return false;
-		}
-		if (service == null) {
-			if (other.service != null) {
-				return false;
-			}
-		} else if (!service.equals(other.service)) {
-			return false;
-		}
-		if (type == null) {
-			if (other.type != null) {
-				return false;
-			}
-		} else if (!type.equals(other.type)) {
-			return false;
-		}
-		return true;
-	}
+        return result;
+    }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+
+        if (obj == null) {
+            return false;
+        }
+
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+
+        FactoryResourceIdentifier other = (FactoryResourceIdentifier) obj;
+
+        if (id == null) {
+            if (other.id != null) {
+                return false;
+            }
+        } else if (!id.equals(other.id)) {
+            return false;
+        }
+
+        if (service == null) {
+            if (other.service != null) {
+                return false;
+            }
+        } else if (!service.equals(other.service)) {
+            return false;
+        }
+
+        if (type == null) {
+            if (other.type != null) {
+                return false;
+            }
+        } else if (!type.equals(other.type)) {
+            return false;
+        }
+
+        return true;
+    }
 }

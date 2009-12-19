@@ -95,12 +95,11 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws EventQueueServiceException
      */
 
-    public void testCreateEventQueue() throws MembershipServiceException, PEPServiceException, BindingServiceException, PAPServiceException,
-            EventQueueServiceException {
+    public void testCreateEventQueue() throws Exception {
         logger.debug("testing testCreateEventQueue(...)");
         final String name = "/queue/myQueue";
         final String caller = "theCaller";
-        
+
         final Vector<Object> allParams = new Vector<Object>();
         final Sequence sequence1 = mockery.sequence("sequence1");
         mockery.checking(new Expectations() {
@@ -147,13 +146,12 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws EventQueueServiceException
      */
     @Test(expected = EventQueueServiceException.class)
-    public void testCreateEventQueueUsedName() throws MembershipServiceException, PEPServiceException, BindingServiceException, PAPServiceException,
-            EventQueueServiceException {
+    public void testCreateEventQueueUsedName() throws Exception {
         logger.debug("testing testCreateEventQueue2(...) ");
         logger.debug("an Other Queue have the same name ...");
         final String name = "/queue/myQueue";
         final String caller = "theCaller";
-        
+
         final Sequence sq1 = mockery.sequence("seq1");
 
         mockery.checking(new Expectations() {
@@ -194,15 +192,15 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PAPServiceException
      * @throws EventQueueServiceException
      */
-    public void testpushEvent1() throws MembershipServiceException, PEPServiceException, BindingServiceException, PAPServiceException,
-            EventQueueServiceException {
+    public void testpushEvent1() throws Exception {
 
         logger.debug("testing testPushEvent(...)");
         final Sequence sq1 = mockery.sequence("seq1");
 
         final String name = "/queue/myQueue";
         final String caller = "theCaller";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
 
         final Vector<Object> allParams = new Vector<Object>();
         final EventQueue firstQueue = new EventQueue();
@@ -297,14 +295,14 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PAPServiceException
      * @throws EventQueueServiceException
      */
-    public void testDeleteEventNotInTheQueue() throws MembershipServiceException, PEPServiceException, BindingServiceException, PAPServiceException,
-            EventQueueServiceException {
+    public void testDeleteEventNotInTheQueue() throws Exception {
         logger.debug("testing testDeleteEventNotInTheQueue(...)");
         final Sequence sq1 = mockery.sequence("seq1");
 
         final String name = "myQueue";
         final String caller = "theCaller";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
         Event e = new Event("aResource", "aService", "aType", "anEventType", "");
@@ -357,14 +355,14 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PAPServiceException
      * @throws EventQueueServiceException
      */
-    public void testDeleteEventInTheQueue() throws MembershipServiceException, PEPServiceException, BindingServiceException, PAPServiceException,
-            EventQueueServiceException {
+    public void testDeleteEventInTheQueue() throws Exception {
         logger.debug("testing testDeleteEventInTheQueue(...)");
         final Sequence sq1 = mockery.sequence("seq1");
 
         final String name = "myQueue";
         final String caller = "theCaller";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
         Event e1 = new Event("aResource", "aService", "aType", "anEventType", "");
@@ -416,17 +414,18 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      * @throws BindingServiceException
-     * @throws EventQueueServiceException 
+     * @throws EventQueueServiceException
      */
     @Test(expected = EventQueueServiceException.class)
-    public void testRemoveExistingQueue() throws MembershipServiceException, PEPServiceException, BindingServiceException, EventQueueServiceException {
+    public void testRemoveExistingQueue() throws Exception {
 
         logger.debug("testing testRemoveExistingQueue(...)");
         final Sequence sq1 = mockery.sequence("seq1");
 
         final String name = "myQueue";
         final String caller = "theCaller";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
         firstQueue.setEvents(new ArrayList<Event>());
@@ -458,7 +457,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         EventQueueServiceBean eqsb = getBeanToTest();
 
-            eqsb.removeQueue(name);
+        eqsb.removeQueue(name);
 
         logger.info("Second Passage pour verification TREQ");
 
@@ -506,14 +505,15 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PEPServiceException
      */
     @Test(expected = EventQueueServiceException.class)
-    public void testRemoveNotExistingQueue() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+    public void testRemoveNotExistingQueue() throws Exception {
 
         logger.debug("testing testRemoveNotExistingQueue(...)");
         final Sequence sq1 = mockery.sequence("seq1");
 
         final String name = "myQueue";
         final String caller = "theCaller";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
         firstQueue.setEvents(new ArrayList<Event>());
@@ -565,14 +565,15 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
-    public void testfindEventByDate() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+    public void testfindEventByDate() throws Exception {
 
         logger.debug("testing testfindEventByDate(...)");
         final Sequence sq1 = mockery.sequence("seq1");
 
         final String name = "myQueue";
         final String caller = "theCaller";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
         ArrayList<Event> a = new ArrayList<Event>();
@@ -628,14 +629,15 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PEPServiceException
      */
 
-    public void testfindEventByDateBetween() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+    public void testfindEventByDateBetween() throws Exception {
 
         logger.debug("testing testfindEventByDateBetween(...)");
         final Sequence sq1 = mockery.sequence("seq1");
 
         final String name = "myQueue";
         final String caller = "theCaller";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
         ArrayList<Event> a = new ArrayList<Event>();
@@ -734,14 +736,15 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PEPServiceException
      */
 
-    public void testfindEventByDateInf() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+    public void testfindEventByDateInf() throws Exception {
 
         logger.debug("testing testfindEventByDateInf(...)");
         final Sequence sq1 = mockery.sequence("seq1");
 
         final String name = "myQueue";
         final String caller = "theCaller";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
         final EventQueue firstQueue = new EventQueue();
         ArrayList<Event> a = new ArrayList<Event>();
         a.add(new Event());
@@ -838,14 +841,15 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
-    public void testfindEventByDateSup() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+    public void testfindEventByDateSup() throws Exception {
 
         logger.debug("testing testfindEventByDateInf(...)");
         final Sequence sq1 = mockery.sequence("seq1");
 
         final String name = "myQueue";
         final String caller = "theCaller";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
         final EventQueue firstQueue = new EventQueue();
         ArrayList<Event> a = new ArrayList<Event>();
         a.add(new Event());
@@ -941,14 +945,15 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PEPServiceException
      */
 
-    public void testfindEventByEventType() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+    public void testfindEventByEventType() throws Exception {
 
         logger.debug("testing testfindEventByEventType(...)");
         final Sequence sq1 = mockery.sequence("seq1");
 
         final String name = "myQueue";
         final String caller = "theCaller";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
         final EventQueue firstQueue = new EventQueue();
         ArrayList<Event> a = new ArrayList<Event>();
         a.add(new Event("/name", "Rule", "eventype", ""));
@@ -1100,14 +1105,15 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PEPServiceException
      */
 
-    public void testfindEventRessourceType() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+    public void testfindEventRessourceType() throws Exception {
         logger.debug("testing testfindEventfromRessource(...)");
         final Sequence sq1 = mockery.sequence("seq1");
 
         final String name = "myQueue";
         final String caller = "theCaller";
         final String ressource = "RessourceType";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
         ArrayList<Event> a = new ArrayList<Event>();
@@ -1240,14 +1246,15 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PEPServiceException
      */
 
-    public void testfindEventFromRessource() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+    public void testfindEventFromRessource() throws Exception {
         logger.debug("testing testfindEventfromRessource(...)");
         final Sequence sq1 = mockery.sequence("seq1");
 
         final String name = "myQueue";
         final String caller = "theCaller";
         final String ressource = "Ressource";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
         ArrayList<Event> a = new ArrayList<Event>();
@@ -1379,13 +1386,14 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
-    public void testfindObjectEvent() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+    public void testfindObjectEvent() throws Exception {
         logger.debug("testing testfindObjectEvent(...)");
         final Sequence sq1 = mockery.sequence("seq1");
 
         final String name = "myQueue";
         final String caller = "theCaller";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
         final EventQueue firstQueue = new EventQueue();
         ArrayList<Event> a = new ArrayList<Event>();
         Event e1 = new Event("/name", "Rule", "eventype", "");
@@ -1469,7 +1477,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PEPServiceException
      */
 
-    public void testfindEventBythrower() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
+    public void testfindEventBythrower() throws Exception {
 
         logger.debug("testing testfindEventBythrower(...)");
         final Sequence sq1 = mockery.sequence("seq1");
@@ -1477,7 +1485,8 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         final String name = "myQueue";
         final String caller = "theCaller";
         final String thrower1 = "Thrower";
-        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID.randomUUID().toString());
+        final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
+                .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
         ArrayList<Event> a = new ArrayList<Event>();

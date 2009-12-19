@@ -1,0 +1,355 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta http-equiv="Content-Script-Type" content="text/javascript" />
+	
+	<meta http-equiv="imagetoolbar" content="no" />
+	
+	<meta name="author" content="Christophe Bouthier" />
+	<meta name="copyright" content="copyright 2009 - INRIA" />
+	<meta name="keywords" content="Qualipso, qualipso factory, open-source, quality, service, development" />
+	<meta name="description" content="Documentation for the Qualiso factory - creation of a new service" />
+	
+	<link rel="stylesheet" href="commons/css/style.css" type="text/css" />
+	<link rel="stylesheet" href="commons/css/lightbox.css" type="text/css" media="screen" />
+	
+	<script type="text/javascript" src="commons/js/prototype.js"></script>
+  <script type="text/javascript" src="commons/js/scriptaculous.js?load=effects,builder"></script>
+  <script type="text/javascript" src="commons/js/lightbox.js"></script>
+	
+	<title>Qualipso Factory - Tutorial - Part I</title>
+</head>
+<body id="www.qualipso.org">
+	
+	<h1>Qualipso Factory</h1>
+	
+  <div id="wrapper">
+  	
+	<div id="menu">
+		<div id="menu_all">
+	    <ul>
+	      <li><a href="install-env-service.html">Installation</a</li>
+	      <li class="selected"><a href="create-new-service.html">Development</a></li>
+	    </ul>
+	  </div>
+	 <div id="menu_global">
+  	  <h2>Tutorial map:</h2>
+	  	<ol>
+	  	  <li id="selected"><a href="create-new-service.html">Create a new service</a></li>
+	  	  <li><a href="add-test.html">Add the test structure</a></li>
+	  	  <li><a href="EJB.html">Define the EJB service</a></li>
+	  	  <li><a href="remote.html">Implements remote access</a></li>
+	  	  <li><a href="factory.html">Qualipso Factory services</a></li> 
+	    </ol>
+	  </div>
+	  <div id="menu_local">
+		  <h2>Steps:</h2>
+		  <ul>
+		    <li><a href="#CREATION">Project creation</a></li>
+		    <li><a href="#INTERFACE">Service interface</a></li>
+		    <li><a href="#IMPLEMENTATION">Service implementation</a></li>
+		    <li><a href="#RESOURCE">Service resource</a></li>
+		    <li><a href="#EXCEPTION">Service exception</a></li>
+	    </ul>
+	 </div>
+	</div>
+	
+	<div id="content">
+		<h2>Development Tutorial</h2>
+		
+		<div id="global-introduction">
+			<p>The goal of this multiparts tutorial is to make you create a fully-functionnal service for the Qualipso factory, a service that will use all the functionnalities provided by the Qualipso factory. The tutorial will  address all the aspects of the factory, and you will learn how and when to use them.</p>
+			<p>The tutorial is separated in several pages pages:</p>
+			<ul>
+			  <li>In the <a href="create-new-service.html">first page</a>, you will create a basic service project</li>
+			  <li>In the <a href="add-test.html">second page</a>, you will create the necessary test structure for your new service</li>
+			  <li>In the <a href="EJB.html">third page</a>, you will define and implement the EJB part of the service</li>
+	  	  <li>In the <a href="remote.html">fourth page</a>, you will implements the webservice SOAP remote access to the service</li>
+	  	  <li>Finally, in the <a href="factory.html">fifth page</a>, you will call and use the services provided by the factory-core package, to integrate with the Qualipso Factory, and thus create a real abstract service for the factory.</li> 
+			</ul>
+			
+			<p>You will find on the left side a menu with links to those pages. When a page is divided in several steps (like this one), you will also find a menu with those steps on the left side.</p>
+			<p>This tutorial don't have strong prerequisite about technolgies knowledge. As it will go gently about technologies (EJB, WebServices, JAAS, Eclipse, ...), you may be able to follow it without expert knowledge about them. Still, it will be easier if you already know the basic concepts of those technos. The only strong requierement is that you already have a working and configured environment, as described <a href="install-env-service.html">here</a>. In particular, this tutorial suppose that you're using the Eclipse IDE.</p>
+		</div>
+			
+		<h2>Creating a new service</h2>
+
+		<div id="introduction">
+			<p>On this first part of the tutorial, you will learn how to create a new basic empty service (based on the clock template), so that you have the necessary structure to develop a real service.</p>
+			<p>The service that you will create will be a local twitter service (no connection to the real Twitter), allowing a user to tweet about its activites under its profile.</p>
+			 <p>For this service, you will need to define several files: one for the interface of the service, one for the implementation of the service, one for the resource that is managed by the service, and one for the service-specific exception. In order to concentrate on the code itself and not on the project configuration, you will directly reuse the structure put in place by the "ClockService" template.</p>
+		</div>
+		
+		<div id="checklist">
+		  <h3>Checklist</h3>
+		  <p>Here is the checklist of everything that you will do on this level:</p>
+		  <ul>
+		    <li><a href="#CREATION">Creation of the project</a></li>
+        <li><a href="#INTERFACE">Definition of the service interface</a></li>
+        <li><a href="#IMPLEMENTATION">Definition of the service basic implementation</a></li>
+        <li><a href="#RESOURCE">Definition of the service resource</a></li>
+        <li><a href="#EXCEPTION">Definition of the service exception</a></li>
+		  </ul>
+		</div>
+			
+    <!-- Creation -->
+		<div class="step">
+		  <h3><a name="CREATION"></a>Step 1: Create a new project</h3>
+			<p>Each service correspond to three differents projects under Eclipse:</p>
+			<ul class="projects">
+			  <li>a project containing the service itself, and its unit tests</li>
+			  <li>a project containing the functional tests of the service</li>
+			  <li>a project containing the webservice tests of the service</li>
+			</ul>
+			<p>Right now, you need at least one project for the service itself (you will create the functional and webservices tests afterward, once you have basic strcture for the service). You will create this project by copying and modifying the template existing project (<em>funkyfactory-service-clock</em>):</p>
+			<ol>
+			  <li>
+			  Go in the <em>funkyfactory/funkyfactory-service</em> folder, duplicate the <em>funkyfactory-service-clock</em> folder, and rename it <kbd>"funkyfactory-service-twitter"</kbd>
+			  <a href="images/full/tut-copy-folder-service.png" rel="lightbox" title="Duplicating project folder"><img src="images/preview/tut-copy-folder-service.png" alt="Duplicating project folder"/></a>
+			   </li>
+			   <li>
+			      Go in the newly created <em>funkyfactory-service-twitter</em>, and edit the pom.xml file. You need to replace the following elements:
+			      <ul class="projects">
+			        <li><em>artifactId</em> -&gt; <kbd>funkyfactory-service-twitter</kbd></li>
+			        <li><em>name</em> -&gt; <kbd>funkyfactory-service-twitter</kbd></li>
+			        <li><em>version</em> -&gt; <kbd>0.0.1</kbd></li>
+			        <li><em>finalName</em> -&gt; <kbd>funkyfactory-service-twitter</kbd></li>
+			      </ul>
+			      <a href="images/full/tut-modif-pom-service.png" rel="lightbox" title="Modifying project pom"><img src="images/preview/tut-modif-pom-service.png" alt="Modifying project pom"/></a>
+			   </li>
+			   <li>
+			      Still in the newly created <em>funkyfactory-service-twitter</em>, remove the "target" folder if it's present.
+			   </li>
+			   <li>
+			      In Eclipse, import the <em>funkyfactory-service-twitter</em> as a Maven project:
+			      <a href="images/full/tut-import-maven-project.png" rel="lightbox" title="Importing the maven project"><img src="images/preview/tut-import-maven-project.png" alt="Importing the maven project"/></a>
+			   </li>
+			   <li>
+			      Once imported, files and packages in the project still have the "Clock" in their name:
+			      <a href="images/full/tut-imported-project.png" rel="lightbox" title="Files to change in the project"><img src="images/preview/tut-imported-project.png" alt="Files to change in the project"/></a>
+			      You need to change that, using the "Refactor" function of Eclipse. Right-click on the <em>"org.qualipso.funkyfactory.service.clock"</em> package, in the <em>"src/main/java"</em> folder, and in the contextual menu, select "Refactor" -&gt; "Rename...":
+			      <a href="images/full/tut-rename-package.png" rel="lightbox" title="Select package to rename"><img src="images/preview/tut-rename-package.png" alt="Select package to rename"/></a>
+			      Change the name to <kbd>"org.qualipso.funkyfactory.service.twitter"</kbd> and click on "OK":
+			      <a href="images/full/tut-rename-package-2.png" rel="lightbox" title="Rename package"><img src="images/preview/tut-rename-package-2.png" alt="Rename package"/></a>
+			   </li>
+			   <li>
+			      Do the same refactoring for the following elements:
+			        <ul class="projects">
+			          <li><em>ClockService.java</em> -&gt; <kbd>TwitterService.java</kbd></li>
+			          <li><em>ClockServiceBean.java</em> -&gt; <kbd>TwitterServiceBean.java</kbd></li>
+			          <li><em>ClockServiceException.java</em> -&gt; <kbd>TwitterServiceException.java</kbd></li>
+			          <li><em>org.qualipso.funkyfactory.test.clock.ejb</em> -&gt; <kbd>org.qualipso.funkyfactory.test.twitter.ejb</kbd></li>
+			          <li><em>ClockServiceTest.java</em> -&gt; <kbd>TwitterServiceTest.java</kbd></li>
+			        </ul>
+			     </li>
+			     <li>
+			        Once this is done, the project content should look like this:
+			        <a href="images/full/tut-clean-project.png" rel="lightbox" title="All files renamed"><img src="images/preview/tut-clean-project.png" alt="All files renamed"/></a>
+			   </li>
+			</ol>
+	 </div>
+	 
+    <!-- Interface -->
+		<div class="step">
+		  <h3><a name="INTERFACE"></a>Step 2: Define the service interface</h3>
+			<p>Once the project infrastructure is done, the first thing to do is to define the interface of the service you want to create. This is done in the <em>TwitterService.java</em> file, in <em>src/main/java</em>.</p>
+			<ol>
+			  <li>
+			    Open the <em>TwitterService.java</em> file, in <em>src/main/java</em>, and start by commenting everything. You will start from scratch, keeping the old code as reference.
+			  </li>
+			  <li>
+			    Define a new Java interface, called <kbd>"TwitterService"</kbd>. This interface should extend the <em>FactoryService</em> interface, provided by the factory, in order for the service to be recognised as an abstract service.
+<pre><samp><span class="new">public interface TwitterService extends FactoryService {
+
+}</span></samp></pre>
+	    	<p>Later in the tutorial, you will add methods and annotations in this interface to define the funtionnalities that you want your service to provide to others. But for now, this is enough for a basic project squeleton.</p>
+			  </li>
+			</ol>	 
+	  </div>
+
+  <!-- Implementation -->
+		<div class="step">
+		  <h3><a name="IMPLEMENTATION"></a>Step 3: Define the service basic implementation</h3>
+			<p>Once the interface is defined, you can define the implementation of the service itself. This is done in the <em>TwitterServiceBean.java</em> file, in <em>src/main/java</em>.</p>
+			<ol>
+			  <li>
+			    Open the <em>TwitterServiceBean.java</em> file, in <em>src/main/java</em>, and again, start by commenting everything, keeping the old code as reference.
+			  </li>
+			  <li>
+			    Define a new Java class, called <kbd>"TwitterServiceBean"</kbd>. This class should implement the <em>TwitterService</em> interface that you just defined.
+<pre><samp><span class="new">public class TwitterServiceBean implements TwitterService {
+
+}</span></samp></pre>
+			  </li>
+			  <li>
+			    The <em>FactoryService</em> interface (inherited by <em>TwitterService</em>), is defining several methods that need to be implemented by factory abstract services:
+			    <ul class="projects">
+			        <li><kbd>FactoryResource findResource(String resourcePath) throws FactoryException</kbd></li>
+			        <li><kbd>String[] getResourceTypeList()</kbd></li>
+			        <li><kbd>String getServiceName()</kbd></li>
+			      </ul>
+			      <p>You will see later in the tutorial the meaning of those methods. Right now, implement empty methods, by simply returning <kbd>null</kbd>. Don't forget to add to each of those methods the <kbd>@Override</kbd> annotation that inform the Java compiler that you really mean to override the corresponding methods. The compiler is your friend, and it's always good to explicit what you mean to do:</p>
+<pre><samp>public class TwitterServiceBean implements TwitterService {
+  <span class="new">@Override
+  public FactoryResource findResource(String resourcePath)
+    throws FactoryException {
+		
+    return null;
+  }
+
+  @Override
+  public String[] getResourceTypeList() {
+    return null;
+  }
+
+  @Override
+  public String getServiceName() {
+    return null;
+  }</span>
+}</samp></pre>
+			  </li>
+			</ol>	
+			
+			<p>This class is still missing a lots of things (like persistence, transactions, etc.), but it is enough for now.</p>
+		</div>	 
+
+   <!-- Resource -->
+		<div class="step">
+		  <h3><a name="RESOURCE"></a>Step 3: Define the service resource</h3>
+			<p>The goal of the <em>TwitterService</em> is to manage <em>Tweet</em> resources. Those resources will be defined in a <kbd>Tweet.java</kbd> file, in the package <kbd>org.qualipso.funkyfactory.service.twitter.entity</kbd>, in <em>src/main/java</em>. You will need to create this new package and this new file.</p>
+			<ol>
+			 <li>
+			    To create a new package in <em>src/main/java</em>, do a right-click on <em>src/main/java</em>, and in the contextual menu, select "New" -&gt; "Package":
+			    <a href="images/full/tut-create-package.png" rel="lightbox" title="Create a new package"><img src="images/preview/tut-create-package.png" alt="Create a new package"/></a>
+			  </li>
+			  <li>
+			    Set the name of the new package to <kbd>"org.qualipso.funkyfactory.service.twitter.entity"</kbd> and click on "Finish"
+			    <a href="images/full/tut-create-package-name.png" rel="lightbox" title="Set the name of the new package"><img src="images/preview/tut-create-package-name.png" alt="Set the name of the new package"/></a>
+			  </li>
+			  <li>
+			    To create a new file in this newly created package, do a right-click on the <em>org.qualipso.funkyfactory.service.twitter.entity</em>, and in the contextual menu, select "New" -&gt; "Class":
+			    <a href="images/full/tut-create-class.png" rel="lightbox" title="Create a new class"><img src="images/preview/tut-create-class.png" alt="Create a new class"/></a>
+			  </li>
+			  <li>
+			    Set the name of the new class to <kbd>"Tweet"</kbd>, its superclass to <kbd>"org.qualipso.factory.FactoryResource"</kbd>, and check the two checkboxes "Constructors from superclass" and "Inherited abstract methods ". Then, click on "Finish":
+			    <a href="images/full/tut-create-class-config.png" rel="lightbox" title="Set the name and superclass of the new class"><img src="images/preview/tut-create-class-config.png" alt="Set the name and superclass of the new class"/></a>
+			    You should get as a result the following code:
+<pre><samp>public class Tweet extends FactoryResource {
+  public Tweet() {
+  }
+
+  @Override
+  public FactoryResourceIdentifier getFactoryResourceIdentifier() {
+    return null;
+  }
+
+  @Override
+  public String getResourceName() {
+    return null;
+  }
+
+  @Override
+  public String getResourcePath() {
+    return null;
+  }
+}</samp></pre>
+			  </li>
+			  <li>
+			    As you can see, the newly created class has to extends the <em>FactoryResource</em> class, provided by the factory, in order for the class to be recognised by the factory as a resource:
+<pre><samp>public class Tweet <span class="new">extends FactoryResource</span></samp></pre>
+		        <em>FactoryResource</em> is an abtract class, declaring three abstract methods that needs to be implemented by all resources:
+		        <ul class="projects">
+			        <li><kbd>FactoryResourceIdentifier getFactoryResourceIdentifier()</kbd></li>
+			        <li><kbd>String getResourceName()</kbd></li>
+			        <li><kbd>String getResourcePath()</kbd></li>
+			      </ul>
+			      <p>You will see later in the tutorial the meaning of those methods. Right now, the empty version generated by Eclipse are enough:</p>
+<pre><samp>public class Tweet extends FactoryResource {
+  public Tweet() {
+  }
+  
+  <span class="new">@Override
+  public FactoryResourceIdentifier getFactoryResourceIdentifier() {
+    return null;
+  }
+
+  @Override
+  public String getResourceName() {
+    return null;
+  }
+
+  @Override
+  public String getResourcePath() {
+    return null;
+  }</span>
+}</samp></pre>
+			      <p>Again, pay attention to the <kbd>@Override</kbd> annotation that inform the Java compiler that you really mean to override the corresponding methods.</p>
+		        As <em>FactoryResource</em> is declared as <em>Serializable</em>, you will get a warning, Java asking for a default serial version ID field. Suppress the warning by adding a <kbd>@SuppressWarnings("serial")</kbd> annotation to the class:
+<pre><samp><span class="new">@SuppressWarnings("serial")</span>
+public class Tweet extends FactoryResource
+</samp></pre>
+		      </li>
+		     
+			</ol>
+			<p>Again, this class is still missing a lots of things but is enough for a basic project squeleton.</p>
+		</div>	 
+
+    <!-- Exception -->
+		<div class="step">
+		  <h3><a name="EXCEPTION"></a>Step 5: Define the service exception</h3>
+			<p>Each methods that you will define in your interface should be declared as throwing an exception, specific for your service: a <em>TwitterServiceException</em>. This class is defined in the <em>TwitterServiceException.java</em> file, in <em>src/main/java</em>.</p>
+			<ol>
+			  <li>
+			    Open the <em>TwitterServiceException.java</em> file, in <em>src/main/java</em>, and again, start by commenting everything. You will use it as reference.
+			 </li>
+			  <li>
+          Define a new Java class, called <kbd>"TwitterServiceException"</kbd>. This class should extends the <em>FactoryException</em> class, provided by the factory.
+<pre><samp><span class="new">public class TwitterServiceException extends FactoryException {
+
+}</span></samp></pre>
+			  </li>
+			  <li>
+			    As <em>FactoryException</em> is declared as <em>Serializable</em>, you will get a warning, Java asking for a default serial version ID field. Suppress the warning by adding a <kbd>@SuppressWarnings("serial")</kbd> annotation to the class:
+<pre><samp><span class="new">@SuppressWarnings("serial")</span>
+public class TwitterServiceException extends FactoryException {
+
+}</samp></pre>
+			  </li>
+			  <li>
+			    <em>FactoryException</em> declare three constructors, that overrides the equivalent constructors from the standard <em>Exception</em> class. The constructors can take one or two parameters: the exception message and the root exception that caused this exception. You need to overrides those constructors in your exception class:
+<pre><samp>@SuppressWarnings("serial")
+public class TwitterServiceException extends FactoryException {<span class="new">
+  public TwitterServiceException(String message, Exception rootCause) {
+    super(message, rootCause);
+  }
+	
+  public TwitterServiceException(String message) {
+    super(message);
+  }
+	
+  public TwitterServiceException(Exception rootCause) {
+    super(rootCause);
+  }</span>
+}</samp></pre>
+			  </li>
+			</ol>
+	    <p>This class is almost done, but you will still need to add another annotation later in the tutorial. Right now, this is enough for a basic project squeleton.</p>
+		</div>
+  
+		<div id="conclusion">
+			<p>You know have a basic service skeleton, ready to be implemented. But before launching into code writing, you need a test infrastructure, so that you can tests your code before writing it. That's the suject of the <a href="add-test.html">next part</a>.</p>
+		</div>
+	</div>
+	</div>
+	
+	<div id="footer">
+	  <div id="validation">
+      <a class="xhtml" href="http://validator.w3.org/check?uri=referer">xhtml</a>
+      <a class="css" href="http://jigsaw.w3.org/css-validator/check/referer">css</a>
+    </div>
+	</div>
+
+</body>
+</html>

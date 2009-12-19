@@ -12,7 +12,8 @@
  * Jérôme Blanchard / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
- *
+ * Christophe Bouthier / INRIA
+ * 
  */
 package org.qualipso.factory.test.entity;
 

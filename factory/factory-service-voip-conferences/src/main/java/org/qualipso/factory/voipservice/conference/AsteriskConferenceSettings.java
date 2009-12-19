@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -19,6 +20,7 @@ import javax.persistence.Query;
 import org.apache.log4j.Logger;
 import org.openmeetings.app.data.conference.Roommanagement;
 import org.openmeetings.app.hibernate.beans.rooms.Rooms;
+import org.qualipso.factory.voipservice.VoIPConferenceServiceException;
 import org.qualipso.factory.voipservice.email.QualipsoConferenceEmail;
 import org.qualipso.factory.voipservice.entity.ConferenceDetails;
 import org.qualipso.factory.voipservice.entity.MeetMe;
@@ -26,6 +28,7 @@ import org.qualipso.factory.voipservice.entity.PastConference;
 import org.qualipso.factory.voipservice.entity.SipConf;
 import org.qualipso.factory.voipservice.security.AuthenticationModule;
 import org.qualipso.factory.voipservice.utils.AsteriskConferenceUtils;
+import org.qualipso.factory.voipservice.utils.AuthData;
 
 /**
  * @author <a href="mailto:janny@man.poznan.pl">Dariusz Janny</a>
@@ -40,9 +43,11 @@ public class AsteriskConferenceSettings {
     	
 	/**
 	 * @param userId
+	 * @throws VoIPConferenceServiceException 
+	 * @throws SecurityException 
 	 */
-	public AsteriskConferenceSettings(String userId, String pass) {
-		AuthenticationModule.authenticate(userId, pass);
+	public AsteriskConferenceSettings(String userId, String pass, AuthData authData) throws SecurityException, VoIPConferenceServiceException {
+		AuthenticationModule.authenticate(userId, pass, authData);
 	}
 
 
@@ -62,7 +67,7 @@ public class AsteriskConferenceSettings {
 	 * @param recorded
 	 * @return
 	 */
-	public Integer editConference(String username, String pass,Integer confNo, String owner,short accessType,boolean permanent,String pin,String adminpin,Long startDate,Long endDate,Integer maxUsers,String name,String agenda,boolean recorded) {
+	public Integer editConference(String username, String pass,Integer confNo, String owner, short accessType,boolean permanent,String pin,String adminpin,Long startDate,Long endDate,Integer maxUsers,String name,String agenda,boolean recorded) {
 		EntityManager em=AsteriskConferenceUtils.getEntityManager();
 		em.getTransaction().begin();
 
@@ -99,6 +104,34 @@ public class AsteriskConferenceSettings {
 		r.setNumberOfPartizipants(new Long(maxUsers));
 		Roommanagement.getInstance().updateRoomObject(r);
 
+		
+		if (!permanent) {
+		    	try {
+		    	    	String calendarPath = "/projects/" + meetMe.getProject()  + "/calendar/voip/" + meetMe.getConfno();
+		    	    	
+		    	    	org.qualipso.factory.voipservice.client.ws.CalendarEvent details = new org.qualipso.factory.voipservice.client.ws.CalendarEvent();
+		    	    	details.setName(name);
+
+		    	    	details.setContactName(owner);
+		    	    	Query query = em.createQuery("FROM SipConf sc WHERE sc.username = :username");
+				query.setParameter("username", owner);
+				SipConf sipConf = (SipConf)query.getSingleResult();
+				details.setContactEmail(sipConf.getEmail());
+				details.setContactPhone("sip:" + owner);
+		    	    	
+		    	    	details.setLocation("call conference");
+		    	    	SimpleDateFormat sf1 = new SimpleDateFormat("yyyy-MM-dd");
+		    	    	SimpleDateFormat sf2 = new SimpleDateFormat("HH:mm:ss");
+		    	    	details.setDate(sf1.format((new Date(startDate* 1000))));
+		    	    	details.setStartTime(sf2.format((new Date(startDate* 1000))));
+		    	    	details.setEndTime(sf2.format((new Date(endDate* 1000))));
+		    	    	org.qualipso.factory.voipservice.client.ws.Calendar_Service  calendar = new org.qualipso.factory.voipservice.client.ws.Calendar_Service();
+		    	    	calendar.getCalendarPort().updateEvent(calendarPath, details);
+   			} catch (Exception e) {
+    			    	e.printStackTrace();
+			}
+		}
+		
 		em.getTransaction().commit();
 		em.close();
 		return confNo;
@@ -338,11 +371,11 @@ public class AsteriskConferenceSettings {
 	 * @param confNo
 	 * @return
 	 */
-	public ConferenceDetails getConferenceDetails(String userId, String pass,Integer confNo) {
+	public ConferenceDetails getConferenceDetails(String userId, String pass, Integer confNo, AuthData authData) {
 		EntityManager em = AsteriskConferenceUtils.getEntityManager();
 		em.getTransaction().begin();
 
-		new AsteriskConferences(userId, pass).cleenupConferences(em, userId);
+		new AsteriskConferences(userId, pass, authData).cleenupConferences(em, userId);
 
 		MeetMe meetMe = em.find(MeetMe.class, confNo);
 		ConferenceDetails conferenceDetails = new ConferenceDetails();
@@ -425,12 +458,12 @@ public class AsteriskConferenceSettings {
 	 * @param confNo
 	 * @return
 	 */
-	public String getRecordings(String userId, String pass,Integer confNo) {
+	public String getRecordings(String userId, String pass, Integer confNo, AuthData authData) {
 
 		EntityManager em=AsteriskConferenceUtils.getEntityManager();
 		em.getTransaction().begin();
 
-		new AsteriskConferences(userId, pass).cleenupConferences(em, userId);
+		new AsteriskConferences(userId, pass, authData).cleenupConferences(em, userId);
 
 		PastConference pastConference=em.find(PastConference.class, confNo);
 		if (pastConference == null) {

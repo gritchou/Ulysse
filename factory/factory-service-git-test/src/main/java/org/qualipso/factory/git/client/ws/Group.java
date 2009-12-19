@@ -9,12 +9,12 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for Group complex type.
+ * <p>Java class for group complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="Group">
+ * &lt;complexType name="group">
  *   &lt;complexContent>
  *     &lt;extension base="{http://org.qualipso.factory.ws/service/git}factoryResource">
  *       &lt;sequence>
@@ -32,7 +32,7 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Group", namespace = "http://org.qualipso.factory.ws/resource/group", propOrder = {
+@XmlType(name = "group", namespace = "http://org.qualipso.factory.ws/resource/group", propOrder = {
     "name",
     "description",
     "membersList"

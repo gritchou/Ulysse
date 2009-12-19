@@ -1,9 +1,6 @@
 package org.qualipso.factory.collaboration.forum;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
 
@@ -32,6 +29,8 @@ import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.browser.BrowserService;
+import org.qualipso.factory.collaboration.beans.AttachmentDetails;
+import org.qualipso.factory.collaboration.beans.ThreadMessageDetails;
 import org.qualipso.factory.collaboration.document.DocumentService;
 import org.qualipso.factory.collaboration.document.entity.Document;
 import org.qualipso.factory.collaboration.forum.entity.Forum;
@@ -50,6 +49,9 @@ import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
 
+/**
+ * The Class ForumServiceBean.
+ */
 @Stateless(name = "ForumServiceBean", mappedName = FactoryNamingConvention.SERVICE_PREFIX
 	+ ForumService.SERVICE_NAME)
 @WebService(endpointInterface = "org.qualipso.factory.collaboration.forum.ForumService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE
@@ -62,31 +64,56 @@ import org.qualipso.factory.security.pep.PEPService;
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class ForumServiceBean implements ForumService {
 
+    /** The logger. */
     private static Log logger = LogFactory.getLog(ForumServiceBean.class);
 
+    /** The binding. */
     private BindingService binding;
+    
+    /** The pep. */
     private PEPService pep;
+    
+    /** The pap. */
     private PAPService pap;
+    
+    /** The notification. */
     private NotificationService notification;
+    
+    /** The membership. */
     private MembershipService membership;
     //
+    /** The browser. */
     private BrowserService browser;
+    
+    /** The core. */
     private CoreService core;
     //
+    /** The ctx. */
     private SessionContext ctx;
+    
+    /** The em. */
     private EntityManager em;
     //
+    /** The forum ws. */
     private ForumWService forumWS;
+    
+    /** The document service. */
     private DocumentService documentService;
 
+    /**
+     * Instantiates a new forum service bean.
+     */
     public ForumServiceBean() {
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#createForum(java.lang.String, java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public String createForum(String parentPath, String name)
 	    throws ForumServiceException {
-	String newForumId = null;
+	String path = null;
 	logIt("Create forum under" + parentPath);
 	try {
 	    // Check name
@@ -100,12 +127,7 @@ public class ForumServiceBean implements ForumService {
 			"Could not get connected profile");
 	    }
 	    logIt("caller: " + caller);
-	    // FIXME
-	    // String path = forumsPath + "/" +
-	    // CollaborationUtils.normalizeForPath(name);
-	    // logIt("path:" + path);
 	    pep.checkSecurity(caller, parentPath, "create");
-
 	    // Call WS to create forum
 	    HashMap<String, String> values = forumWS.createForum(name);
 	    if (values != null && !values.isEmpty()) {
@@ -120,10 +142,10 @@ public class ForumServiceBean implements ForumService {
 				    + " Message:" + msg);
 		}
 		// Create path based on id that is returned by the Mermig WS
-		String path = PathHelper.normalize(parentPath + "/" + forumId);
+		path = PathHelper.normalize(parentPath + "/" + forumId);
 		logIt("path:" + path);
 		// Save the new entity in the factory and bind it
-		// We persist only id,path,name
+		// We persist only id,path,name and status(defaults to active)
 		Forum forum = new Forum();
 		forum.setId(forumId);
 		forum.setName(name);
@@ -154,25 +176,27 @@ public class ForumServiceBean implements ForumService {
 			Forum.RESOURCE_NAME, Event.buildEventType(
 				ForumService.SERVICE_NAME, Forum.RESOURCE_NAME,
 				"create"), ""));
-		newForumId = forumId;
 	    } else {
 		throw new ForumServiceException(
 			"No valid answer from the WS.Check logs.");
 	    }
-	    return newForumId;
 	} catch (Exception e) {
 	    // ctx.setRollbackOnly();
 	    logger.error("Unable to create the forum at path " + parentPath, e);
 	    throw new ForumServiceException(
 		    "Unable to create the forum at path " + parentPath, e);
 	}
-
+	return path;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#readForumProperties(java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
-    public Forum readForum(String path) throws ForumServiceException {
-	logIt("Read forum " + path);
+    public Forum readForumProperties(String path) throws ForumServiceException {
+	logIt("Read forum properties " + path);
+	Forum forum = null;
 	try {
 	    // Security check
 	    String caller = membership.getProfilePathForConnectedIdentifier();
@@ -189,7 +213,7 @@ public class ForumServiceBean implements ForumService {
 	    }
 	    checkResourceType(identifier, Forum.RESOURCE_NAME);
 	    // Find the entity
-	    Forum forum = em.find(Forum.class, identifier.getId());
+	    forum = em.find(Forum.class, identifier.getId());
 	    if (forum == null) {
 		throw new ForumServiceException(
 			"Unable to find a forum for id " + identifier.getId());
@@ -210,12 +234,84 @@ public class ForumServiceBean implements ForumService {
 		ForumDTO forWS = (ForumDTO) values.get("forum");
 		forum.setDate(forWS.getDate());
 		forum.setStatus(forWS.getStatus());
-		// FIXME The path is missing in the mgs list.
-		// WE NEED TO USE the browse for thread messages
-		if (forWS.getMessages() != null) {
-		    forum
-			    .setMessages(convertHashMap(path, forWS
-				    .getMessages()));
+		forum.setResourcePath(path);
+		// notify
+		notification.throwEvent(new Event(path, caller,
+			Forum.RESOURCE_NAME, Event.buildEventType(
+				ForumService.SERVICE_NAME, Forum.RESOURCE_NAME,
+				"read"), ""));
+		logIt(forum.toString());
+	    } else {
+		throw new ForumServiceException(
+			"Error in recieving extra details from WS.");
+	    }
+	} catch (Exception e) {
+	    logger.error("Unable to read the forum at path " + path, e);
+	    throw new ForumServiceException("Unable to read the forum at path "
+		    + path, e);
+	}
+	return forum;
+    }
+
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#readForum(java.lang.String)
+     */
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public Forum readForum(String path) throws ForumServiceException {
+	logIt("Read forum " + path);
+	Forum forum = null;
+	try {
+	    // Security check
+	    String caller = membership.getProfilePathForConnectedIdentifier();
+	    if (caller == null) {
+		throw new ForumServiceException(
+			"Could not get connected profile");
+	    }
+	    logIt("caller: " + caller);
+	    pep.checkSecurity(caller, path, "read");
+	    // Look up given path and check resource type
+	    FactoryResourceIdentifier identifier = binding.lookup(path);
+	    if (identifier == null) {
+		throw new ForumServiceException("Identifier is null");
+	    }
+	    checkResourceType(identifier, Forum.RESOURCE_NAME);
+	    // Find the entity
+	    forum = em.find(Forum.class, identifier.getId());
+	    if (forum == null) {
+		throw new ForumServiceException(
+			"Unable to find a forum for id " + identifier.getId());
+	    }
+	    // Call the Mermig WS to retrieve info based on forum.getId()
+	    HashMap<String, Object> values = forumWS.readForum(forum.getId());
+	    if (values != null && !values.isEmpty()) {
+		String code = (String) values.get("statusCode");
+		String msg = (String) values.get("statusMessage");
+		logIt("Message Code:" + code + " Message: " + msg);
+		if (!code.equals(CollaborationUtils.SUCCESS_CODE)
+			|| values.get("forum") == null) {
+		    throw new ForumServiceException(
+			    "Error code recieved from the WS." + " Code" + code
+				    + " Message:" + msg);
+		}
+		// We don't perist the date,status and messages
+		ForumDTO forWS = (ForumDTO) values.get("forum");
+		forum.setDate(forWS.getDate());
+		forum.setStatus(forWS.getStatus());
+		// Get messages
+		String servicePattern = ForumService.SERVICE_NAME;
+		String typePattern = ThreadMessage.RESOURCE_NAME;
+		String[] threadsArray = browser.listChildrenOfType(path,
+			servicePattern, typePattern);
+		if (threadsArray != null && threadsArray.length > 0) {
+		    ThreadMessage[] listofThreads = new ThreadMessage[threadsArray.length];
+		    for (int i = 0; i < threadsArray.length; i++) {
+			logIt("child #" + i + ". " + threadsArray[i]);
+			// Get properties only
+			listofThreads[i] = readThreadMessageProperties(threadsArray[i]);
+			logIt(listofThreads[i].toString());
+		    }
+		    forum.setMessages(listofThreads);
 		}
 		forum.setResourcePath(path);
 		// notify
@@ -228,18 +324,33 @@ public class ForumServiceBean implements ForumService {
 		throw new ForumServiceException(
 			"Error in recieving extra details from WS.");
 	    }
-	    return forum;
 	} catch (Exception e) {
 	    logger.error("Unable to read the forum at path " + path, e);
 	    throw new ForumServiceException("Unable to read the forum at path "
 		    + path, e);
 	}
+	return forum;
     }
 
+    
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#updateForum(java.lang.String, java.lang.String, java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void updateForum(String path, String name, String date)
 	    throws ForumServiceException {
+	
+	updateForumWithAttachments(path, name, date, null);
+    }
+
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#updateForumWithAttachments(java.lang.String, java.lang.String, java.lang.String, java.lang.String[])
+     */
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void updateForumWithAttachments(String path, String name, String date,
+	    String[] documentPaths) throws ForumServiceException {
 	logger.debug("Update forum " + path);
 	try {
 	    // Check name
@@ -263,8 +374,31 @@ public class ForumServiceBean implements ForumService {
 		throw new ForumServiceException(
 			"Unable to find a forum for id " + identifier.getId());
 	    }
+	    String[] documentIds = null;
+	    AttachmentDetails[] attArray = null;
+	    if (documentPaths != null && documentPaths.length > 0) {
+		documentIds = new String[documentPaths.length];
+		attArray = new AttachmentDetails[documentPaths.length];
+		for (int i = 0; i < documentPaths.length; i++) {
+		    // Get the document
+		    Document doc = documentService.readDocumentProperties(documentPaths[i]);
+		    if (doc != null) {
+			documentIds[i] = doc.getId();
+			AttachmentDetails attachment = new AttachmentDetails();
+			attachment.setId(doc.getId());
+			attachment.setName(doc.getName());
+			attachment.setPath(documentPaths[i]);
+			attachment.setResourceId(doc.getResourceId());
+			attArray[i] = attachment;
+		    } else {
+			throw new ForumServiceException(
+				"Cannot read document from given path "
+					+ documentPaths[i]);
+		    }
+		}
+	    }
 	    HashMap<String, String> values = forumWS.updateForum(forum.getId(),
-		    name, date);
+		    name, date, documentIds);
 	    if (values != null && !values.isEmpty()) {
 		String code = (String) values.get("statusCode");
 		String msg = (String) values.get("statusMessage");
@@ -278,6 +412,7 @@ public class ForumServiceBean implements ForumService {
 		forum.setName(name);
 		forum.setDate(date);
 		forum.setResourcePath(path);
+		forum.setAttachments(attArray);
 		em.merge(forum);
 		binding.setProperty(path,
 			FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System
@@ -302,6 +437,9 @@ public class ForumServiceBean implements ForumService {
 
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#deleteForum(java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void deleteForum(String path) throws ForumServiceException {
@@ -366,6 +504,9 @@ public class ForumServiceBean implements ForumService {
 
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#changeForumStatus(java.lang.String)
+     */
     @Override
     public void changeForumStatus(String path) throws ForumServiceException {
 	logger.debug("Change forum status " + path);
@@ -431,18 +572,30 @@ public class ForumServiceBean implements ForumService {
 
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#createThreadMessage(java.lang.String, org.qualipso.factory.collaboration.beans.ThreadMessageDetails)
+     */
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public String createThreadMessage(String parentPath, String name,
-	    String forumId, String messageBody, String datePosted,
-	    String isReply) throws ForumServiceException {
+    public String createThreadMessage(String parentPath,
+	    ThreadMessageDetails message) throws ForumServiceException {
+	return createThreadMessageWithAttachments(parentPath, message, null);
+    }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#createThreadMessageWithAttachments(java.lang.String, org.qualipso.factory.collaboration.beans.ThreadMessageDetails, java.lang.String[])
+     */
+    @Override
+    public String createThreadMessageWithAttachments(String parentPath,
+	    ThreadMessageDetails message, String[] documentPaths)
+	    throws ForumServiceException {
+	String path = null;
 	logIt("createThreadMessage(...) called");
-	logger.debug("params : path=" + parentPath + " isReply: " + isReply);
-	String newMsgId = null;
+	logger.debug("params : path=" + parentPath + " isReply: "
+		+ message.getIsReply());
 	try {
 	    // check supplied values
-	    checkThreadValues(name, forumId, messageBody, datePosted);
+	    checkThreadValues(message.getName(), message.getForumId(), message
+		    .getMessageBody(), message.getDatePosted());
 	    // Security check
 	    String caller = membership.getProfilePathForConnectedIdentifier();
 	    if (caller == null) {
@@ -450,30 +603,59 @@ public class ForumServiceBean implements ForumService {
 			"Could not get connected profile");
 	    }
 	    logIt("caller: " + caller);
-	    // String parentPath = PathHelper.getParentPath(path);
 	    pep.checkSecurity(caller, parentPath, "create");
 	    //
 	    String parentId = "";
-	    boolean isReplyBoolean = Boolean.valueOf(isReply);
-	    logIt("Is Reply: " + isReplyBoolean);
-	    if (isReplyBoolean) {
+	    if (message.getIsReply()) {
 		try {
 		    // Check if parent is thread
-		    ThreadMessage parentMsg = readThreadMessage(parentPath);
+		    ThreadMessage parentMsg = readThreadMessageProperties(message
+			    .getName());
 		    parentId = parentMsg.getId();
 		    logIt("Succefully read parent thread. Id: " + parentId);
 		} catch (Exception e) {
 		    throw new ForumServiceException(
 			    "Path is not valid for replying to a thread.Please check "
-				    + parentPath);
+				    + path);
+		}
+	    }
+
+	    MessageDTO messageDTO = new MessageDTO();
+	    messageDTO.setForumId(message.getForumId());
+	    messageDTO.setParentId(parentId);
+	    messageDTO.setName(message.getName());
+	    messageDTO.setMessageBody(message.getMessageBody());
+	    messageDTO.setReply(message.getIsReply());
+	    String[] documentIds = null;
+	    AttachmentDetails[] attdetArray = null;
+	    if (documentPaths != null && documentPaths.length > 0) {
+		// Get id for document Paths
+		documentIds = new String[documentPaths.length];
+		attdetArray = new AttachmentDetails[documentPaths.length];
+		for (int i = 0; i < documentPaths.length; i++) {
+
+		    // Get the document
+		    Document doc = documentService
+			    .readDocumentProperties(documentPaths[i]);
+		    if (doc != null) {
+			documentIds[i] = doc.getId();
+			AttachmentDetails attachment = new AttachmentDetails();
+			attachment.setId(doc.getId());
+			attachment.setName(doc.getName());
+			attachment.setPath(documentPaths[i]);
+			attachment.setResourceId(doc.getResourceId());
+			attdetArray[i] = attachment;
+		    } else {
+			throw new ForumServiceException(
+				"Cannot read document from given path "
+					+ documentPaths);
+		    }
 		}
 	    }
 	    // Call Mermig WS
 	    HashMap<String, String> values = forumWS.createThreadMessage(
-		    forumId, parentId, name, messageBody, isReplyBoolean);
-	    //
-	    if (values != null && !values.isEmpty()
-		    && values.get("messageId") != null) {
+		    messageDTO, documentIds);
+	    if (values != null && !values.isEmpty()) {
 		String code = (String) values.get("statusCode");
 		String msg = (String) values.get("statusMessage");
 		logIt("Message Code:" + code + " Message: " + msg);
@@ -486,118 +668,14 @@ public class ForumServiceBean implements ForumService {
 		String newId = (String) values.get("messageId");
 		// Create path based on parent path and the id that is returned
 		// by the Mermig WS
-		String path = PathHelper.normalize(parentPath + "/" + newId);
-		ThreadMessage tm = new ThreadMessage();
-		tm.setId(newId);
-		tm.setResourcePath(path);
-		tm.setName(name);
-		tm.setParentId(parentId);
-		tm.setForumId(forumId);
-		// FIXME we need author not profile path.
-		tm.setAuthor(caller);
-		em.persist(tm);
-		// Bind the entity with the path and the identifier
-		logIt("Bind the " + tm.getFactoryResourceIdentifier() + " to "
-			+ path);
-		binding.bind(tm.getFactoryResourceIdentifier(), path);
-		binding.setProperty(path,
-			FactoryResourceProperty.CREATION_TIMESTAMP, ""
-				+ System.currentTimeMillis());
-		binding.setProperty(path,
-			FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, ""
-				+ System.currentTimeMillis());
-		binding.setProperty(path, FactoryResourceProperty.AUTHOR,
-			caller);
-		// Create policy (owner)
-		String policyId = UUID.randomUUID().toString();
-		pap.createPolicy(policyId, PAPServiceHelper.buildOwnerPolicy(
-			policyId, caller, path));
-		binding
-			.setProperty(path, FactoryResourceProperty.OWNER,
-				caller);
-		binding.setProperty(path, FactoryResourceProperty.POLICY_ID,
-			policyId);
-		// notify
-		notification.throwEvent(new Event(path, caller,
-			ThreadMessage.RESOURCE_NAME, Event.buildEventType(
-				ForumService.SERVICE_NAME,
-				ThreadMessage.RESOURCE_NAME, "create"), ""));
-		//
-		newMsgId = tm.getId();
-		logIt(tm.toString());
-	    } else {
-		throw new ForumServiceException(
-			"No valid answer from the WS.Check logs.");
-	    }
-	    return newMsgId;
-	} catch (Exception e) {
-	    // ctx.setRollbackOnly();
-	    logger.error("Unable to create the thread message at path "
-		    + parentPath, e);
-	    throw new ForumServiceException(
-		    "Unable to create the thread message at path " + parentPath,
-		    e);
-	}
-    }
-
-    @Override
-    public String createMessage(String path, ThreadMessage message,
-	    String isReply) throws ForumServiceException {
-
-	logIt("createThreadMessage(...) called");
-	logger.debug("params : path=" + path + " isReply: " + message);
-	String newMsgId = null;
-	try {
-	    // check supplied values
-	    checkThreadValues(message.getName(), message.getForumId(), message
-		    .getMessageBody(), message.getDatePosted());
-	    // Security check
-	    String caller = membership.getProfilePathForConnectedIdentifier();
-	    if (caller == null) {
-		throw new ForumServiceException(
-			"Could not get connected profile");
-	    }
-	    logIt("caller: " + caller);
-	    String parentPath = PathHelper.getParentPath(path);
-	    pep.checkSecurity(caller, parentPath, "create");
-	    //
-	    String parentId = "";
-	    boolean isReplyBoolean = Boolean.valueOf(isReply);
-	    logIt("Is Reply: " + isReplyBoolean);
-	    if (isReplyBoolean) {
-		try {
-		    // Check if parent is thread
-		    ThreadMessage parentMsg = readThreadMessage(parentPath);
-		    parentId = parentMsg.getId();
-		    logIt("Succefully read parent thread. Id: " + parentId);
-		} catch (Exception e) {
-		    throw new ForumServiceException(
-			    "Path is not valid for replying to a thread.Please check "
-				    + path);
-		}
-	    }
-	    // Call Mermig WS
-	    HashMap<String, String> values = forumWS.createThreadMessage(
-		    message.getForumId(), parentId, message.getName(), message
-			    .getMessageBody(), isReplyBoolean);
-	    //
-	    if (values != null && !values.isEmpty()) {
-		String code = (String) values.get("statusCode");
-		String msg = (String) values.get("statusMessage");
-		logIt("Message Code:" + code + " Message: " + msg);
-		if (!code.equals(CollaborationUtils.SUCCESS_CODE)) {
-		    throw new ForumServiceException(
-			    "Error code recieved from the WS." + " Code" + code
-				    + " Message:" + msg);
-		}
-		// We persist only id,path,name,parentId,forumId and author
-		String newId = (String) values.get("messageId");
+		path = PathHelper.normalize(parentPath + "/" + newId);
 		ThreadMessage tm = new ThreadMessage();
 		tm.setId(newId);
 		tm.setResourcePath(path);
 		tm.setName(message.getName());
 		tm.setParentId(parentId);
 		tm.setForumId(message.getForumId());
+		tm.setAttachments(attdetArray);
 		// FIXME we need author not profile path.
 		tm.setAuthor(caller);
 		em.persist(tm);
@@ -628,22 +706,25 @@ public class ForumServiceBean implements ForumService {
 				ForumService.SERVICE_NAME,
 				ThreadMessage.RESOURCE_NAME, "create"), ""));
 		//
-		newMsgId = tm.getId();
 		logIt(tm.toString());
 	    } else {
 		throw new ForumServiceException(
 			"No valid answer from the WS.Check logs.");
 	    }
-	    return newMsgId;
 	} catch (Exception e) {
 	    // ctx.setRollbackOnly();
-	    logger.error("Unable to create the thread message at path " + path,
-		    e);
+	    logger.error("Unable to create the thread message under "
+		    + parentPath, e);
 	    throw new ForumServiceException(
-		    "Unable to create the thread message at path " + path, e);
+		    "Unable to create the thread message under " + parentPath,
+		    e);
 	}
+	return path;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#readThreadMessage(java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public ThreadMessage readThreadMessage(String path)
@@ -683,8 +764,6 @@ public class ForumServiceBean implements ForumService {
 			    "Error code recieved from the WS." + " Code" + code
 				    + " Message:" + msgTxt);
 		}
-		// FIXME The path is missing in the replies list....Use Browser
-		// method
 		MessageDTO msgWS = (MessageDTO) values.get("ThreadMessage");
 		if (msgWS != null) {
 		    // We don't persist the following
@@ -692,10 +771,19 @@ public class ForumServiceBean implements ForumService {
 		    // so we retrieve values from WS
 		    msg.setMessageBody(msgWS.getMessageBody());
 		    msg.setDatePosted(msgWS.getDatePosted());
-		    msg.setNumReplies(msgWS.getNumReplies());
-		    if (msgWS.getMessageReplies() != null) {
-			msg.setMessageReplies(convertHashMap(path, msgWS
-				.getMessageReplies()));
+		    // Get children threads
+		    String servicePattern = ForumService.SERVICE_NAME;
+		    String typePattern = ThreadMessage.RESOURCE_NAME;
+		    String[] threadsArray = browser.listChildrenOfType(path,
+			    servicePattern, typePattern);
+		    if (threadsArray != null && threadsArray.length > 0) {
+			ThreadMessage[] listofThreads = new ThreadMessage[threadsArray.length];
+			for (int i = 0; i < threadsArray.length; i++) {
+			    logIt("child #" + i + ". " + threadsArray[i]);
+			    listofThreads[i] = readThreadMessage(threadsArray[i]);
+			    logIt(listofThreads[i].toString());
+			}
+			msg.setMessages(listofThreads);
 		    }
 		    // notify
 		    notification.throwEvent(new Event(path, caller,
@@ -718,6 +806,79 @@ public class ForumServiceBean implements ForumService {
 	}
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#readThreadMessageProperties(java.lang.String)
+     */
+    @Override
+    public ThreadMessage readThreadMessageProperties(String path)
+	    throws ForumServiceException {
+	logIt("readThreadMessageProperties(...) called");
+	logger.debug("params : path=" + path);
+	ThreadMessage msg = null;
+	try {
+	    // Security check
+	    String caller = membership.getProfilePathForConnectedIdentifier();
+	    if (caller == null) {
+		throw new ForumServiceException(
+			"Could not get connected profile");
+	    }
+	    logIt("caller: " + caller);
+	    pep.checkSecurity(caller, path, "read");
+	    // Look up given path and check resource type
+	    FactoryResourceIdentifier identifier = binding.lookup(path);
+	    checkResourceType(identifier, ThreadMessage.RESOURCE_NAME);
+	    // sFind the entity
+	    msg = em.find(ThreadMessage.class, identifier.getId());
+	    if (msg == null) {
+		throw new ForumServiceException(
+			"Unable to find a message for id " + identifier.getId());
+	    }
+	    // Call the WS to retrieve values that are not stored in
+	    // factory
+	    HashMap<String, Object> values = forumWS.readThreadMessage(msg
+		    .getForumId(), msg.getId());
+	    if (values != null && !values.isEmpty()) {
+		String code = (String) values.get("statusCode");
+		String msgTxt = (String) values.get("statusMessage");
+		logIt("Message Code:" + code + " Message: " + msgTxt);
+		if (!code.equals(CollaborationUtils.SUCCESS_CODE)
+			|| values.get("ThreadMessage") == null) {
+		    throw new ForumServiceException(
+			    "Error code recieved from the WS." + " Code" + code
+				    + " Message:" + msgTxt);
+		}
+		// method
+		MessageDTO msgWS = (MessageDTO) values.get("ThreadMessage");
+		if (msgWS != null) {
+		    // We don't persist the following
+		    // (messageBody,datePosted,numReplies,messageReplies)
+		    // so we retrieve values from WS
+		    msg.setMessageBody(msgWS.getMessageBody());
+		    msg.setDatePosted(msgWS.getDatePosted());
+		    // notify
+		    notification.throwEvent(new Event(path, caller,
+			    ThreadMessage.RESOURCE_NAME, Event.buildEventType(
+				    ForumService.SERVICE_NAME,
+				    ThreadMessage.RESOURCE_NAME, "read"), ""));
+		    logIt(msg.toString());
+		} else {
+		    throw new ForumServiceException("Error in WS response.");
+		}
+	    } else {
+		throw new ForumServiceException(
+			"Error in recieving extra details from WS.");
+	    }
+	    return msg;
+	} catch (Exception e) {
+	    logger.error("unable to read the message at path " + path, e);
+	    throw new ForumServiceException(
+		    "unable to read the message properties at path " + path, e);
+	}
+    }
+
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#deleteThreadMessage(java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void deleteThreadMessage(String path) throws ForumServiceException {
@@ -785,6 +946,9 @@ public class ForumServiceBean implements ForumService {
 	}
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#getForums(java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public Forum[] getForums(String path) throws ForumServiceException {
@@ -801,13 +965,7 @@ public class ForumServiceBean implements ForumService {
 	    pep.checkSecurity(caller, path, "read");
 	    // Check if given path is valid
 	    FactoryResourceIdentifier identifier = binding.lookup(path);
-	    // FIXME change restriction of parent. Forum should be created under
-	    // any path
-	    if (identifier != null
-		    && (identifier.getService().equals(SERVICE_NAME)
-			    || identifier.getService().equals(
-				    CoreService.SERVICE_NAME) || identifier
-			    .getService().equals(DocumentService.SERVICE_NAME))) {
+	    if (identifier != null) {
 		String servicePattern = ForumService.SERVICE_NAME;
 		String typePattern = Forum.RESOURCE_NAME;
 		String[] forumChildren = browser.listChildrenOfType(path,
@@ -818,7 +976,7 @@ public class ForumServiceBean implements ForumService {
 		    items = new Forum[forumChildren.length];
 		    for (int i = 0; i < forumChildren.length; i++) {
 			logIt("child #" + i + ". " + forumChildren[i]);
-			items[i] = readForum(forumChildren[i]);
+			items[i] = readForumProperties(forumChildren[i]);
 			logIt(items[i].toString());
 		    }
 		}
@@ -834,6 +992,9 @@ public class ForumServiceBean implements ForumService {
 	return items;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#getForumsByStatus(java.lang.String, java.lang.String)
+     */
     @Override
     public Forum[] getForumsByStatus(String path, String status)
 	    throws ForumServiceException {
@@ -850,13 +1011,7 @@ public class ForumServiceBean implements ForumService {
 	    pep.checkSecurity(caller, path, "read");
 	    // Check if given path is valid
 	    FactoryResourceIdentifier identifier = binding.lookup(path);
-	    // FIXME change restriction of parent. Forum should be created under
-	    // any path
-	    if (identifier != null
-		    && (identifier.getService().equals(SERVICE_NAME)
-			    || identifier.getService().equals(
-				    CoreService.SERVICE_NAME) || identifier
-			    .getService().equals(DocumentService.SERVICE_NAME))) {
+	    if (identifier != null) {
 		String servicePattern = ForumService.SERVICE_NAME;
 		String typePattern = Forum.RESOURCE_NAME;
 		String[] forumChildren = browser.listChildrenOfType(path,
@@ -867,7 +1022,7 @@ public class ForumServiceBean implements ForumService {
 		    Vector<Forum> forumsVector = new Vector<Forum>();
 		    for (int i = 0; i < forumChildren.length; i++) {
 			logIt("child #" + i + ". " + forumChildren[i]);
-			Forum tmpForum = readForum(forumChildren[i]);
+			Forum tmpForum = readForumProperties(forumChildren[i]);
 			if (tmpForum != null
 				&& tmpForum.getStatus().equals(status)) {
 			    forumsVector.add(tmpForum);
@@ -890,6 +1045,9 @@ public class ForumServiceBean implements ForumService {
 	return items;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#getForumMessages(java.lang.String)
+     */
     @Override
     public ThreadMessage[] getForumMessages(String path)
 	    throws ForumServiceException {
@@ -917,7 +1075,7 @@ public class ForumServiceBean implements ForumService {
 		listofThreads = new ThreadMessage[threadsArray.length];
 		for (int i = 0; i < threadsArray.length; i++) {
 		    logIt("child #" + i + ". " + threadsArray[i]);
-		    listofThreads[i] = readThreadMessage(threadsArray[i]);
+		    listofThreads[i] = readThreadMessageProperties(threadsArray[i]);
 		    logIt(listofThreads[i].toString());
 		}
 	    }
@@ -933,6 +1091,9 @@ public class ForumServiceBean implements ForumService {
 	return listofThreads;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#getThreadReplies(java.lang.String)
+     */
     @Override
     public ThreadMessage[] getThreadReplies(String path)
 	    throws ForumServiceException {
@@ -977,6 +1138,16 @@ public class ForumServiceBean implements ForumService {
 	return listofThreads;
     }
 
+    /**
+     * Gets the children.
+     * 
+     * @param threadsVector the threads vector
+     * @param path the path
+     * 
+     * @return the children
+     * 
+     * @throws Exception the exception
+     */
     private Vector<ThreadMessage> getChildren(
 	    Vector<ThreadMessage> threadsVector, String path) throws Exception {
 	String servicePattern = ForumService.SERVICE_NAME;
@@ -993,23 +1164,36 @@ public class ForumServiceBean implements ForumService {
 	}
 	return threadsVector;
     }
-
+    
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.collaboration.forum.ForumService#attachDocumentsToForum(java.lang.String, java.lang.String[])
+     */
     @Override
-    public void attachDocumentToForum(String path, String documentPath)
+    public void attachDocumentsToForum(String path, String[] documentPaths)
 	    throws ForumServiceException {
-	logIt("attach document " + documentPath + " at " + path);
+	logIt("attach documents at " + path);
 	try {
 	    // Get forum
-	    Forum forum = readForum(path);
+	    Forum forum = readForumProperties(path);
 	    if (forum != null) {
-		// Get the document
-		Document doc = documentService.readDocument(documentPath);
-		if (doc != null) {
-		    List<String> documents = new ArrayList<String>();
-		    documents.add(doc.getId());
+		if (documentPaths != null && documentPaths.length > 0) {
+		    String[] documentIds = new String[documentPaths.length];
+		    for (int i = 0; i < documentPaths.length; i++) {
+
+			// Get the document
+			Document doc = documentService
+				.readDocumentProperties(documentPaths[i]);
+			if (doc != null) {
+			    documentIds[i] = doc.getId();
+			} else {
+			    throw new ForumServiceException(
+				    "Cannot read document from given path "
+					    + documentPaths[i]);
+			}
+		    }
 		    // Update the forum
 		    HashMap<String, String> values = forumWS
-			    .attachDocumentsToForum(forum.getId(), documents);
+			    .attachDocumentsToForum(forum.getId(), documentIds);
 		    if (values != null && !values.isEmpty()) {
 			String code = (String) values.get("statusCode");
 			String msgTxt = (String) values.get("statusMessage");
@@ -1020,16 +1204,14 @@ public class ForumServiceBean implements ForumService {
 					    + " Code" + code + " Message:"
 					    + msgTxt);
 			}
-			logIt("Attached succesfully document " + doc.getName()
-				+ " to forum " + forum.getName());
+			logIt("Attached succesfully " + documentIds.length
+				+ " document(s) to forum " + forum.getName());
 		    } else {
 			throw new ForumServiceException(
 				"No valid answer from the WS.Check logs.");
 		    }
 		} else {
-		    throw new ForumServiceException(
-			    "Cannot read document from given path "
-				    + documentPath);
+		    throw new ForumServiceException("Nothing to attach.");
 		}
 	    } else {
 		throw new ForumServiceException(
@@ -1044,204 +1226,231 @@ public class ForumServiceBean implements ForumService {
 	}
     }
 
-    // @Override
-    // public void attachDocumentToThread(String path, String documentPath)
-    // throws ForumServiceException
-    // {
-    //
-    //	
-    // }
-
-    @Override
-    public Document[] getForumAttachments(String path)
-	    throws ForumServiceException {
-	logIt("get attached documents " + path);
-	Document[] listDoc = null;
-	try {
-	    String caller = membership.getProfilePathForConnectedIdentifier();
-	    if (caller == null) {
-		throw new ForumServiceException(
-			"Could not get connected profile");
-	    }
-	    logIt("caller: " + caller);
-	    pep.checkSecurity(caller, path, "read");
-	    // Check if given path is valid Forum
-	    FactoryResourceIdentifier identifier = binding.lookup(path);
-	    checkResourceType(identifier, Forum.RESOURCE_NAME);
-	    // Get attachments
-	    listDoc = getAttachments(path);
-	} catch (Exception e) {
-	    // ctx.setRollbackOnly();
-	    logger.error(
-		    "Unable to retrieve attached documents for the forum at path "
-			    + path, e);
-	    throw new ForumServiceException(
-		    "Unable to retrieve documents for the forum at path "
-			    + path, e);
-	}
-	return listDoc;
-    }
-
-    @Override
-    public Document[] getThreadAttachments(String path)
-	    throws ForumServiceException {
-	logIt("get attached documents " + path);
-	Document[] listDoc = null;
-	try {
-	    String caller = membership.getProfilePathForConnectedIdentifier();
-	    if (caller == null) {
-		throw new ForumServiceException(
-			"Could not get connected profile");
-	    }
-	    logIt("caller: " + caller);
-	    pep.checkSecurity(caller, path, "read");
-	    // Check if given path is valid ThreadMessage
-	    FactoryResourceIdentifier identifier = binding.lookup(path);
-	    checkResourceType(identifier, ThreadMessage.RESOURCE_NAME);
-	    // Get attachments
-	    listDoc = getAttachments(path);
-	} catch (Exception e) {
-	    // ctx.setRollbackOnly();
-	    logger.error(
-		    "Unable to retrieve attached documents for the thread message at path "
-			    + path, e);
-	    throw new ForumServiceException(
-		    "Unable to retrieve documents for the thread message at path "
-			    + path, e);
-	}
-	return listDoc;
-    }
-
-    private Document[] getAttachments(String path) throws Exception {
-	Document[] listDoc = null;
-	String servicePattern = DocumentService.SERVICE_NAME;
-	String typePattern = Document.RESOURCE_NAME;
-	String[] docsArray = browser.listChildrenOfType(path, servicePattern,
-		typePattern);
-	if (docsArray != null && docsArray.length > 0) {
-	    Vector<Document> docVector = new Vector<Document>();
-
-	    for (int i = 0; i < docsArray.length; i++) {
-
-		logIt("child #" + i + ". " + docsArray[i]);
-		Document doc = documentService
-			.readDocumentProperties(docsArray[i]);
-		if (doc != null) {
-		    docVector.add(doc);
-		}
-	    }
-	    listDoc = docVector.toArray(new Document[docVector.size()]);
-	}
-	return listDoc;
-    }
-
+    /**
+     * Sets the entity manager.
+     * 
+     * @param em the new entity manager
+     */
     @PersistenceContext(unitName = "ForumServiceBean")
     public void setEntityManager(EntityManager em) {
 	this.em = em;
     }
 
+    /**
+     * Gets the entity manager.
+     * 
+     * @return the entity manager
+     */
     public EntityManager getEntityManager() {
 	return this.em;
     }
 
+    /**
+     * Sets the session context.
+     * 
+     * @param ctx the new session context
+     */
     @Resource
     public void setSessionContext(SessionContext ctx) {
 	this.ctx = ctx;
     }
 
+    /**
+     * Gets the session context.
+     * 
+     * @return the session context
+     */
     public SessionContext getSessionContext() {
 	return this.ctx;
     }
 
     // @EJB(name = "BindingService")
+    /**
+     * Sets the binding service.
+     * 
+     * @param binding the new binding service
+     */
     @EJB
     public void setBindingService(BindingService binding) {
 	this.binding = binding;
     }
 
+    /**
+     * Gets the binding service.
+     * 
+     * @return the binding service
+     */
     public BindingService getBindingService() {
 	return this.binding;
     }
 
     // @EJB(name = "PEPService")
+    /**
+     * Sets the pEP service.
+     * 
+     * @param pep the new pEP service
+     */
     @EJB
     public void setPEPService(PEPService pep) {
 	this.pep = pep;
     }
 
+    /**
+     * Gets the pEP service.
+     * 
+     * @return the pEP service
+     */
     public PEPService getPEPService() {
 	return this.pep;
     }
 
     // @EJB(name = "PAPService")
+    /**
+     * Sets the pAP service.
+     * 
+     * @param pap the new pAP service
+     */
     @EJB
     public void setPAPService(PAPService pap) {
 	this.pap = pap;
     }
 
+    /**
+     * Gets the pAP service.
+     * 
+     * @return the pAP service
+     */
     public PAPService getPAPService() {
 	return this.pap;
     }
 
     // @EJB(name = "NotificationService")
+    /**
+     * Sets the notification service.
+     * 
+     * @param notification the new notification service
+     */
     @EJB
     public void setNotificationService(NotificationService notification) {
 	this.notification = notification;
     }
 
+    /**
+     * Gets the notification service.
+     * 
+     * @return the notification service
+     */
     public NotificationService getNotificationService() {
 	return this.notification;
     }
 
     // @EJB(name = "MembershipService")
+    /**
+     * Sets the membership service.
+     * 
+     * @param membership the new membership service
+     */
     @EJB
     public void setMembershipService(MembershipService membership) {
 	this.membership = membership;
     }
 
+    /**
+     * Gets the membership service.
+     * 
+     * @return the membership service
+     */
     public MembershipService getMembershipService() {
 	return this.membership;
     }
 
+    /**
+     * Gets the browser.
+     * 
+     * @return the browser
+     */
     public BrowserService getBrowser() {
 	return browser;
     }
 
     // @EJB(name = "BrowserService")
+    /**
+     * Sets the browser.
+     * 
+     * @param browser the new browser
+     */
     @EJB
     public void setBrowser(BrowserService browser) {
 	this.browser = browser;
     }
 
+    /**
+     * Gets the core.
+     * 
+     * @return the core
+     */
     public CoreService getCore() {
 	return core;
     }
 
     // @EJB(name = "CoreService")
+    /**
+     * Sets the core.
+     * 
+     * @param core the new core
+     */
     @EJB
     public void setCore(CoreService core) {
 	this.core = core;
     }
 
+    /**
+     * Gets the forum ws.
+     * 
+     * @return the forum ws
+     */
     public ForumWService getForumWS() {
 	return forumWS;
     }
 
+    /**
+     * Sets the forum ws.
+     * 
+     * @param forumWS the new forum ws
+     */
     @EJB(name = "ForumWService")
     public void setForumWS(ForumWService forumWS) {
 	this.forumWS = forumWS;
     }
 
+    /**
+     * Gets the document service.
+     * 
+     * @return the document service
+     */
     public DocumentService getDocumentService() {
 	return documentService;
     }
 
     // @EJB(name = "DocumentService")
+    /**
+     * Sets the document service.
+     * 
+     * @param documentService the new document service
+     */
     @EJB
     public void setDocumentService(DocumentService documentService) {
 	this.documentService = documentService;
     }
 
+    /**
+     * Check resource type.
+     * 
+     * @param identifier the identifier
+     * @param resourceType the resource type
+     * 
+     * @throws MembershipServiceException the membership service exception
+     */
     private void checkResourceType(FactoryResourceIdentifier identifier,
 	    String resourceType) throws MembershipServiceException {
 	if (!identifier.getService().equals(getServiceName())) {
@@ -1256,16 +1465,25 @@ public class ForumServiceBean implements ForumService {
 	}
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.FactoryService#getResourceTypeList()
+     */
     @Override
     public String[] getResourceTypeList() {
 	return RESOURCE_TYPE_LIST;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.FactoryService#getServiceName()
+     */
     @Override
     public String getServiceName() {
 	return SERVICE_NAME;
     }
 
+    /* (non-Javadoc)
+     * @see org.qualipso.factory.FactoryService#findResource(java.lang.String)
+     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public FactoryResource findResource(String path) throws FactoryException {
@@ -1296,6 +1514,16 @@ public class ForumServiceBean implements ForumService {
 	}
     }
 
+    /**
+     * Check thread values.
+     * 
+     * @param name the name
+     * @param forumId the forum id
+     * @param messageBody the message body
+     * @param datePosted the date posted
+     * 
+     * @throws ForumServiceException the forum service exception
+     */
     private void checkThreadValues(String name, String forumId,
 	    String messageBody, String datePosted) throws ForumServiceException {
 	if (name == null || name == "") {
@@ -1313,43 +1541,11 @@ public class ForumServiceBean implements ForumService {
 
     }
 
-    private HashMap<String, ThreadMessage> convertHashMap(String path,
-	    HashMap<String, MessageDTO> msgs) {
-	HashMap<String, ThreadMessage> msgsMap = null;
-	if (msgs != null) {
-	    msgsMap = new HashMap<String, ThreadMessage>();
-	    Iterator it = msgs.keySet().iterator();
-	    while (it.hasNext()) {
-		String key = (String) it.next();
-		MessageDTO val = (MessageDTO) msgs.get(key);
-		ThreadMessage msg = convertDTO(val);
-		// FIXME we will not this after browser.list is fixed.
-		String msgPath = path + "/"
-			+ CollaborationUtils.normalizeForPath(msg.getName());
-		msg.setResourcePath(msgPath);
-		msgsMap.put(key, msg);
-	    }
-
-	}
-	return msgsMap;
-    }
-
-    private ThreadMessage convertDTO(MessageDTO msgDTO) {
-	ThreadMessage msg = null;
-	if (msgDTO != null) {
-	    msg = new ThreadMessage();
-	    msg.setAuthor(msgDTO.getAuthor());
-	    msg.setDatePosted(msgDTO.getDatePosted());
-	    msg.setForumId(msgDTO.getForumId());
-	    msg.setId(msgDTO.getId());
-	    msg.setMessageBody(msgDTO.getMessageBody());
-	    msg.setName(msgDTO.getName());
-	    msg.setNumReplies(msgDTO.getNumReplies());
-	    msg.setParentId(msgDTO.getParentId());
-	}
-	return msg;
-    }
-
+    /**
+     * Log it.
+     * 
+     * @param message the message
+     */
     private void logIt(String message) {
 	if (logger.isInfoEnabled()) {
 	    logger.info(message);

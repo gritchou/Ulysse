@@ -1,0 +1,87 @@
+<!--
+ -	QualiPSo
+ -	http://www.qualipso.org/
+ -
+ -	Programming Language: HTML
+ -
+ -	File: CreateList.html
+ - 	Author: Maria Alejandra Trujillo Valencia
+ -	E-Mail: alejandra.trujillo@atosorigin.com
+ -	Creation date: 01-06-2009
+ -	Last modification: 04-06-2009 by Maria Alejandra Trujillo Valencia
+ -
+-->
+<html>
+	<head>
+		<title>Create List</title>
+		<script>
+			var hostname = "mailman.vulcano.morfeo-project.org";
+			var version = "v1.1";
+			var url_head = "http://vulcano.morfeo-project.org/mailman/";
+			
+			function createList()
+			{
+				var listname = document.formulario.listname.value;
+				var owner = document.formulario.owner.value;
+				var autogen = document.formulario.autogen.value;
+				var moderate = document.formulario.moderate.value;
+				var notify = document.formulario.notify.value;
+				var auth = document.formulario.auth.value;
+				
+				var values = "?listname="+listname+"&owner="+owner+"&autogen="+autogen+"&moderate="+moderate+"&notify="+notify+"&auth="+auth;
+				EzWebAPI.send_post(url_head+version+'/remote/'+hostname+'/lists.xml', values, this, successMessage, errorMessage);		
+			}
+		
+			function successMessage()
+			{
+				var message = document.getElementById('formMessage');
+				message.innerHTML =  '<b>You have successfully created the mailing list</b><br>';
+			}
+			function errorMessage()
+			{
+				var message = document.getElementById('formMessage');
+				message.innerHTML =  '<b>Unable to create list</b><br>';
+			}
+		</script>
+	</head>
+	<div id="title">Create List</div>
+	<br /><br />
+	<div id="formMessage">
+		<form name="formulario">
+			<table>
+				<tr>
+					<td>
+						List Name:
+					</td>
+					<td>
+						<input type="text" name="listname" ><br/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Email Owner:
+					</td>
+					<td>
+						<input type="text" name="owner" ><br/>
+					</td>
+				</tr>
+					<input type="hidden" name="autogen" value="1" >
+					<input type="hidden" name="moderate" value="1" >
+					<input type="hidden" name="notify" value="1" >
+				<tr>
+					<td>
+						Password of list:
+					</td>
+					<td>
+						<input type="text" name="auth" ><br/>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2" align="center">
+						<input style="width:60px;" type="button" name="OK" value="OK" onCLick="createList();">
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</html>

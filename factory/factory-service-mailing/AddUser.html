@@ -1,0 +1,91 @@
+<!--
+ -	QualiPSo
+ -	http://www.qualipso.org/
+ -
+ -	Programming Language: HTML
+ -
+ -	File: AddUser.html
+ -	E-Mail: alejandra.trujillo@atosorigin.com
+ -	Creation date: 01-06-2009
+ -	Last modification: 04-06-2009 por Maria Alejandra Trujillo Valencia
+ -
+-->
+<html>
+	<head>
+		<title>Add User to Mailman list</title>
+		<script>
+		
+			var list_id = EzWebAPI.createRGadgetVariable("list_id", listIdHandler);
+			var list_name = list_id.get();
+			
+			var hostname = "mailman.vulcano.morfeo-project.org";
+			var version = "v1.1";
+			var url_head = "http://vulcano.morfeo-project.org/mailman/";
+			
+			function listIdHandler()
+			{
+				var list = document.getElementById('list');
+				list.innerHTML =  'List: '+list_name+'<br>';
+			}
+			
+			function addUser()
+			{
+				var mail = document.form.email.value;
+				var pw = document.form.pw.value;
+				var conf_pw = document.form.conf.value;
+				
+				var values = "email="+mail+"&pw="+pw+"&pw-conf="+conf_pw;
+				EzWebAPI.send_post(url_head+version+'/remote/'+hostname+'/lists/'+list_name+'users.xml', values, this, successMessage, errorMessage);
+			}
+			
+			function successMessage()
+			{
+				var message = document.getElementById('formMessage');
+				message.innerHTML =  '<b>User subscribed successfully</b><br>';
+			}
+			
+			function errorMessage()
+			{
+				var message = document.getElementById('formMessage');
+				message.innerHTML =  '<b>Unable to subscribe user</b><br>';
+			}
+		</script>
+	<head>
+	<div id="title"><p align="center"><b>Add user to mailman list</b></p></div>
+		<br /><br />
+		<div id="list">List: </div>
+		<br/>
+	<form name="form">
+		<table border=0>
+			<tr>
+				<td>
+					E-mail:
+				</td>
+				<td>
+					<input type="text" name="email" ><br/>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Password:
+				</td>
+				<td>
+					<input type="password" name="pw" ><br/>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Confirmation of password:
+				</td>
+				<td>
+					<input type="password" name="conf"><br/>
+				</td>
+			</tr>
+			<tr>
+				<td colspan="2" align="center">
+					<input style="width:60px;" type="button" name="OK" value="OK" onCLick="addUser();">
+				</td>
+			</tr>
+		</table>
+	</form>
+</html>

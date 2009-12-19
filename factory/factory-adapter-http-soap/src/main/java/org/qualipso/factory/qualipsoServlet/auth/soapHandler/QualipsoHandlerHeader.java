@@ -14,11 +14,10 @@
 
 package org.qualipso.factory.qualipsoServlet.auth.soapHandler;
 
-import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
+import java.util.GregorianCalendar;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -32,9 +31,14 @@ import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
 import javax.xml.ws.handler.MessageContext;
 
-import org.jboss.security.Base64Encoder;
-import org.jboss.security.auth.login.Token;
+import org.jboss.ws.extensions.security.Util;
 import org.jboss.ws.extensions.security.nonce.DefaultNonceFactory;
+import org.jboss.ws.extensions.security.nonce.DefaultNonceGenerator;
+import org.jboss.ws.extensions.security.nonce.NonceGenerator;
+import org.jboss.ws.extensions.security.operation.SendUsernameOperation;
+import org.jboss.ws.extensions.security.element.UsernameToken ;
+import org.jboss.ws.extensions.security.element.Timestamp;
+import org.jboss.xb.binding.SimpleTypeBindings;
 
 /**
  * Manage the WS-security into the soap request for QualiPSo factory.
@@ -46,6 +50,10 @@ import org.jboss.ws.extensions.security.nonce.DefaultNonceFactory;
 
 public class QualipsoHandlerHeader implements SOAPHandler<SOAPMessageContext> 
 {
+	protected static final String HTTP_WSS_USERNAME_PASSWORD_DIGEST = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest";
+	protected static final String HTTP_WSS_USERNAME_PASSWORD_TEXT = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText";
+	protected static final String HTTP_SCHEMA_WSS_WSSECURITY_XSD = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
+	protected static final String HTTP_NS_WSS_XSD = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
 	private String loginName;
 	private String passWord;
 	
@@ -115,80 +123,64 @@ public class QualipsoHandlerHeader implements SOAPHandler<SOAPMessageContext>
 			theHeader = env.getHeader();
 		}
 		
-    	SOAPElement security = theHeader.addChildElement("Security", "wsse", 
-				"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd");
+		
+		
+    	SOAPElement security = theHeader.addChildElement("Security", "wsse", QualipsoHandlerHeader.HTTP_SCHEMA_WSS_WSSECURITY_XSD);
     	security.setAttribute(env.getPrefix()+":mustUnderstand", "1");
     	
-    	SOAPElement timestamp = security.addChildElement("Timestamp", "wsu",
-    		"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd");
-    	timestamp.setAttribute("wsu:Id", "timestamp");
+    	SOAPElement timestamp = security.addChildElement("Timestamp", "wsu",QualipsoHandlerHeader.HTTP_NS_WSS_XSD);
+    	timestamp.setAttribute("wsu:Id", Util.generateId("Timestamp"));
     	
-    	SOAPElement createdDate = timestamp.addChildElement("Created", "wsu");    	
-    	Date todayDate = Calendar.getInstance().getTime(); 
-    	todayDate.setTime(todayDate.getTime() - 7200000); // - less 2 hours - 7200000
+    	SOAPElement createdDate = timestamp.addChildElement("Created", "wsu");
+    	
+    	Calendar createdTime = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+    	Date todayDate = createdTime.getTime(); 
+    	todayDate.setTime(todayDate.getTime() - 3600000); // - less 1 hour - 3600000 in winter, 7200000 in summer
     	
     	createdDate.addTextNode(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss'Z'").format(todayDate));
     	
     	Date expireDate = (Date)todayDate.clone();
-    	expireDate.setTime(todayDate.getTime() + 300000);
+    	expireDate.setTime(todayDate.getTime() + 300000); // ttl = 300
     	
     	SOAPElement expiredDate = timestamp.addChildElement("Expired", "wsu");
     	expiredDate.addTextNode(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss'Z'").format(expireDate));
     	
+    	DefaultNonceGenerator nonceGenered = new DefaultNonceGenerator();
+    	String nonceDigest = nonceGenered.generateNonce();
+    	
     	SOAPElement usernameToken = security.addChildElement("UsernameToken", "wsse");
-    	usernameToken.setAttribute("xmlns:wsu", "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd");
-
+    	usernameToken.setAttribute("wsu:Id", Util.generateId("UsernameToken"));
+    	//usernameToken.addAttribute(new QName("wsu",), QualipsoHandlerHeader.HTTP_NS_WSS_XSD);
+    	usernameToken.setAttribute("xmlns:wsu", QualipsoHandlerHeader.HTTP_NS_WSS_XSD);
+    	
     	SOAPElement username = usernameToken.addChildElement("Username", "wsse");
     	username.addTextNode(loginName);
 
     	SOAPElement password = usernameToken.addChildElement("Password", "wsse");
-    	password.setAttribute("Type", "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest");
-    	password.addTextNode(getBase64Digest(utf8decode(passWord)));
+    	password.setAttribute("Type", QualipsoHandlerHeader.HTTP_WSS_USERNAME_PASSWORD_DIGEST);
+    	String passwordDigest = /* SendUsernameOperation.createPasswordDigest(nonceDigest, 
+    								SimpleTypeBindings.marshalDateTime(createdTime), passWord); */
+    		passWord;
+    	if(passwordDigest == null)
+    	{
+    		throw new Exception("Error in creation of the password Digest in header soap !");
+    	}
+    	password.addTextNode(passwordDigest);///*getBase64Digest(utf8decode(passWord))*/);
 
     	SOAPElement nonce = usernameToken.addChildElement("Nonce", "wsse");
-    	nonce.addTextNode(new DefaultNonceFactory().getGenerator().generateNonce());
+    	nonce.addTextNode(nonceDigest);
     	
     	Date creatDate = (Date)todayDate.clone();
     	creatDate.setTime(todayDate.getTime() + 1000);
     	SOAPElement myDate = usernameToken.addChildElement("Created", "wsu");
     	
     	myDate.addTextNode(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss'Z'").format(creatDate));
+    	System.out.println("header wsse : "+env.getHeader().toString());
 	}
 	
 	/**
 	 * Above the code is written in this url : 
 	 * http://issues.apache.org/jira/secure/attachment/12334810/WsseClientHandler.java
 	 */
-	private static byte[] utf8decode(String input) 
-	{
-		// UTF-8 encoding
-		byte[] ret = null;
-		try {
-			ret = input.getBytes("UTF-8");
-		} catch (java.io.UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		return ret;
-	}
 	
-	private static synchronized String getBase64Digest(byte[] password) 
-	{
-		try {
-			
-			MessageDigest messageDigester = MessageDigest.getInstance("SHA-1");
-
-			// SHA-1 ( nonce + created + password )
-			messageDigester.reset();
-			messageDigester.update(password);
-		
-			return Base64Encoder.encode(messageDigester.digest());
-			
-		}
-		catch (Exception e) 
-		{
-			e.printStackTrace();
-		}
-		return null;
-	}
-
 }

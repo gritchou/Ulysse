@@ -12,9 +12,13 @@
  * Jérôme Blanchard / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
- *
+ * Christophe Bouthier / INRIA
+ * 
  */
 package org.qualipso.factory.security.pep;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
@@ -29,18 +33,46 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
 
 /**
+ * PEP Service Helper class is capable of building XACML requests and interpreting XACML response.<br/>
+ * <br/>
+ *  *
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 20 May 2009
  */
+
+/**
+ * @author jerome
+ *
+ */
 public class PEPServiceHelper {
-	
-	public static String buildRequest(String subject, String object, String action) throws PEPServiceException {
-    	try {
+    /**
+     * Build a XACML request
+     *
+     * @param subject the subject
+     * @param object the object
+     * @param action the action to query
+     * @return a String representation of the request.
+     * @throws PEPServiceException
+     */
+    public static String buildRequest(String subject, String object, String action)
+        throws PEPServiceException {
+        return buildRequest(new String[] { subject }, object, action);
+    }
+
+    /**
+     * Build a XACML request with multiple subjects.
+     *
+     * @param subject a String array of the subjects
+     * @param object the object
+     * @param action the action to query
+     * @return a String representation of the request.
+     * @throws PEPServiceException
+     */
+    public static String buildRequest(String[] subjects, String object, String action)
+        throws PEPServiceException {
+        try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = factory.newDocumentBuilder();
             Document doc = docBuilder.newDocument();
@@ -51,15 +83,18 @@ public class PEPServiceHelper {
             Element subj = doc.createElement("Subject");
             subj.setAttribute("SubjectCategory", "urn:oasis:names:tc:xacml:1.0:subject-category:access-subject");
 
-            Element sAttribute = doc.createElement("Attribute");
-            sAttribute.setAttribute("AttributeId", "urn:oasis:names:tc:xacml:1.0:subject:subject-id");
-            sAttribute.setAttribute("DataType", "http://www.w3.org/2001/XMLSchema#string");
+            for (String subject : subjects) {
+                Element sAttribute = doc.createElement("Attribute");
+                sAttribute.setAttribute("AttributeId", "urn:oasis:names:tc:xacml:1.0:subject:subject-id");
+                sAttribute.setAttribute("DataType", "http://www.w3.org/2001/XMLSchema#string");
 
-            Element sAttributeValue = doc.createElement("AttributeValue");
-            sAttributeValue.appendChild(doc.createTextNode(subject));
-            sAttribute.appendChild(sAttributeValue);
+                Element sAttributeValue = doc.createElement("AttributeValue");
+                sAttributeValue.appendChild(doc.createTextNode(subject));
+                sAttribute.appendChild(sAttributeValue);
 
-            subj.appendChild(sAttribute);
+                subj.appendChild(sAttribute);
+            }
+
             root.appendChild(subj);
 
             // Resource :
@@ -108,22 +143,34 @@ public class PEPServiceHelper {
         }
     }
 
-    public static XACMLResponseStatus getResponseStatus(String response) throws PEPServiceException {
-    	try {
-            if ( response.indexOf("<Decision>Permit</Decision>") > -1 ) {
-            	return XACMLResponseStatus.PERMIT;
+    /**
+     * Calculate an interpreted response status of an XACML response.
+     *
+     * @param response a String representation of an XACML response
+     * @return XACMLResponseStatus the interpreted response status.
+     * @throws PEPServiceException
+     */
+    public static XACMLResponseStatus getResponseStatus(String response)
+        throws PEPServiceException {
+        try {
+            if (response.indexOf("<Decision>Permit</Decision>") > -1) {
+                return XACMLResponseStatus.PERMIT;
             }
-            if ( response.indexOf("<Decision>Deny</Decision>") > -1 ) {
-            	return XACMLResponseStatus.DENY;
+
+            if (response.indexOf("<Decision>Deny</Decision>") > -1) {
+                return XACMLResponseStatus.DENY;
             }
-            if ( response.indexOf("<Decision>Indeterminate</Decision>") > -1 ) {
-            	return XACMLResponseStatus.INDETERMINATE;
+
+            if (response.indexOf("<Decision>Indeterminate</Decision>") > -1) {
+                return XACMLResponseStatus.INDETERMINATE;
             }
-            if ( response.indexOf("<Decision>NotApplicable</Decision>") > -1 ) {
-            	return XACMLResponseStatus.NOTAPPLICABLE;
+
+            if (response.indexOf("<Decision>NotApplicable</Decision>") > -1) {
+                return XACMLResponseStatus.NOTAPPLICABLE;
             }
+
             throw new PEPServiceException("unable to parse response status decision : " + response);
-    	} catch (Exception e) {
+        } catch (Exception e) {
             throw new PEPServiceException("error in parsing response", e);
         }
     }

@@ -15,7 +15,6 @@ package org.qualipso.factory.test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
-import org.qualipso.factory.test.sb.AllSBTests;
 import org.qualipso.factory.test.ws.AllWSTests;
 
 /**
@@ -23,7 +22,6 @@ import org.qualipso.factory.test.ws.AllWSTests;
  */
 @RunWith(Suite.class)
 @SuiteClasses(value = { 
-		AllSBTests.class,
 		AllWSTests.class})
 public class AllTests {
 	

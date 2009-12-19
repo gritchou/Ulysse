@@ -8,12 +8,15 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 
 import org.apache.log4j.Logger;
+import org.qualipso.factory.membership.MembershipServiceException;
+import org.qualipso.factory.voipservice.VoIPConferenceServiceException;
 import org.qualipso.factory.voipservice.entity.ConferenceUser;
 import org.qualipso.factory.voipservice.entity.MeetMe;
 import org.qualipso.factory.voipservice.security.AsteriskConferenceSecurity;
 import org.qualipso.factory.voipservice.security.AsteriskConferenceSecurityParams;
 import org.qualipso.factory.voipservice.security.AuthenticationModule;
 import org.qualipso.factory.voipservice.utils.AsteriskConferenceUtils;
+import org.qualipso.factory.voipservice.utils.AuthData;
 
 /**
  * @author <a href="mailto:janny@man.poznan.pl">Dariusz Janny</a>
@@ -29,9 +32,11 @@ public class AsteriskConferenceStatus implements AsteriskConferenceSecurity {
 	
 	/**
 	 * @param userId
+	 * @throws MembershipServiceException 
+	 * @throws VoIPConferenceServiceException 
 	 */
-	public AsteriskConferenceStatus(String userId, String pass) {
-		AuthenticationModule.authenticate(userId, pass);
+	public AsteriskConferenceStatus(String userId, String pass, AuthData authData) throws VoIPConferenceServiceException {
+		AuthenticationModule.authenticate(userId, pass, authData);
 	}
 
 	/**

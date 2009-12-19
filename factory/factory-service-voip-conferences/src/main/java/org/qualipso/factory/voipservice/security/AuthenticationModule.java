@@ -3,10 +3,13 @@ package org.qualipso.factory.voipservice.security;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import org.qualipso.factory.membership.MembershipService;
+import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.voipservice.VoIPConferenceServiceException;
 import org.qualipso.factory.voipservice.conference.AsteriskConferenceSettings;
 import org.qualipso.factory.voipservice.manager.AsteriskJavaListener;
 import org.qualipso.factory.voipservice.utils.AsteriskConferenceUtils;
+import org.qualipso.factory.voipservice.utils.AuthData;
 
 /**
  * Authentication module - used for granting permission for calling methods
@@ -24,14 +27,14 @@ public class AuthenticationModule {
      * @param userId
      * @param pass
      */
-    public AuthenticationModule(String userId, String pass) throws VoIPConferenceServiceException {
+    public AuthenticationModule(String userId, String pass, AuthData authData) throws VoIPConferenceServiceException {
 	try {
 	    @SuppressWarnings("unused")
 	    AsteriskJavaListener instance = AsteriskJavaListener.getInstance();
 	} catch (VoIPConferenceServiceException e) {
 	    throw new VoIPConferenceServiceException(e.getLocalizedMessage());
 	}
-	AuthenticationModule.authenticate(userId, pass);
+	AuthenticationModule.authenticate(userId, pass, authData);
     }
 
     /**
@@ -41,9 +44,20 @@ public class AuthenticationModule {
      * @param userId
      * @return
      * @throws java.lang.SecurityException
+     * @throws VoIPConferenceServiceException 
      */
-    static public boolean authenticate(String userId, String pass) throws java.lang.SecurityException {
+    static public boolean authenticate(String userId, String pass, AuthData authData) throws java.lang.SecurityException, VoIPConferenceServiceException {
 	checkDB(null);
+	
+	if (authData != null) {
+    		String caller = authData.getProfilePathForConnectedIdentifier();
+        	if (caller == null) {
+        	    throw new VoIPConferenceServiceException (
+    			"Could not get connected profile");
+        	}
+        	authData.checkSecurity();
+	}
+    	
 	if (userId == null || userId.equals("")) {
 	    throw new java.lang.SecurityException("Cannot authenticate user");
 	}

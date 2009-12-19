@@ -14,36 +14,37 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  * 
  */
- package org.qualipso.factory.client.test.matcher;
+package org.qualipso.factory.client.test.matcher;
+
 /**
-*@author Benjamin Dreux benjiiiiii@gmail.com
-**/
+ *@author Benjamin Dreux benjiiiiii@gmail.com
+ **/
 import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
-import org.qualipso.factory.indexing.SearchResult;
+import org.junit.internal.matchers.TypeSafeMatcher;
 import org.qualipso.factory.FactoryResourceIdentifier;
-
+import org.qualipso.factory.indexing.SearchResult;
 
 public class SearchResultWithFactoryResourceIdentfier extends TypeSafeMatcher<SearchResult> {
-  private FactoryResourceIdentifier fri;
-	
-  public SearchResultWithFactoryResourceIdentfier(FactoryResourceIdentifier fri){
-  this.fri = fri;
-  }
-  @Override
-  public boolean matchesSafely(SearchResult sr) {
-    return sr.getFactoryResourceIdentifier().equals(fri);
-  }
+    private FactoryResourceIdentifier fri;
 
-  public void describeTo(Description description) {
-    description.appendText("a SearchResult with a FactoryResourceIdentifier equals to ").appendValue(fri);
-  }
+    public SearchResultWithFactoryResourceIdentfier(FactoryResourceIdentifier fri) {
+        this.fri = fri;
+    }
 
-  @Factory
-  public static <T> Matcher<SearchResult> searchResultWithFactoryResourceIdentifier(FactoryResourceIdentifier fri) {
-    return new SearchResultWithFactoryResourceIdentfier(fri);
-  }
+    @Override
+    public boolean matchesSafely(SearchResult sr) {
+        return sr.getFactoryResourceIdentifier().equals(fri);
+    }
+
+    public void describeTo(Description description) {
+        description.appendText("a SearchResult with a FactoryResourceIdentifier equals to ").appendValue(fri);
+    }
+
+    @Factory
+    public static <T> Matcher<SearchResult> searchResultWithFactoryResourceIdentifier(FactoryResourceIdentifier fri) {
+        return new SearchResultWithFactoryResourceIdentfier(fri);
+    }
 
 }

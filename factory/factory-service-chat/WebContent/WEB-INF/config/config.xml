@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<claros-config>
+	<common-params>
+		<charset>utf-8</charset>
+	</common-params>
+	
+	<db-config>
+		<db>
+			<id>file</id>
+			<database>jdbc:mysql://localhost:3306/chat</database>
+			<driver>com.mysql.jdbc.Driver</driver>
+			<login>root</login>
+			<password>mysql</password>
+		</db>
+	</db-config>
+
+	<error-handling>
+		<resource-type>FILE</resource-type>
+		<resource-path>%respath%/error.properties</resource-path>
+	</error-handling>
+</claros-config>

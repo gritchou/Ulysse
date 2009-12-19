@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://www.wfmc.org/2002/XPDL1.0" xmlns:xpdl="http://www.wfmc.org/2002/XPDL1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.wfmc.org/2002/XPDL1.0 http://wfmc.org/standards/docs/TC-1025_schema_10_xpdl.xsd" Id="ProjectCreation" Name="ProjectCreation">
+  <PackageHeader>
+    <XPDLVersion>1.0</XPDLVersion>
+    <Vendor>Bonita Project Team</Vendor>
+    <Created>2009-12-16T16:59:22.727+0100</Created>
+  </PackageHeader>
+  <RedefinableHeader>
+    <Version>1.0</Version>
+  </RedefinableHeader>
+  <ConformanceClass GraphConformance="NON_BLOCKED" />
+  <WorkflowProcesses>
+    <WorkflowProcess AccessLevel="PUBLIC" Name="ProjectCreation" Id="ProjectCreation">
+      <ProcessHeader />
+      <RedefinableHeader>
+        <Version>1.0</Version>
+      </RedefinableHeader>
+      <DataFields>
+        <DataField Id="initiator" Name="initiator">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+        </DataField>
+        <DataField Id="projectName" Name="projectName">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+        </DataField>
+        <DataField Id="currentState" Name="currentState">
+          <DataType>
+            <EnumerationType>
+              <EnumerationValue Name="notCreated" />
+              <EnumerationValue Name="created" />
+              <EnumerationValue Name="onWritting" />
+              <EnumerationValue Name="onValidation" />
+              <EnumerationValue Name="validated" />
+              <EnumerationValue Name="published" />
+              <EnumerationValue Name="trashed" />
+            </EnumerationType>
+          </DataType>
+          <InitialValue>notCreated</InitialValue>
+        </DataField>
+        <DataField Id="startDate" Name="startDate">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+          <InitialValue>2009-04-06T16:35:52.000+0100</InitialValue>
+        </DataField>
+        <DataField Id="finishDate" Name="finishDate">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+        </DataField>
+        <DataField Id="repositoryName" Name="repositoryName">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+        </DataField>
+        <DataField Id="currentLocation" Name="currentLocation">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+        </DataField>
+        <DataField Id="fileName" Name="fileName">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+        </DataField>
+        <DataField Id="publishPath" Name="publishPath">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+          <InitialValue>Documents</InitialValue>
+        </DataField>
+        <DataField Id="fileResource" Name="fileResource">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+        </DataField>
+        <DataField Id="requestDescription" Name="requestDescription">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+        </DataField>
+        <DataField Id="serviceChoicePerfAssignVar" Name="serviceChoicePerfAssignVar">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+          <InitialValue>bugTrackerServices</InitialValue>
+          <Description>Services choice</Description>
+        </DataField>
+        <DataField Id="projectValidated" Name="projectValidated">
+          <DataType>
+            <BasicType Type="BOOLEAN" />
+          </DataType>
+          <InitialValue>true</InitialValue>
+          <Description>Project creation validate</Description>
+        </DataField>
+        <DataField Id="licence" Name="licence">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+        </DataField>
+        <DataField Id="name" Name="name">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+        </DataField>
+        <DataField Id="path" Name="path">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+        </DataField>
+        <DataField Id="summary" Name="summary">
+          <DataType>
+            <BasicType Type="STRING" />
+          </DataType>
+        </DataField>
+      </DataFields>
+      <Participants>
+        <Participant Id="QualipsoAdmin" Name="QualipsoAdmin">
+          <ParticipantType Type="ROLE" />
+          <ExtendedAttributes>
+            <ExtendedAttribute Name="Mapper" Value="Custom" />
+            <ExtendedAttribute Name="MapperClassName" Value="org.qualipso.factory.workflow.bonita.mapper.AdminServicesMapper" />
+            <ExtendedAttribute Name="NewParticipant" Value="true" />
+            <ExtendedAttribute Name="XOffset" Value="0" />
+            <ExtendedAttribute Name="YOffset" Value="150" />
+          </ExtendedAttributes>
+        </Participant>
+      </Participants>
+      <Activities>
+        <Activity Id="BonitaEnd" Name="BonitaEnd">
+          <Implementation>
+            <No />
+          </Implementation>
+          <StartMode>
+            <Automatic />
+          </StartMode>
+          <TransitionRestrictions>
+            <TransitionRestriction>
+              <Join Type="XOR" />
+            </TransitionRestriction>
+          </TransitionRestrictions>
+          <ExtendedAttributes>
+            <ExtendedAttribute Name="XOffsetParticipantView" Value="621" />
+            <ExtendedAttribute Name="YOffsetParticipantView" Value="56" />
+            <ExtendedAttribute Name="XOffset" Value="188" />
+            <ExtendedAttribute Name="YOffset" Value="262" />
+            <ExtendedAttribute Name="Async" Value="false" />
+          </ExtendedAttributes>
+        </Activity>
+        <Activity Id="CreateFactoryProject" Name="CreateFactoryProject">
+          <Implementation>
+            <No />
+          </Implementation>
+          <StartMode>
+            <Automatic />
+          </StartMode>
+          <TransitionRestrictions>
+            <TransitionRestriction>
+              <Join Type="AND" />
+            </TransitionRestriction>
+          </TransitionRestrictions>
+          <ExtendedAttributes>
+            <ExtendedAttribute Name="XOffsetParticipantView" Value="419" />
+            <ExtendedAttribute Name="YOffsetParticipantView" Value="102" />
+            <ExtendedAttribute Name="XOffset" Value="128" />
+            <ExtendedAttribute Name="YOffset" Value="152" />
+            <ExtendedAttribute Name="CellHeight" Value="30" />
+            <ExtendedAttribute Name="CellWidth" Value="161" />
+            <ExtendedAttribute Name="Async" Value="false" />
+            <ExtendedAttribute Name="hook" Value="org.qualipso.factory.workflow.bonita.hook.CreateFactoryProject">
+              <HookEventName>automatic:onEnter</HookEventName>
+              <Rollback>false</Rollback>
+            </ExtendedAttribute>
+          </ExtendedAttributes>
+        </Activity>
+        <Activity Id="initialize" Name="initialize">
+          <Implementation>
+            <No />
+          </Implementation>
+          <StartMode>
+            <Automatic />
+          </StartMode>
+          <ExtendedAttributes>
+            <ExtendedAttribute Name="XOffsetParticipantView" Value="27" />
+            <ExtendedAttribute Name="YOffsetParticipantView" Value="2" />
+            <ExtendedAttribute Name="XOffset" Value="2" />
+            <ExtendedAttribute Name="YOffset" Value="34" />
+            <ExtendedAttribute Name="CellHeight" Value="27" />
+            <ExtendedAttribute Name="CellWidth" Value="129" />
+            <ExtendedAttribute Name="Async" Value="false" />
+            <ExtendedAttribute Name="hook" Value="org.qualipso.factory.workflow.bonita.hook.Initialize">
+              <HookEventName>automatic:onEnter</HookEventName>
+              <Rollback>false</Rollback>
+            </ExtendedAttribute>
+          </ExtendedAttributes>
+        </Activity>
+        <Activity Id="CreateProject" Name="CreateProject">
+          <Implementation>
+            <No />
+          </Implementation>
+          <Performer>QualipsoAdmin</Performer>
+          <StartMode>
+            <Manual />
+          </StartMode>
+          <TransitionRestrictions>
+            <TransitionRestriction>
+              <Join Type="AND" />
+            </TransitionRestriction>
+          </TransitionRestrictions>
+          <ExtendedAttributes>
+            <ExtendedAttribute Name="XOffsetParticipantView" Value="27" />
+            <ExtendedAttribute Name="YOffsetParticipantView" Value="152" />
+            <ExtendedAttribute Name="XOffset" Value="204" />
+            <ExtendedAttribute Name="YOffset" Value="40" />
+            <ExtendedAttribute Name="CellHeight" Value="30" />
+            <ExtendedAttribute Name="CellWidth" Value="139" />
+            <ExtendedAttribute Name="Async" Value="false" />
+          </ExtendedAttributes>
+        </Activity>
+      </Activities>
+      <Transitions>
+        <Transition Id="CreateProject_CreateFactoryProject" Name="CreateProject_CreateFactoryProject" From="CreateProject" To="CreateFactoryProject" />
+        <Transition Id="CreateFactoryProject_End" Name="CreateFactoryProject_End" From="CreateFactoryProject" To="BonitaEnd" />
+        <Transition Id="initialize_CreateProject" Name="initialize_CreateProject" From="initialize" To="CreateProject" />
+      </Transitions>
+    </WorkflowProcess>
+  </WorkflowProcesses>
+  <ExtendedAttributes>
+    <ExtendedAttribute Name="MadeBy" Value="ProEd" />
+    <ExtendedAttribute Name="View" Value="Activity" />
+  </ExtendedAttributes>
+</Package>
+

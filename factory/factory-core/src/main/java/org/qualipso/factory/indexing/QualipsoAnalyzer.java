@@ -1,4 +1,5 @@
 package org.qualipso.factory.indexing;
+
 /**
  * <p>Class which extends a Lucene class used for preparing text for indexing.
  * An Analyzer builds TokenStreams, which analyze text. 
@@ -19,19 +20,22 @@ import org.apache.lucene.analysis.TokenStream;
 
 public class QualipsoAnalyzer extends Analyzer {
 
-	/**
-	 * <p>
-	 * Method which build a tokenStream. 
-	 * Creates a TokenStream which tokenizes all the text in the provided Reader. 
-	 * </p>
-	 * @param String fieldName
-	 * @param Reader reader
-	 * @return TokenStream
-	 */
-	@Override
-	public TokenStream tokenStream(String fieldName, Reader reader) {		
-		TokenStream ts = new LowerCaseTokenizer(reader);
-		return new ASCIIFoldingFilter(ts);   
-	}
+    /**
+     * <p>
+     * Method which build a tokenStream. Creates a TokenStream which tokenizes
+     * all the text in the provided Reader.
+     * </p>
+     * 
+     * @param String
+     *            fieldName
+     * @param Reader
+     *            reader
+     * @return TokenStream
+     */
+    @Override
+    public TokenStream tokenStream(String fieldName, Reader reader) {
+        TokenStream ts = new LowerCaseTokenizer(reader);
+        return new ASCIIFoldingFilter(ts);
+    }
 
 }

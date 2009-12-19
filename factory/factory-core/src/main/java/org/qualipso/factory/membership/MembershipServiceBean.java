@@ -1,7 +1,23 @@
+/*
+ *
+ * Qualipso Factory
+ * Copyright (C) 2006-2010 INRIA
+ * http://www.inria.fr - molli@loria.fr
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of LGPL. See licenses details in LGPL.txt
+ *
+ * Initial authors :
+ *
+ * Jérôme Blanchard / INRIA
+ * Pascal Molli / Nancy Université
+ * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
+ * 
+ */
 package org.qualipso.factory.membership;
 
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
 
@@ -28,8 +44,12 @@ import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
+import org.qualipso.factory.binding.BindingServiceException;
+import org.qualipso.factory.binding.InvalidPathException;
+import org.qualipso.factory.binding.PathAlreadyBoundException;
 import org.qualipso.factory.binding.PathHelper;
-import org.qualipso.factory.core.CoreServiceException;
+import org.qualipso.factory.binding.PathNotEmptyException;
+import org.qualipso.factory.binding.PathNotFoundException;
 import org.qualipso.factory.membership.entity.Group;
 import org.qualipso.factory.membership.entity.Profile;
 import org.qualipso.factory.membership.entity.ProfileInfo;
@@ -38,22 +58,30 @@ import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.auth.AuthenticationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
+import org.qualipso.factory.security.pep.AccessDeniedException;
 import org.qualipso.factory.security.pep.PEPService;
 
 /**
+ * Implementation fo the MembershipService.<br/>
+ * <br/>
+ * Implementation is based on a EJB 3.0 Stateless Session Bean. Because external visibility, this bean implements Remote interface and uses WebService
+ * annotations. Bean name follow naming conventions of the factory and use the specific remote service prefix.<br/>
+ * <br/>
+ * Bean security is configured for JBoss AS 5 and rely on JAAS to ensure Authentication and Autorization of user.
+ * 
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 8 june 2009
  */
 @Stateless(name = MembershipService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + MembershipService.SERVICE_NAME)
-@WebService(endpointInterface = "org.qualipso.factory.membership.MembershipService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + MembershipService.SERVICE_NAME, serviceName = MembershipService.SERVICE_NAME)
-@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + MembershipService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.membership.MembershipService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE
+		+ MembershipService.SERVICE_NAME, serviceName = MembershipService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX
+		+ MembershipService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class MembershipServiceBean implements MembershipService {
-
 	private static Log logger = LogFactory.getLog(MembershipServiceBean.class);
-	
 	private PEPService pep;
 	private PAPService pap;
 	private BindingService binding;
@@ -61,11 +89,10 @@ public class MembershipServiceBean implements MembershipService {
 	private AuthenticationService authentication;
 	private SessionContext ctx;
 	private EntityManager em;
-	
-	
+
 	public MembershipServiceBean() {
 	}
-	
+
 	@PersistenceContext
 	public void setEntityManager(EntityManager em) {
 		this.em = em;
@@ -128,51 +155,74 @@ public class MembershipServiceBean implements MembershipService {
 	public AuthenticationService getAuthenticationService() {
 		return this.authentication;
 	}
-	
+
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	public String getProfilesPath() throws MembershipServiceException {
+	public String getProfilesPath() {
 		return PROFILES_PATH;
 	}
-	
+
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	public String getProfilePathForConnectedIdentifier() throws MembershipServiceException {
+	public String getProfilePathForConnectedIdentifier() {
 		logger.info("getProfilePathForConnectedIdentifier(...) called");
-		
-		try {
-			return PROFILES_PATH + "/" + authentication.getConnectedIdentifier();
-		} catch ( Exception e ) {
-			throw new MembershipServiceException(e);
-		}
+
+		return PROFILES_PATH + "/" + authentication.getConnectedIdentifier();
 	}
-	
+
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	public String getProfilePathForIdentifier(String identifier) throws MembershipServiceException {
+	public String getProfilePathForIdentifier(String identifier) {
 		logger.info("getProfilePathForIdentifier(...) called");
-		
-		try {
-			return PROFILES_PATH + "/" + identifier;
-		} catch ( Exception e ) {
-			throw new MembershipServiceException(e);
-		}
+
+		return PROFILES_PATH + "/" + identifier;
 	}
-	
+
 	@Override
-	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void createProfile(String identifier, String fullname, String email, int accountStatus) throws MembershipServiceException {
-		logger.info("createProfile(...) called");
-		logger.debug("params : identifier=" + identifier + ", fullname=" + fullname + ", email=" + email + ", accountStatus=" + accountStatus);
-		
-		String path = getProfilePathForIdentifier(identifier);
-		logger.debug("generated profile path : " + path);
-		
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public String[] getConnectedIdentifierSubjects() throws MembershipServiceException, InvalidPathException, PathNotFoundException {
+		logger.info("getConnectedIdentifierSubjects(...) called");
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			
-			pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
-			
+	
+			FactoryResourceIdentifier identifier = binding.lookup(caller);
+	
+			Profile profile = em.find(Profile.class, identifier.getId());
+	
+			if (profile == null) {
+				throw new MembershipServiceException("unable to find a profile for id " + identifier.getId());
+			}
+	
+			String[] groups = profile.getGroups();
+			String[] subjects = new String[groups.length + 1];
+			subjects[0] = caller;
+	
+			for (int i = 0; i < groups.length; i++) {
+				subjects[i + 1] = groups[i];
+			}
+	
+			return subjects;
+		} catch ( BindingServiceException e ) {
+			throw new MembershipServiceException("unable to get connected identifier subjects", e);
+		}
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.REQUIRED)
+	public void createProfile(String identifier, String fullname, String email, int accountStatus) throws MembershipServiceException, AccessDeniedException,
+			InvalidPathException, PathAlreadyBoundException {
+		logger.info("createProfile(...) called");
+		logger.debug("params : identifier=" + identifier + ", fullname=" + fullname + ", email=" + email + ", accountStatus=" + accountStatus);
+
+		String path = getProfilePathForIdentifier(identifier);
+		logger.debug("generated profile path : " + path);
+
+		try {
+			String caller = getProfilePathForConnectedIdentifier();
+
+			pep.checkSecurity(getConnectedIdentifierSubjects(), PathHelper.getParentPath(path), "create");
+
 			Profile profile = new Profile();
 			profile.setId(UUID.randomUUID().toString());
 			profile.setFullname(fullname);
@@ -181,578 +231,755 @@ public class MembershipServiceBean implements MembershipService {
 			profile.setOnlineStatus(Profile.OFFLINE);
 			profile.setLastLoginDate(new Date(0));
 			em.persist(profile);
-			
+
 			binding.bind(profile.getFactoryResourceIdentifier(), path);
 			binding.setProperty(path, FactoryResourceProperty.CREATION_TIMESTAMP, System.currentTimeMillis() + "");
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
 			binding.setProperty(path, FactoryResourceProperty.AUTHOR, caller);
-			
+
 			String policyId = UUID.randomUUID().toString();
 			pap.createPolicy(policyId, PAPServiceHelper.buildOwnerPolicy(policyId, path, path));
-			
+
 			binding.setProperty(path, FactoryResourceProperty.OWNER, path);
 			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
-			
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "create"), ""));
-		} catch ( Exception e ) {
-			logger.error("unable to create a profile", e);
+
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
+					"create"), ""));
+
+		} catch (AccessDeniedException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathAlreadyBoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (FactoryException e) {
 			ctx.setRollbackOnly();
 			throw new MembershipServiceException("unable to create a profile", e);
 		}
+
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	public Profile readProfile(String path) throws MembershipServiceException {
+	public Profile readProfile(String path) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.info("readProfile(...) called");
 		logger.debug("params : path=" + path);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "read");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "read");
+
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Profile.RESOURCE_NAME);
-		
+
 			Profile profile = em.find(Profile.class, identifier.getId());
-			if ( profile == null ) {
+
+			if (profile == null) {
 				throw new MembershipServiceException("unable to find a profile for id " + identifier.getId());
 			}
+
 			profile.setResourcePath(path);
 
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "read"), ""));
-			
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
+					"read"), ""));
+
 			return profile;
-		} catch ( Exception e ) {
-			logger.error("unable to read a profile", e);
-			throw new MembershipServiceException("unable to read a profile", e);
+		} catch (AccessDeniedException e) {
+			throw e;
+		} catch (InvalidPathException e) {
+			throw e;
+		} catch (PathNotFoundException e) {
+			throw e;
+		} catch (FactoryException e) {
+			throw new MembershipServiceException("unable to read the profile at path: " + path, e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void updateProfile(String path, String fullname, String email, int accountStatus) throws MembershipServiceException {
+	public void updateProfile(String path, String fullname, String email, int accountStatus) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.info("updateProfile(...) called");
 		logger.debug("params : path=" + path + ", fullname=" + fullname + ", email=" + email + ", accountStatus=" + accountStatus);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "update");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "update");
+
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Profile.RESOURCE_NAME);
-		
+
 			Profile profile = em.find(Profile.class, identifier.getId());
-			if ( profile == null ) {
+
+			if (profile == null) {
 				throw new MembershipServiceException("unable to find a profile for id " + identifier.getId());
 			}
+
 			profile.setFullname(fullname);
 			profile.setEmail(email);
 			profile.setAccountStatus(accountStatus);
 			em.merge(profile);
-		
+
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "update"), ""));
-		} catch ( Exception e ) {
-			logger.error("unable to update a profile", e);
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
+					"update"), ""));
+		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
-			throw new MembershipServiceException("unable to update a profile", e);
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotFoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (FactoryException e) {
+			ctx.setRollbackOnly();
+			throw new MembershipServiceException("unable to update the profile at path: " + path, e);
 		}
+		
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void updateProfileLastLoginDate(String path) throws MembershipServiceException {
+	public void updateProfileLastLoginDate(String path) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.info("updateProfileLastLoginDate(...) called");
 		logger.debug("params : path=" + path);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "update");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "update");
+
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Profile.RESOURCE_NAME);
-			
+
 			Profile profile = em.find(Profile.class, identifier.getId());
-			if ( profile == null ) {
+
+			if (profile == null) {
 				throw new MembershipServiceException("unable to find a profile for id " + identifier.getId());
 			}
+
 			profile.setLastLoginDate(new Date());
 			em.merge(profile);
-		
+
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "update"), ""));
-		} catch ( Exception e ) {
-			logger.error("unable to update the profile last login date", e);
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
+					"update"), ""));
+		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
-			throw new MembershipServiceException("unable to update the profile last login date", e);
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotFoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (FactoryException e) {
+			ctx.setRollbackOnly();
+			throw new MembershipServiceException("unable to update last login date of the profile at path: " + path, e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void updateProfileOnlineStatus(String path, int onlineStatus) throws MembershipServiceException {
+	public void updateProfileOnlineStatus(String path, int onlineStatus) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.info("updateProfileOnlineStatus(...) called");
 		logger.debug("params : path=" + path + ", onlineStatus=" + onlineStatus);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "update");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "update");
+
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Profile.RESOURCE_NAME);
-			
+
 			Profile profile = em.find(Profile.class, identifier.getId());
-			if ( profile == null ) {
+
+			if (profile == null) {
 				throw new MembershipServiceException("unable to find a profile for id " + identifier.getId());
 			}
+
 			profile.setOnlineStatus(onlineStatus);
 			em.merge(profile);
-		
+
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "update"), ""));
-		} catch ( Exception e ) {
-			logger.error("unable to update the profile online status", e);
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
+					"update"), ""));
+		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
-			throw new MembershipServiceException("unable to update the profile online status", e);
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotFoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (FactoryException e) {
+			ctx.setRollbackOnly();
+			throw new MembershipServiceException("unable to update online status of the profile at path: " + path, e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void deleteProfile(String path) throws MembershipServiceException {
+	public void deleteProfile(String path) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException, PathNotEmptyException {
 		logger.info("deleteProfile(...) called");
 		logger.debug("params : path=" + path);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "delete");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "delete");
+
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Profile.RESOURCE_NAME);
-			
+
 			Profile profile = em.find(Profile.class, identifier.getId());
-			if ( profile == null ) {
+			if (profile == null) {
 				throw new MembershipServiceException("unable to find a profile for id " + identifier.getId());
 			}
 			em.remove(profile);
 
+			String policyId = binding.getProperty(path, FactoryResourceProperty.POLICY_ID, false);
+			pap.deletePolicy(policyId);
+			
 			binding.unbind(path);
-			//TODO remove security rule for this profile.
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "delete"), ""));
-		} catch ( Exception e ) {
-			logger.error("unable to delete profile", e);
+			
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
+					"delete"), ""));
+		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
-			throw new MembershipServiceException("unable to delete profile", e);
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotFoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotEmptyException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (FactoryException e) {
+			ctx.setRollbackOnly();
+			throw new MembershipServiceException("unable to delete profile at path: " + path, e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void setProfileInfo(String path, String name, String value) throws MembershipServiceException {
+	public void setProfileInfo(String path, String name, String value) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.info("setProfileInfo(...) called");
 		logger.debug("params : path=" + path + ", name=" + name + ", value=" + value);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "update");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "update");
+
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Profile.RESOURCE_NAME);
-			
+
 			Profile profile = em.find(Profile.class, identifier.getId());
-			if ( profile == null ) {
+
+			if (profile == null) {
 				throw new MembershipServiceException("unable to find a profile for id " + identifier.getId());
 			}
+
 			profile.setProfileInfo(name, value);
 			em.merge(profile);
-		
+
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "set-info"), "name:" + name + ", value:" + value));
-		} catch ( Exception e ) {
-			logger.error("unable to set profile info", e);
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
+					"set-info"), "name:" + name + ", value:" + value));
+		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
-			throw new MembershipServiceException("unable to set profile info", e);
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotFoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (FactoryException e) {
+			ctx.setRollbackOnly();
+			throw new MembershipServiceException("unable to set info for profile at path: " + path, e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	public ProfileInfo getProfileInfo(String path, String name) throws MembershipServiceException {
+	public ProfileInfo getProfileInfo(String path, String name) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.info("getProfileInfo(...) called");
 		logger.debug("params : path=" + path + ", name=" + name);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "read");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "read");
+
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Profile.RESOURCE_NAME);
-		
+
 			Profile profile = em.find(Profile.class, identifier.getId());
-			if ( profile == null ) {
+
+			if (profile == null) {
 				throw new MembershipServiceException("unable to find a profile for id " + identifier.getId());
 			}
-			
+
 			ProfileInfo pinfo = new ProfileInfo();
 			pinfo.setName(name);
 			pinfo.setValue(profile.getProfileInfo(name));
-			
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "get-info"), "name:" + name));
+
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
+					"get-info"), "name:" + name));
+
 			return pinfo;
-		} catch ( Exception e ) {
-			logger.error("unable to get profile info", e);
-			throw new MembershipServiceException("unable to get profile info", e);
+		} catch (AccessDeniedException e) {
+			throw e;
+		} catch (InvalidPathException e) {
+			throw e;
+		} catch (PathNotFoundException e) {
+			throw e;
+		} catch (FactoryException e) {
+			throw new MembershipServiceException("unable to get info for profile at path: " + path, e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	public ProfileInfo[] listProfileInfos(String path) throws MembershipServiceException {
+	public ProfileInfo[] listProfileInfos(String path) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.info("listProfileInfos(...) called");
 		logger.debug("params : path=" + path);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "read");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "read");
+
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Profile.RESOURCE_NAME);
-		
+
 			Profile profile = em.find(Profile.class, identifier.getId());
-			if ( profile == null ) {
+
+			if (profile == null) {
 				throw new MembershipServiceException("unable to find a profile for id " + identifier.getId());
 			}
-			
-			Vector<ProfileInfo> pinfos = new Vector<ProfileInfo> ();
-			for ( String pinfokey : profile.getProfileInfos().keySet() ) {
+
+			Vector<ProfileInfo> pinfos = new Vector<ProfileInfo>();
+
+			for (String pinfokey : profile.getProfileInfos().keySet()) {
 				ProfileInfo pinfo = new ProfileInfo();
 				pinfo.setName(pinfokey);
 				pinfo.setValue(profile.getProfileInfo(pinfokey));
 				pinfos.add(pinfo);
 			}
-			
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "list-info"), ""));
+
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
+					"list-info"), ""));
+
 			ProfileInfo[] infos = new ProfileInfo[0];
-			return pinfos.toArray(infos); 
-		} catch ( Exception e ) {
-			logger.error("unable to list profile infos", e);
-			throw new MembershipServiceException("unable to list profile infos", e);
+
+			return pinfos.toArray(infos);
+		} catch (AccessDeniedException e) {
+			throw e;
+		} catch (InvalidPathException e) {
+			throw e;
+		} catch (PathNotFoundException e) {
+			throw e;
+		} catch (FactoryException e) {
+			throw new MembershipServiceException("unable to list infos for profile at path: " + path, e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void createGroup(String path, String name, String description) throws MembershipServiceException {
+	public void createGroup(String path, String name, String description) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathAlreadyBoundException {
 		logger.warn("createGroup(...) called");
 		logger.debug("params : path=" + path + ", name=" + name + ", description=" + description);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), PathHelper.getParentPath(path), "create");
+
 			Group group = new Group();
 			group.setId(UUID.randomUUID().toString());
 			group.setName(name);
 			group.setDescription(description);
 			em.persist(group);
-			
+
 			binding.bind(group.getFactoryResourceIdentifier(), path);
 			binding.setProperty(path, FactoryResourceProperty.CREATION_TIMESTAMP, System.currentTimeMillis() + "");
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
 			binding.setProperty(path, FactoryResourceProperty.AUTHOR, caller);
-			
+
 			String policyId = UUID.randomUUID().toString();
 			pap.createPolicy(policyId, PAPServiceHelper.buildOwnerPolicy(policyId, path, path));
-			
+
 			binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
 			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
-			
-			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "create"), ""));
-		} catch ( Exception e ) {
-			logger.error("unable to create group", e);
+
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME,
+					"create"), ""));
+		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
-			throw new MembershipServiceException("unable to create group", e);
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathAlreadyBoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (FactoryException e) {
+			ctx.setRollbackOnly();
+			throw new MembershipServiceException("unable to create group at path: " + path, e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	public Group readGroup(String path) throws MembershipServiceException {
+	public Group readGroup(String path) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.warn("readGroup(...) called");
 		logger.debug("params : path=" + path);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "read");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "read");
+
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Group.RESOURCE_NAME);
-		
+
 			Group group = em.find(Group.class, identifier.getId());
-			if ( group == null ) {
+
+			if (group == null) {
 				throw new MembershipServiceException("unable to find a group for id " + identifier.getId());
 			}
+
 			group.setResourcePath(path);
 
-			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "read"), ""));
-			
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME,
+					"read"), ""));
+
 			return group;
-		} catch ( Exception e ) {
-			logger.error("unable to read group", e);
-			throw new MembershipServiceException("unable to read group", e);
+		} catch (AccessDeniedException e) {
+			throw e;
+		} catch (InvalidPathException e) {
+			throw e;
+		} catch (PathNotFoundException e) {
+			throw e;
+		} catch (FactoryException e) {
+			throw new MembershipServiceException("unable to read group at path", e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void updateGroup(String path, String name, String description) throws MembershipServiceException {
+	public void updateGroup(String path, String name, String description) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.warn("updateGroup(...) called");
 		logger.debug("params : path=" + path + ", name=" + name + ", description=" + description);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "update");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "update");
+
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Group.RESOURCE_NAME);
-		
+
 			Group group = em.find(Group.class, identifier.getId());
-			if ( group == null ) {
+
+			if (group == null) {
 				throw new MembershipServiceException("unable to find a group for id " + identifier.getId());
 			}
+
 			group.setName(name);
 			group.setDescription(description);
 			em.merge(group);
-		
+
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "update"), ""));
-		} catch ( Exception e ) {
-			logger.error("unable to update group", e);
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME,
+					"update"), ""));
+		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
-			throw new MembershipServiceException("unable to update group", e);
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotFoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (FactoryException e) {
+			ctx.setRollbackOnly();
+			throw new MembershipServiceException("unable to update group at path: " + path, e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void deleteGroup(String path) throws MembershipServiceException {
+	public void deleteGroup(String path) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException, PathNotEmptyException {
 		logger.warn("deleteGroup(...) called");
 		logger.debug("params : path=" + path);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "delete");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "delete");
+
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Group.RESOURCE_NAME);
-			
+
 			Group group = em.find(Group.class, identifier.getId());
-			if ( group == null ) {
+			if (group == null) {
 				throw new MembershipServiceException("unable to find a group for id " + identifier.getId());
 			}
 			em.remove(group);
+			
+			String policyId = binding.getProperty(path, FactoryResourceProperty.POLICY_ID, false);
+			pap.deletePolicy(policyId);
 
 			binding.unbind(path);
-			//TODO remove security rule for this group.
-			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "delete"), ""));
-		} catch ( Exception e ) {
-			logger.error("unable to delete group", e);
+			
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME,
+					"delete"), ""));
+		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
-			throw new MembershipServiceException("unable to delete group", e);
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotFoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotEmptyException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (FactoryException e) {
+			ctx.setRollbackOnly();
+			throw new MembershipServiceException("unable to delete group at path: " + path, e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void addMemberInGroup(String path, String member) throws MembershipServiceException {
+	public void addMemberInGroup(String path, String member) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.warn("addMemberInGroup(...) called");
 		logger.debug("params : path=" + path + ", member=" + member);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "update");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "update");
+
 			FactoryResourceIdentifier groupIdentifier = binding.lookup(path);
 			checkResourceType(groupIdentifier, Group.RESOURCE_NAME);
-			
+
 			FactoryResourceIdentifier memberIdentifier = binding.lookup(member);
-			Vector<String> memberTypes = new Vector<String> ();
-			memberTypes.add(Group.RESOURCE_NAME);
-			memberTypes.add(Profile.RESOURCE_NAME);
-			checkResourceType(memberIdentifier, memberTypes);
-			
+			checkResourceType(memberIdentifier, Profile.RESOURCE_NAME);
+
 			Group group = em.find(Group.class, groupIdentifier.getId());
-			if ( group == null ) {
+
+			if (group == null) {
 				throw new MembershipServiceException("unable to find a group for id " + groupIdentifier.getId());
 			}
-			if ( memberIdentifier.getType().equals(Group.RESOURCE_NAME) ) {
-				group.addMember("G:" + member);
-			} else {
-				group.addMember("P:" + member);
+
+			Profile profile = em.find(Profile.class, memberIdentifier.getId());
+
+			if (profile == null) {
+				throw new MembershipServiceException("unable to find a profile for id " + memberIdentifier.getId());
 			}
+
+			group.addMember(member);
+			profile.addGroup(path);
+
+			em.merge(profile);
 			em.merge(group);
 
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "add-member"), ""));
-		} catch ( Exception e ) {
-			logger.error("unable to add member in group", e);
+			binding.setProperty(member, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME,
+					"add-member"), ""));
+		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
-			throw new MembershipServiceException("unable to add member in group", e);
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotFoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (FactoryException e) {
+			ctx.setRollbackOnly();
+			throw new MembershipServiceException("unable to add member for group at path", e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void removeMemberFromGroup(String path, String member) throws MembershipServiceException {
+	public void removeMemberFromGroup(String path, String member) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.warn("removeMemberFromGroup(...) called");
 		logger.debug("params : path=" + path + ", member=" + member);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "update");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "update");
+
 			FactoryResourceIdentifier groupIdentifier = binding.lookup(path);
 			checkResourceType(groupIdentifier, Group.RESOURCE_NAME);
-			
+
 			FactoryResourceIdentifier memberIdentifier = binding.lookup(member);
-			Vector<String> memberTypes = new Vector<String> ();
-			memberTypes.add(Group.RESOURCE_NAME);
-			memberTypes.add(Profile.RESOURCE_NAME);
-			checkResourceType(memberIdentifier, memberTypes);
-			
+			checkResourceType(memberIdentifier, Profile.RESOURCE_NAME);
+
 			Group group = em.find(Group.class, groupIdentifier.getId());
-			if ( group == null ) {
+
+			if (group == null) {
 				throw new MembershipServiceException("unable to find a group for id " + groupIdentifier.getId());
 			}
-			if ( memberIdentifier.getType().equals(Group.RESOURCE_NAME) ) {
-				group.removeMember("G:" + member);
-			} else {
-				group.removeMember("P:" + member);
+
+			Profile profile = em.find(Profile.class, memberIdentifier.getId());
+
+			if (profile == null) {
+				throw new MembershipServiceException("unable to find a profile for id " + memberIdentifier.getId());
 			}
+
+			group.removeMember(member);
+			profile.removeGroup(path);
+
+			em.merge(profile);
 			em.merge(group);
 
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "remove-member"), ""));
-		} catch ( Exception e ) {
-			logger.error("unable to remove member from group", e);
+			binding.setProperty(member, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME,
+					"remove-member"), ""));
+		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
-			throw new MembershipServiceException("unable to remove member from group", e);
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotFoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (Exception e) {
+			ctx.setRollbackOnly();
+			throw new MembershipServiceException("unable to remove member for group at path: " + path, e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	public boolean isMember(String path, String member) throws MembershipServiceException {
+	public boolean isMember(String path, String member) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.warn("isMember(...) called");
 		logger.debug("params : path=" + path + ", member=" + member);
-		
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "read");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "read");
+
 			FactoryResourceIdentifier groupIdentifier = binding.lookup(path);
 			checkResourceType(groupIdentifier, Group.RESOURCE_NAME);
-			
+
 			FactoryResourceIdentifier memberIdentifier = binding.lookup(member);
-			Vector<String> memberTypes = new Vector<String> ();
-			memberTypes.add(Group.RESOURCE_NAME);
-			memberTypes.add(Profile.RESOURCE_NAME);
-			checkResourceType(memberIdentifier, memberTypes);
-			
-			boolean isMember = false;
-			if ( memberIdentifier.getType().equals(Group.RESOURCE_NAME) ) {
-				isMember = isMember(path, "G:" + member,new Vector<String> ());
-			} else {
-				isMember = isMember(path, "P:" + member,new Vector<String> ());
-			}
-			
-			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "is-member"), ""));
-			
-			return isMember;
-		} catch ( Exception e ) {
-			logger.error("error in isMember", e);
-			throw new MembershipServiceException("error in isMember", e);
-		}
-	}
-	
-	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	private boolean isMember(String path, String memberId, List<String> cycle) throws MembershipServiceException {
-		try {
-			FactoryResourceIdentifier groupIdentifier = binding.lookup(path);
-			checkResourceType(groupIdentifier, Group.RESOURCE_NAME);
-			
+			checkResourceType(memberIdentifier, Profile.RESOURCE_NAME);
+
 			Group group = em.find(Group.class, groupIdentifier.getId());
-			
-			cycle.add(path);
-			
-			if ( group.isMember(memberId) ) {
-				return true;
+
+			boolean isMember = false;
+
+			if (group.isMember(member)) {
+				isMember = true;
 			}
-			
-			for (String cmember : group.getMembers() ) {
-				if ( cmember.startsWith("G:") ) {
-					if ( !cycle.contains(cmember.substring(2)) ) {
-						return isMember(cmember.substring(2), memberId, cycle);
-					}
-				}
-			}
-			
-			return false;
-		} catch ( Exception e ) {
-			throw new MembershipServiceException(e);
+
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME,
+					"is-member"), ""));
+
+			return isMember;
+		} catch (AccessDeniedException e) {
+			throw e;
+		} catch (InvalidPathException e) {
+			throw e;
+		} catch (PathNotFoundException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new MembershipServiceException("unable to check if is member of group ath path: " + path, e);
 		}
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	public String[] listMembers(String path) throws MembershipServiceException {
+	public String[] listMembers(String path) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.warn("listMembers(...)");
 		logger.debug("params : path=" + path);
+
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "read");
-			
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "read");
+
 			FactoryResourceIdentifier groupIdentifier = binding.lookup(path);
 			checkResourceType(groupIdentifier, Group.RESOURCE_NAME);
-			
+
 			Group group = em.find(Group.class, groupIdentifier.getId());
-			
-			String[] membersId = group.getMembers();
-			String[] members = new String[membersId.length];
-			
-			for ( int i=0; i<membersId.length; i++ ) {
-				members[i] = membersId[i].substring(2);
-			}
-			
-			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME, "list-members"), ""));
-			
+
+			String[] members = group.getMembers();
+
+			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME,
+					"list-members"), ""));
+
 			return members;
-		} catch ( Exception e ) {
-			logger.error("error in listMembers", e);
-			throw new MembershipServiceException("error in listMembers", e);
+		} catch (AccessDeniedException e) {
+			throw e;
+		} catch (InvalidPathException e) {
+			throw e;
+		} catch (PathNotFoundException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new MembershipServiceException("unable to list members of group at path: " + path, e);
 		}
 	}
-	
-	//private internal methods
-	
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public String[] listGroups(String path) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
+		logger.warn("listGroups(...)");
+		logger.debug("params : path=" + path);
+
+		try {
+			String caller = getProfilePathForConnectedIdentifier();
+			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "read");
+
+			FactoryResourceIdentifier profileIdentifier = binding.lookup(path);
+			checkResourceType(profileIdentifier, Profile.RESOURCE_NAME);
+
+			Profile profile = em.find(Profile.class, profileIdentifier.getId());
+
+			String[] groups = profile.getGroups();
+
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
+					"list-groups"), ""));
+
+			return groups;
+		} catch (AccessDeniedException e) {
+			throw e;
+		} catch (InvalidPathException e) {
+			throw e;
+		} catch (PathNotFoundException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new MembershipServiceException("unable to list groups of profile at path: " + path, e);
+		}
+	}
+
+	// private internal methods
 	private void checkResourceType(FactoryResourceIdentifier identifier, String resourceType) throws MembershipServiceException {
-		Vector<String> types = new Vector<String> ();
+		Vector<String> types = new Vector<String>();
 		types.add(resourceType);
 		this.checkResourceType(identifier, types);
 	}
-	
+
 	private void checkResourceType(FactoryResourceIdentifier identifier, Vector<String> resourceTypes) throws MembershipServiceException {
-		if ( !identifier.getService().equals(getServiceName()) ) {
+		if (!identifier.getService().equals(getServiceName())) {
 			throw new MembershipServiceException("resource identifier " + identifier + " does not refer to service " + getServiceName());
 		}
-		if ( !resourceTypes.contains(identifier.getType()) ) {
+
+		if (!resourceTypes.contains(identifier.getType())) {
 			throw new MembershipServiceException("resource identifier " + identifier + " does not refer to one of the desired resource types");
 		}
 	}
-	
-	//Factory Service Methods
-	
+
+	// Factory Service Methods
 	@Override
 	public String[] getResourceTypeList() {
 		return RESOURCE_TYPE_LIST;
@@ -762,34 +989,27 @@ public class MembershipServiceBean implements MembershipService {
 	public String getServiceName() {
 		return SERVICE_NAME;
 	}
-	
+
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public FactoryResource findResource(String path) throws FactoryException {
+	public FactoryResource findResource(String path) throws FactoryException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.info("findResource(...) called");
 		logger.debug("params : path=" + path);
-		
-		try {
-			FactoryResourceIdentifier identifier = binding.lookup(path);
-			
-			if ( !identifier.getService().equals(MembershipService.SERVICE_NAME) ) {
-				throw new CoreServiceException("Resource " + identifier + " is not managed by Membership Service");
-			}
-			
-			if ( identifier.getType().equals(Group.RESOURCE_NAME) ) {
-				return readGroup(path);
-			} 
-			
-			if ( identifier.getType().equals(Profile.RESOURCE_NAME) ) {
-				return readProfile(path);
-			} 
-			
-			throw new CoreServiceException("Resource " + identifier + " is not managed by Membership Service");
-			
-		} catch (Exception e) {
-			logger.error("unable to find the resource at path " + path, e);
-			throw new CoreServiceException("unable to find the resource at path " + path, e);
+
+		FactoryResourceIdentifier identifier = binding.lookup(path);
+
+		if (!identifier.getService().equals(MembershipService.SERVICE_NAME)) {
+			throw new MembershipServiceException("resource " + identifier + " is not managed by service " + MembershipService.SERVICE_NAME);
 		}
+
+		if (identifier.getType().equals(Group.RESOURCE_NAME)) {
+			return readGroup(path);
+		}
+
+		if (identifier.getType().equals(Profile.RESOURCE_NAME)) {
+			return readProfile(path);
+		}
+
+		throw new MembershipServiceException("resource " + identifier + " is not managed by service " + MembershipService.SERVICE_NAME);
 	}
-	
 }

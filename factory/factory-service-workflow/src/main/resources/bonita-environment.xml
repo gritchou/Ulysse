@@ -1,0 +1,101 @@
+<environment-definition>
+
+	<environment-factory>
+		<hibernate-configuration name='hibernate-configuration:core'>
+			<properties resource='hibernate-core.properties' />
+			<mappings resource='bonita.runtime.mappings.hbm.xml' />			
+			<mappings resource='bonita.querier.mappings.hbm.xml' />
+			<!-- mappings resource='hibernate.variable.hbm.xml' /-->
+			<!-- mapping resource='bonita.querier.variable.qualipso.hbm.xml' /-->
+		</hibernate-configuration>
+		<object name='hook-executor'
+			class='org.ow2.bonita.definition.activity.HookExecutorImpl' />
+		<hibernate-session-factory name='hibernate-session-factory:core'
+			configuration='hibernate-configuration:core' />
+		<object name='uuid-generator'
+			class='org.ow2.bonita.services.impl.DefaultUUIDGenerator' />
+		<variable-types resource='bonita.type.resolver.xml' />
+		<hibernate-configuration name='hibernate-configuration:history'>
+			<properties resource='hibernate-history.properties' />
+			<mappings resource='bonita.querier.mappings.hbm.xml' />
+			<mappings resource='bonita.history.mappings.hbm.xml' />
+			<cache-configuration resource='bonita.querier.cache.xml'
+				usage='read-write' />
+		</hibernate-configuration>
+		<job-executor threads='1' auto-start='true' />
+		<hibernate-session-factory name='hibernate-session-factory:history'
+			configuration='hibernate-configuration:history' />
+		<command-service>
+			<retry-interceptor />
+			<environment-interceptor />
+			<standard-transaction-interceptor />
+		</command-service>
+		<chainer name='finished-instance-handler'>
+			<object
+				class='org.ow2.bonita.services.handlers.impl.DeleteFinishedInstanceHandler' />
+			<object
+				class='org.ow2.bonita.services.handlers.impl.ArchiveFinishedInstanceHandler' />
+		</chainer>
+		<chainer name='undeployed-package-handler'>
+			<object
+				class='org.ow2.bonita.services.handlers.impl.ArchiveUndeployedPackageHandler' />
+		</chainer>
+	</environment-factory>
+
+	<environment>
+		<journal name='journal' class='org.ow2.bonita.persistence.db.DbJournal'>
+			<arg>
+				<string value='querier-session:core' />
+			</arg>
+		</journal>
+		<history name='history' class='org.ow2.bonita.persistence.db.DbHistory'>
+			<arg>
+				<string value='querier-session:history' />
+			</arg>
+		</history>
+		<!--
+			DbJournal cannot be shared by several environments. It contains a
+			session cache that needs to be recreated for each environment
+		-->
+		<chainer name='recorder'>
+			<recorder class='org.ow2.bonita.persistence.log.LoggerRecorder' />
+			<ref object='journal' />
+		</chainer>
+		<chainer name='archiver'>
+			<archiver class='org.ow2.bonita.persistence.log.LoggerArchiver' />
+			<ref object='history' />
+		</chainer>
+		<!--
+			Query Api has an object reference to the journal, so it cannot be
+			shared by multiple environments
+		-->
+		<queryApi name='queryList'>
+			<ref object='journal' />
+			<ref object='history' />
+		</queryApi>
+		<!--
+			DbRepository cannot be shared by several environments. It contains a
+			session cache that needs to be recreated for each environment
+		-->
+		<repository class='org.ow2.bonita.persistence.db.DbRepository'>
+			<arg>
+				<string value='runtime-session:core' />
+			</arg>
+		</repository>
+		<security class='org.ow2.bonita.facade.StandardSecurityContext' />
+		<runtime-db-session name='runtime-session:core'
+			session='hibernate-session:core' />
+		<timer-session />
+		<transaction />
+		<job-db-session session='hibernate-session:core' />
+		<hibernate-session name='hibernate-session:history'
+			factory='hibernate-session-factory:history' />
+		<querier-db-session name='querier-session:core'
+			session='hibernate-session:core' />
+		<querier-db-session name='querier-session:history'
+			session='hibernate-session:history' />
+		<hibernate-session name='hibernate-session:core'
+			factory='hibernate-session-factory:core' />
+	</environment>
+
+</environment-definition>

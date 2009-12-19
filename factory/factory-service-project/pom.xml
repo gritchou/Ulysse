@@ -1,21 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
 		<artifactId>factory-parent</artifactId>
 		<groupId>org.qualipso</groupId>
 		<version>0.5-SNAPSHOT</version>
+		<relativePath>../factory-parent</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-project</artifactId>
 	<name>Qualipso Factory Service Project Component</name>
-	<version>0.2.3-SNAPSHOT</version>
+	<version>0.4.0-SNAPSHOT</version>
 	<packaging>ejb</packaging>
 	<scm>
 		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-project</connection>
 		<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-project</developerConnection>
-	</scm>
+	  <url>https://gforge.inria.fr/plugins/scmsvn/viewcvs.php/tags/factory-parent-0.5?root=qualipso/factory-service-project</url>
+  </scm>
 	<organization>
 		<name>Thales Theresis</name>
 		<url>http://www.thalesgroup.com</url>
@@ -55,10 +55,11 @@
 		</plugins>
 	</build>
 	<dependencies>
+	
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-core</artifactId>
-			<version>0.3.3-SNAPSHOT</version>
+			<version>0.4.0-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -75,14 +76,14 @@
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.jbossas</groupId>
-			<artifactId>jboss-as-embedded</artifactId>
-			<version>5.0.1.GA</version>
+			<artifactId>jboss-as-ejb3</artifactId>
+			<version>5.1.0.GA</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.ws.native</groupId>
 			<artifactId>jbossws-native-core</artifactId>
-			<version>3.0.5.GA</version>
+			<version>3.1.2.GA</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

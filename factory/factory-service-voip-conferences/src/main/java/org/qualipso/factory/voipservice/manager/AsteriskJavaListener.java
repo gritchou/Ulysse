@@ -22,7 +22,6 @@ import org.asteriskjava.manager.ManagerEventListener;
 import org.asteriskjava.manager.event.ConnectEvent;
 import org.asteriskjava.manager.event.ManagerEvent;
 import org.qualipso.factory.voipservice.VoIPConferenceServiceException;
-import org.qualipso.factory.voipservice.conference.AsteriskConferenceSettings;
 import org.qualipso.factory.voipservice.entity.ConferenceUser;
 import org.qualipso.factory.voipservice.entity.MeetMe;
 import org.qualipso.factory.voipservice.entity.SipConf;

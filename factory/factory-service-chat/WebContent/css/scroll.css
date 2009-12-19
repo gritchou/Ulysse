@@ -1,0 +1,111 @@
+/* Scroll Bar Master Styling Starts Here */
+
+.scrollgeneric
+{
+line-height: 1px;
+font-size: 1px;
+position: absolute;
+}
+
+.vscrollerbase, .vscrollerbar {
+width: 15px;
+top: 0px;
+}
+
+.vscrollerbar {
+left: 0px;
+}
+
+.hscrollerbase, .hscrollerbar {
+height: 15px;
+left: 0px;
+
+}
+
+
+.hscrollerbar {
+top: 0px;
+}
+
+.hscrollerbar {
+top: 20px important;
+}
+
+.vscrollerbar, .hscrollerbar {
+/*padding information of these elements are only used for
+padding of the scroll-bar with respect to the scroll base,
+the padding will automatically be turned off by the script*/
+padding: 5px;
+z-index: 2;
+}
+
+.vscrollerbarbeg {
+/*top image holder for vertical scroll bar*/
+background: url(images/vscroller.png) 0px 0px;
+width: 15px;
+height: auto;
+top: 0px;
+}
+
+.vscrollerbarend {
+/*bottom image holder for vertical scroll bar*/
+background: url(images/vscroller.png);
+width: 15px;
+height: 1px;
+}
+
+.hscrollerbarbeg {
+background: url(images/hscroller.png) -10px 0px;
+height: 15px;
+width: auto;
+left: 0;
+}
+
+.hscrollerbarend {
+background: url(images/hscroller.png);
+height: 15px;
+width: 10px;
+}
+
+/* Following are OPTIONAL */
+
+.vscrollerbase, .hscrollerbase {
+background-color: #D1DDCB;
+background-image: url(images/scrollbaseback.png);
+
+}
+
+.hscrollerbasebeg {
+left: 0px;
+top: 0px;
+height: 17px;
+background: url(images/vscrolltop.png) no-repeat;
+}
+
+.hscrollerbaseend {
+top: 0px;
+height: 15px;
+width: 7px;
+background: url(images/scrollbases.png) 0% 0% no-repeat;
+}
+
+.vscrollerbasebeg {
+top: 0px;
+width: 15px;
+background: url(images/scrollbases.png) -7px -8px no-repeat;
+}
+
+.vscrollerbaseend {
+height: 7px;
+width: 15px;
+background: url(images/scrollbases.png) -7px 0px no-repeat;
+}
+
+.scrollerjogbox {
+width: 15px;
+height: 15px;
+bottom: 0px;
+right: 0px;
+background: white url(images/scrolljog.png) 50% 50%;
+}
+/* Scroll Bar Master Styling Ends Here */

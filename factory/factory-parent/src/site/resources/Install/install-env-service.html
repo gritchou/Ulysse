@@ -1,0 +1,586 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta http-equiv="Content-Script-Type" content="text/javascript" />
+	
+	<meta http-equiv="imagetoolbar" content="no" />
+	
+	<meta name="author" content="Christophe Bouthier" />
+	<meta name="copyright" content="copyright 2009 - INRIA" />
+	<meta name="keywords" content="Qualipso, qualipso factory, open-source, quality, service, development" />
+	<meta name="description" content="Documentation for the Qualiso factory - installation of the development environment" />
+	
+	<link rel="stylesheet" href="commons/css/style.css" type="text/css" />
+	<link rel="stylesheet" href="commons/css/lightbox.css" type="text/css" media="screen" />
+	
+	<script type="text/javascript" src="commons/js/prototype.js"></script>
+  <script type="text/javascript" src="commons/js/scriptaculous.js?load=effects,builder"></script>
+  <script type="text/javascript" src="commons/js/lightbox.js"></script>
+	
+	<title>Qualipso Factory - Install development environment for service development</title>
+</head>
+<body id="www.qualipso.org">
+	
+	<h1>Qualipso Factory</h1>
+	
+  <div id="wrapper">
+  	
+	<div id="menu">
+	  <div id="menu_all">
+	    <ul>
+	      <li class="selected"><a href="install-env-service.html">Installation</a</li>
+<!--	      <li><a href="create-new-service.html">Development</a></li>-->
+	    </ul>
+	  </div>
+	 <div id="menu_global">
+  	  <h2>Tutorial map:</h2>
+	  	<ol>
+	  	  <li id="selected"><a href="install-env-service.html">Environment installation</a></li>
+	  	  <li><a href="config-jboss.html">JBoss configuration</a></li>
+	  	  <li><a href="install-dev-service.html">Template installation</a></li>
+	    </ol>
+	  </div>
+	  <div id="menu_local">
+		  <h2>Steps:</h2>
+		  <ul>
+		    <li><a href="#JDK">Java JDK 1.6</a></li>
+		    <li><a href="#SVN">Svn 1.6</a></li>
+		    <li><a href="#GIT">Git 1.6</a></li>
+		    <li><a href="#MAVEN">maven 2</a></li>
+		    <li><a href="#JBOSS">JBoss AS 5.0.1.GA</a></li>
+		    <li><a href="#ECLIPSE">Eclipse "Galileo"3.5 JEE</a></li>
+	  	  <li><a href="#SVN_ECLIPSE">svn plugin</a></li>
+	  	  <li><a href="#GIT_ECLIPSE">git plugin</a></li>
+	  	  <li><a href="#MAVEN_ECLIPSE">maven plugin</a></li>
+	  	  <li><a href="#JBOSS_ECLIPSE">jboss tools plugin</a></li>
+	    </ul>
+	  </div>
+	  <div id="back">
+	    <a href="../index.html">Go back to the main site</a>
+	  </div>
+	</div>
+	
+	<div id="content">
+		<h2>Installation tutorial</h2>
+		
+		<div id="global-introduction">
+			<p>The goal of this tutorial is to gives you all the necessary instruction to install a complete development environment to be able to develop custom service for the Qualispo Factory.</p>
+			<p>The tutorial is separated in several pages:</p>
+			<ul>
+			  <li>In the <a href="install-env-service.html">first page</a>, you will install and configure all the necessary tools for your development environment</li>
+			  <li>In the <a href="config-jboss.html">second page</a>, you will configure one of those tool, JBoss, the runtime environment</li>
+			  <li>In the <a href="install-dev-service.html">third page</a>, you will install, configure, and run, a template service project.</li>
+			</ul>
+			<p>You will find on the left side a menu with links to those pages. When a page is divided in several steps (like this one), you will also find a menu with those steps on the left side.</p>
+			<p>There is NO prerequisite of installed software, the instruction start from a bare computer with only its operating system installed. All the instructions are given for a Linux Ubuntu 9.04 ("jaunty") operating system, you may need to transpose them if you're on another Linux flavor or another operating system.</p>
+		</div>
+			
+			
+		<h2>Installation of development environment for service development</h2>
+		
+		<div id="introduction">
+			<p>This page contains the installation instruction necessary to install a complete development environment for the Qualispo Factory. You will install all the necessary tools, that is the technology platform (Java), 2 version control systems to control your source code, one centralized and one distributed (svn and git), a software project management to build your project (maven), an EJB application server (JBoss), an IDE (Eclipse), and IDE plugins to control all thoses tools (svn, git, maven, JBoss) directly from your IDE.</p>
+		</div>
+		
+		<div id="checklist">
+		  <h3>Checklist</h3>
+		  <p>Here is the checklist of everything that you will need to install:</p>
+		  <ul>
+		    <li><a href="#JDK">Java JDK 1.6</a></li>
+		    <li><a href="#SVN">Svn 1.6</a></li>
+		    <li><a href="#GIT">Git 1.6</a></li>
+		    <li><a href="#MAVEN">maven 2</a></li>
+		    <li><a href="#JBOSS">JBoss AS 5.0.1.GA</a></li>
+		    <li><a href="#ECLIPSE">Eclipse "Galileo"3.5 JEE - with the following plugins</a>
+		    <ul>
+		      <li><a href="#SVN_ECLIPSE">svn plugin</a></li>
+		      <li><a href="#GIT_ECLIPSE">git plugin</a></li>
+		      <li><a href="#MAVEN_ECLIPSE">maven plugin</a></li>
+		      <li><a href="#JBOSS_ECLIPSE">jboss tools plugin</a></li>
+		    </ul>
+		    </li>
+		  </ul>
+		</div>
+			
+    <!-- Java -->
+		<div class="step">
+		  <h3><a name="JDK"></a>Step 1: installing Java</h3>
+			<h4>Version needed: JDK 1.6</h4>
+			<p>Everything in the qualiso factory is done in Java. So the very first step is to ensure that Java is running on the system. However, there are two things that need to be taken care of: the version of Java and the kind of Java environment. There are at least 3 versions of Java currently available (1.5, 1.6, and 1.7), and there are 2 kinds of java environment: the JRE (Java Runtime Environment) and the JDK (Java Developer Kit). You need Java 1.6, as Java 1.5 is too old and is missing some advanced functionnalities of Java 1.6 that are used in the Qualipso Factory. Also, you need to be able to develop Java program, and especially to compile Java source code into Java bytecode. The JRE environment contains only the necessary things to RUN Java program, but nothing to develop (no compiler), so you need the JDK, not the JRE. In summary, you need to have the Java JDK 1.6 running on the system.</p>
+    	<p>You can test your version of JDK throught the shell:
+    	  <samp>
+	  	    <kbd>Funkadelic:~$ javac -version</kbd>
+	  	    <samp>javac 1.6.0_16</samp>
+    	  </samp>
+    	  The only important figures are the two first ones ("1.6" here), the rest denote minor version numbers and generally correspond do bug corrections.
+    	</p>
+  		<p>If you have a different version of javac, it doesn't necessary means that you need to install Java, as you may have several version of Java installed, and the system is only using one. You can check that in the shell:
+  		  <samp>
+  		    <kbd>Funkadelic:~$ update-java-alternatives -l</kbd>
+  		    <samp>java-1.5.0-sun 53 /usr/lib/jvm/java-1.5.0-sun</samp>
+          <samp>java-6-sun 63 /usr/lib/jvm/java-6-sun</samp>
+        </samp>
+	  	Each line in the given answer is a Java version installed on your system. If you have a "java-6-sun" line, then it means that the correct version of java is installed, but that the system is not using it. You can correct that using the following shell command:
+	  	  <samp>
+	  	    <kbd>sudo update-java-alternatives -s java-6-sun</kbd>
+	  	  </samp>
+	  	</p>
+	  	<p>If you don't have a "java-6-sun" line in the answer of <kbd>update-java-alternatives -l</kbd>, or if you get an "unknown command" error message (or something similar) as the anwser of <kbd>javac -version</kbd>, then it means you need to install the Java JDK.</p>
+	  	<p class="steps">To install Java JDK 1.6 with Synaptic (on Ubuntu):</p>
+  	  	<ol>
+	    	  <li>
+	    	    Launch "Software Sources" (in "System" -> "Administration") 
+	    	    <a href="images/full/launch-sources.png" rel="lightbox" title="Launching software sources"><img src="images/preview/launch-sources.png" alt="Launching software sources"/></a>
+	    	  </li>
+              <li>
+	    	    In the "Ubuntu Software" tab, check that the <strong>multiverse</strong> source repository for package is selected.
+	    	    <a href="images/full/multiverse-repository.png" rel="lightbox" title="Checking multiverse"><img src="images/preview/multiverse-repository.png" alt="Checking multiverse" /></a>
+	    	  </li>
+	    	  <li>
+	    	    Launch "Synaptic Package Manager" (in "System" -> "Administration")
+	    	    <a href="images/full/launch-synaptic.png" rel="lightbox" title="Launching Synaptic"><img src="images/preview/launch-synaptic.png" alt="Launching Synaptic"/></a>
+	    	  </li>
+	    	  <li>
+	    	    Search for the "sun-java6-jdk" package and install it.
+	    	    <a href="images/full/install-java.png" rel="lightbox" title="sun-java6-jdk package"><img src="images/preview/install-java.png" alt="sun-java6-jdk package" /></a>
+	    	  </li>
+	    	  <li>
+  	    	    In the shell, type the following command, to ensure that the system is using the version of Java that you just installed.
+	    	    <samp>
+              <kbd>sudo update-java-alternatives -s java-6-sun</kbd>
+	  	      </samp>
+	    	  </li>
+	    	  <li>
+	    	    Test that your java version is correctly installed, by typing the following command in the shell:
+	    	    <samp>
+	  	        <kbd>Funkadelic:~$ javac -version</kbd>
+	  	        <samp>javac 1.6.0_16</samp>
+	  	      </samp>
+	    	  </li>
+	    	  <li>
+	    	    Set up the <code>JAVA_HOME</code> environment variable by adding the following line to your .bashrc file:
+	  	      <samp>export JAVA_HOME=/usr/lib/jvm/java-6-sun</samp>
+	    	  </li>
+	    </ol>
+	    </div>
+		
+        <!-- SVN -->
+		<div class="step">
+		  <h3><a name="SVN"></a>Step 2: installing Subversion</h3>
+			<h4>Version needed: 1.6</h4>
+			<p>Subversion is the main version control system (VCS) used for the sources of the factory, on the INRIA GForge forge. You need to install a client of the same version than used on the GForge server, that is version 1.6. If you don't, you will get error message and won't be able to commit.</p>
+    	<p>You can test your version of svn throught the shell:
+    	  <samp>
+    	    <kbd>Funkadelic:~$ svn --version</kbd>
+          <samp>svn, version 1.6.1 (r37116)</samp>
+    	  </samp>
+    	  As always, the only important figure is the second figure ("6" here). With a "6", you already got the necessary version of svn running. You can skip this step and go directly to the Git installation step. With a "5" or a "unknown command" error message (or something similar), you need to install SVN 1.6.
+    	</p>
+			<p class="steps">To install the 1.6 version, you need to install a specific source repository, as by default ubuntu 9.04 only allows svn 1.5:
+  			<a href="https://launchpad.net/~anders-kaseorg/+archive/subversion-1.6">https://launchpad.net/~anders-kaseorg/+archive/subversion-1.6</a>	</p>
+			  <ol>
+			  		<li>
+			      In a shell, type the following command:
+			      <samp>
+	  	        <kbd>sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 413576CB</kbd>
+	  	      </samp>
+	  	      This will add the key to authenticate the new repository that you will add just after.
+			    </li>
+			    <li>
+			      Launch "Software Sources" (in "System" -> "Administration") 
+	    	    <a href="images/full/launch-sources.png" rel="lightbox" title="Launching Software Sources"><img src="images/preview/launch-sources.png" alt="Launching Software Sources" /></a>
+			    </li>
+			    <li>
+			      In the "Third-Party Software" tab, click on the "Add..." button (bottom left)
+			      <a href="images/full/add-repository.png" rel="lightbox" title="Third-party Software tab"><img src="images/preview/add-repository.png" alt="Third-party Software tab"/></a>
+			    </li>
+			    <li>
+			      Fill the "APT line:" field with the following line:
+			      <samp>
+	  	        <kbd>deb http://ppa.launchpad.net/anders-kaseorg/subversion-1.6/ubuntu jaunty main</kbd>
+	  	      </samp>
+	  	      and close the windows. Accept to refresh the packages list if the system ask you for.
+			    </li>
+			    <li>
+	    	    Launch "Synaptic Package Manager" (in "System" -> "Administration")
+	    	    <a href="images/full/launch-synaptic.png" rel="lightbox" title="Launching Synaptic"><img src="images/preview/launch-synaptic.png" alt="Launching Synaptic"/></a>
+			    </li>
+			    <li>
+	    	    Search for the "subversion" package and install it.
+	    	    <a href="images/full/install-svn.png" rel="lightbox" title="subversion package"><img src="images/preview/install-svn.png" alt="subversion package"/></a>
+	    	  </li>
+	    	  <li>
+	    	    Test that your svn version is correctly installed, by typing the following command in the shell:
+	    	    <samp>
+    	        <kbd>Funkadelic:~$ svn --version</kbd>
+              <samp>svn, version 1.6.1 (r37116)</samp>
+	  	      </samp>
+	    	  </li>
+			  </ol>
+			<p>Of course, you can use svn directly from the shell, but you will also install later a plugin for eclipse that will allow you to use svn directly from Eclipse.</p>
+		</div>
+		
+		 <!-- GIT -->
+		<div class="step">
+		  <h3><a name="GIT"></a>Step 3: installing Git</h3>
+			<h4>Version needed: 1.6</h4>
+			<p>Git is another source control system, but a distributed one (DVCS). As some qualipso developers use it, it's a good idea to install it.</p>
+			<p>You can test your version of git throught the shell:
+    	  <samp>
+    	    <kbd>Funkadelic:~$ git --version</kbd>
+          <samp>git version 1.6.4.4</samp>
+    	  </samp>
+    	  If you got an "unknown command" error message (or something similar), you need to install Git.
+    	</p>
+    	<p class="steps">To install the 1.6.4.x version, you need to install a specific source repository, as by default ubuntu 9.04 only allows git 1.6.0.x: 	<a href="https://launchpad.net/~git-core/+archive/ppa">https://launchpad.net/~git-core/+archive/ppa</a></p>
+    	  <ol>
+    	  <li>
+			      In a shell, type the following command:
+			      <samp>
+	  	        <kbd>sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E1DF1F24</kbd>
+	  	      </samp>
+	  	      This will add the key to authenticate the new repository that you will add just after.
+			    </li>
+			    <li>
+			      Launch "Software Sources" (in "System" -> "Administration") 
+	    	    <a href="images/full/launch-sources.png" rel="lightbox" title="Launching Software Sources"><img src="images/preview/launch-sources.png" alt="Launching Software Sources" /></a>
+			    </li>
+			    <li>
+			      In the "Third-Party Software" tab, click on the "Add..." button (bottom left)
+			      <a href="images/full/add-repository.png" rel="lightbox" title="Third-party Software tab"><img src="images/preview/add-repository.png" alt="Third-party Software tab"/></a>
+			    </li>
+			    <li>
+			      Fill the "APT line:" field with the following line:
+			      <samp>
+	  	        <kbd>deb http://ppa.launchpad.net/git-core/ppa/ubuntu jaunty main</kbd>
+	  	      </samp>
+	  	      and close the windows. Accept to refresh the packages list if the system ask you for.
+			    </li>
+    	    <li>
+    	      Launch "Synaptic Package Manager" (in "System" -> "Administration")
+	    	    <a href="images/full/launch-synaptic.png" rel="lightbox" title="Launching Synaptic"><img src="images/preview/launch-synaptic.png" alt="Launching Synaptic"/></a>
+    	    </li>
+    	    <li>
+    	      Search for the "git-core" package and install it.
+	    	    <a href="images/full/install-git.png" rel="lightbox" title="git-core package"><img src="images/preview/install-git.png" alt="git-core package"/></a>
+    	    </li>
+    	    <li>
+	    	    Test that your git version is correctly installed, by typing the following command in the shell:
+	    	    <samp>
+    	        <kbd>Funkadelic:~$ git --version</kbd>
+              <samp>git version 1.6.4.4</samp>
+	  	      </samp>
+	    	  </li>
+    	  </ol>
+    	<p>Of course, you can use git directly from the shell, but you will also install later a plugin for eclipse that will allow you to use git directly from Eclipse.</p>
+		</div>
+		
+		<!-- Maven -->
+		<div class="step">
+		  <h3><a name="MAVEN"></a>Step 4: installing Maven</h3>
+			<h4>Version needed: 2</h4>
+			<p>Maven is the software project management used in the Qualipso Factory. You can think of it as a "make" or "ant" on steroid. Maven manage building phases and dependencies, using a "pom.xml" file, that contains all necessary informations. Maven manage dependencies to other jar by downloading them from well-known repositories and keeping them in a local repository, the <em>".m2"</em> folder at the root of your home directory. A specific maven repository has been set up at <a href=" http://radis.loria.fr/maven2/">http://radis.loria.fr/maven2/</a>. This repository contains a cache of all jars needed by the Qualipso Factory, and also of the Qualipso Factory jars themselfs. With this repository, it is possible to create a factory service without even directly downloading the forge jars, as they will be donwloaded and added as necessary directly by Maven</p>
+			<p  class="steps">The main useful phases for the Qualispo factory are:</p>
+			  <dl>
+			  	<dt><samp><kbd>mvn test</kbd></samp></dt>
+			    <dd>
+			      Compile all necessary classes and run the tests.
+			    </dd>
+			    <dt><samp><kbd>mvn package</kbd></samp></dt>
+  			    <dd>
+			      Same as test, but then package everything in the format specified in the pom.xml file (jar, war, ear, ...)
+			    </dd>
+			    <dt><samp><kbd>mvn install</kbd></samp></dt>
+			    <dd>
+			      Same as package, but then publish everything in the local repository (<em>".m2"</em> folder at the root of the home folder), so that it's accessible to other local maven projects.
+			    </dd>
+			    <dt><samp><kbd>mvn clean</kbd></samp></dt>
+			    <dd>
+			      Clean up the project, removing classes files and products that are results of compilations.
+			    </dd>
+			  </dl>
+			<p  class="steps">You can test your version of maven throught the shell:
+    	  <samp>
+    	    <kbd>Funkadelic:~$ mvn --version</kbd>
+          <samp>Maven version: 2.0.9</samp>
+    	  </samp>
+    	  If you got an "unknown command" error message (or something similar), you need to install Maven.
+    	</p>
+    	  <ol>
+    	    <li>
+    	      Launch "Synaptic Package Manager" (in "System" -> "Administration")
+	    	    <a href="images/full/launch-synaptic.png" rel="lightbox" title="Launching Synaptic"><img src="images/preview/launch-synaptic.png" alt="Launching Synaptic"/></a>
+    	    </li>
+    	    <li>
+    	      Search for the "maven2" package and install it.
+	    	    <a href="images/full/install-maven.png" rel="lightbox" title="maven2 package"><img src="images/preview/install-maven.png" alt="maven2 package"/></a>
+    	    </li>
+    	    <li>
+	    	    Test that your maven version is correctly installed, by typing the following command in the shell:
+	    	    <samp>
+    	        <kbd>Funkadelic:~$ mvn --version</kbd>
+              <samp>Maven version: 2.0.9</samp>
+	  	      </samp>
+	    	  </li>
+    	  </ol>
+    	<p>Of course, you can use maven directly from the shell, but you will also install later a plugin for eclipse that will allow you to use maven directly from Eclipse.</p>
+		</div>
+		
+		<!-- JBoss -->
+		<div class="step">
+			<h3><a name="JBOSS"></a>Step 5: installing JBoss</h3>
+			<h4>Version needed: 5.0.1.GA</h4>
+			<p>JBoss AS (Application Server) is the EJB3 application server used for Qualipso Factory. Be careful about the version number here. At the time of this writing, the last version of JBoss AS is 5.<strong>1.0</strong>. We don't use this version, but the just previous one, JBoss AS 5.<strong>0.1</strong>.</p>
+			<p>
+		    The installation is simple, just download the correct archive and unzip it where you want the server to be (generally, "/opt/jboss" is a reasonable choice):</p>
+			  <ol>
+			    <li>
+			      Download the <strong>JBoss AS 5.0.1.GA</strong> archive from the JBoss site:
+			      <a href="http://www.jboss.org/jbossas/downloads/">http://www.jboss.org/jbossas/downloads/</a>
+			      (You can also download it directly from <a href="http://sourceforge.net/projects/jboss/files/JBoss/JBoss-5.0.1.GA/jboss-5.0.1.GA-jdk6.zip/download">SourceForge</a>, or download a copy directly <a href="packages/jboss-5.0.1.GA-jdk6.zip">here</a>).
+			      The zip file is about 104 Mb.
+			    </li>
+			    <li>
+			      Choose a directory on your hard drive (for example, "/opt") and unzip the JBoss archive "jboss-5.0.1.GA-jdk6.zip" there. You can remove the zip file after that.
+			      <a href="images/full/install-jboss.png" rel="lightbox" title="Installing JBoss"><img src="images/preview/install-jboss.png" alt="Installing JBoss"/></a>
+			    </li>
+			    <li>
+			      Set up the <code>JBOSS_HOME</code> environment variable by adding the following line to your .bashrc file:
+	  	      <samp>export JBOSS_HOME=/&lt;<em>path_to_the_chosen_folder</em>&gt;/jboss-5.0.1.GA</samp>
+			    </li>
+			  </ol>
+			<p>Some important facts about JBoss :</p>
+			  <ul>
+			    <li>To run JBoss: 
+			      <samp>
+			        <kbd>$JBOSS_HOME/bin/run.sh</kbd>
+			     </samp>
+			   </li>
+			   <li>
+			     To deploy something in JBoss, be it a jar, a war, or an ear, you just need to copy it in the following folder: <code>$JBOSS_HOME/server/default/deploy</code>.
+			     If the server is already running, it will pick it up automatically after a few seconds. You then have to look at the log to check if it was correctly deployed or if there was errors.
+			   </li>
+			   <li>
+			      Configuration files for the server are in <code>$JBOSS_HOME/server/default/conf</code>.
+			      In particular, "login-config.xml" contains the JAAS configuration (for user authentication), and the "props" folder contains users, passwords and roles definitions. And "jboss-log4j" contains the configuration for the server logger, if you need more details in the log.
+			   </li>
+			  </ul>
+			 <p>Of course, you can launch jboss directly from the shell, but you will also install later a plugin for eclipse that will allow you to launch JBoss, access to its logs, and deploy/undeploy things in it directly from Eclipse.</p>
+		</div>
+		
+		<!-- Eclipse -->
+		<div class="step">
+		  <h3><a name="ECLIPSE"></a>Step 6: installing Eclipse</h3>
+		  <h4>Version needed: 3.5 (Galileo) JEE</h4>
+		  <p>Eclipse is the Java IDE used to develop the Qualipso Factory and its services. Thanks to its plugins architecture, it is easily extendable to to a rich diversity of tasks. Comparable to linux distribs, there are several "Eclipse distrib", all containing the same base Eclipse IDE, differing only by the plugins already installed in the distrib. In order to develop for the Qualipso Factory, you logically need the JEE Eclipse distribution.</p>
+		  <p>
+		    As for JBoss, the installation is simple, just download the correct archive and unzip it where you want:</p>
+		    <ol>
+		      <li>
+		        Download the version 3.5 of "Eclipse IDE for Java EE Developers" from the Eclipse site: 
+		        <a href="http://www.eclipse.org/downloads/">http://www.eclipse.org/downloads/</a>
+		        (You can also download a copy directly <a href="packages/eclipse-jee-galileo-linux-gtk.tar.gz">here</a>).
+			      The zip file is about 188 Mb.
+          </li>
+          <li>
+			      Choose a directory on your hard drive and unzip the Eclipse archive "eclipse-jee-galileo-linux-gtk.tar.gz" there. You can remove the zip file after that.
+			      <a href="images/full/install-eclipse.png" rel="lightbox" title="Installing Eclipse"><img src="images/preview/install-eclipse.png" alt="Installing Eclipse"/></a>
+			    </li>
+			    <li>
+			      To launch the Eclipse program, go inside the eclipse folder just created, and double-click on the "eclipse" executable.
+			      <a href="images/full/launch-eclipse.png" rel="lightbox" title="Launching Eclipse"><img src="images/preview/launch-eclipse.png" alt="Launching Eclipse"/></a>
+			      As you will undoubtfully launch Eclipse often, it is a good idea to put a shortcup for the "eclispe" executable easily accessible (like on the desktop, or as a launcher on the tasktray).
+			    </li>
+		    </ol>
+		  <p>Thanks to its plugins, it is easily to link eclipse to other tools, like svn, git, maven, and jboss. The rest of the installation consist of installing the necessary plugins. But before that,  if you want to collaborate in the Qualipso Factory you need to configure your code style formatter in Eclipse to use the same convention than in the Qualipso Factory. If you don't do that, then the version control system will detect a lot of unnecessary conflicts, dues to line feed and spaces put by Eclipse.
+		  To configure your custom code style formatter:</p>
+		    <ol>
+		      <li>
+		        Go to "Windows" -> "Preferences":
+		        <a href="images/full/modif-eclipse-prefs.png" rel="lightbox" title="Eclipse preferences"><img src="images/preview/modif-eclipse-prefs.png" alt="Eclipse preferences"/></a>
+		      </li>
+		      <li>
+		        In the left tree, choose "Java" -> "Code Style" -> "Formatter", and in the corresponding right panel, click on the "New..." button:
+		        <a href="images/full/modif-eclipse-formatter.png" rel="lightbox" title="Creating a formatter"><img src="images/preview/modif-eclipse-formatter.png" alt="Creating a formatter"/></a>
+		      </li>
+		      <li>
+		        Fill the "Profile name" with the name of your profile, for example "Qualipso Factory", and then click on the "OK" button:
+		        <a href="images/full/modif-eclipse-formatter-name.png" rel="lightbox" title="Setting the name"><img src="images/preview/modif-eclipse-formatter-name.png" alt="Setting the name"/></a>
+		      </li>
+		      <li>
+		        In the "Indentation" tab, select "Spaces only" for the tab policy, and set "4" for intendation and tab sizes:
+		        <a href="images/full/modif-eclipse-formatter-spaces.png" rel="lightbox" title="Changing spaces preferences"><img src="images/preview/modif-eclipse-formatter-spaces.png" alt="Changing spaces preferences"/></a>
+		      </li>
+		      <li>
+		        In the "Line Wrapping" tab, set "160" for the maximum line width, and click on the "OK" buttons:
+		        <a href="images/full/modif-eclipse-formatter-line.png" rel="lightbox" title="Changing line wrapping"><img src="images/preview/modif-eclipse-formatter-line.png" alt="Changing line wrapping"/></a>
+		      </li>
+		    </ol>
+		</div>
+		
+		<!-- Eclipse SVN plugin -->
+		<div class="step">
+		  <h3><a name="SVN_ECLIPSE"></a>Step 7: installing SVN Eclipse plugin</h3>
+		  <p>Subclipse plugin allow you to use svn commands like commit and update directly from Eclipse projects.</p>
+		  <p>
+		    Installation of an Eclipse plugin is done directly within Eclipse:</p>
+		    <ol>
+		      <li>
+		        Go to "Help" -> "Install New Software...": 
+			      <a href="images/full/install-eclipse-plugin.png" rel="lightbox" title="Installing Eclipse plugin"><img src="images/preview/install-eclipse-plugin.png" alt="Installing Eclipse plugin"/></a>
+          </li>
+          <li>
+	          Fill the "Work with:" field with the following site URL, and then click the "Add..." button:
+			      <samp>
+	  	        <kbd>http://subclipse.tigris.org/update_1.6.x</kbd>
+	  	      </samp>
+			      <a href="images/full/install-eclipse-svn-site.png" rel="lightbox" title="Adding a new plugin repository"><img src="images/preview/install-eclipse-svn-site.png" alt="Adding a new plugin repository"/></a>
+			    </li>
+			    <li>
+	          Fill the "Name:" field with the <code>SVN</code> name and click the "OK" button:
+			      <a href="images/full/install-eclipse-svn-name.png" rel="lightbox" title="Naming the repository"><img src="images/preview/install-eclipse-svn-name.png" alt="Naming the repository"/></a>
+			    </li>
+			    <li>
+	          Check all packages to install, and click the "Next &gt;" button:
+			      <a href="images/full/install-eclipse-svn-packages.png" rel="lightbox" title="Installing the plugin"><img src="images/preview/install-eclipse-svn-packages.png" alt="Installing the plugin"/></a>
+			    </li>
+			    <li>
+	          In the install summary, click again the "Next &gt;" button, and in the license panel, accept the license and click on the "Finish button":
+			      <a href="images/full/install-eclipse-svn-licence.png" rel="lightbox" title="Accepting the licences"><img src="images/preview/install-eclipse-svn-licence.png" alt="Accepting the licences"/></a>
+			    </li>
+		    </ol>
+		</div>
+		
+		 <!-- Eclipse Git plugin -->
+		<div class="step">
+		  <h3><a name="GIT_ECLIPSE"></a>Step 8: installing Git Eclipse plugin</h3>
+		  <p>Git plugin allow you to use git commands like commit and pull directly from Eclipse projects.</p>
+		  <p>
+		    Installation of an Eclipse plugin is done directly within Eclipse:</p>
+		    <ol>
+		      <li>
+		        Go to "Help" -> "Install New Software...": 
+            <a href="images/full/install-eclipse-plugin.png" rel="lightbox" title="Installing Eclipse plugin"><img src="images/preview/install-eclipse-plugin.png" alt="Installing Eclipse plugin"/></a>
+          </li>
+          <li>
+	          Fill the "Work with:" field with the following site URL, and then click the "Add..." button:
+			      <samp>
+	  	        <kbd>http://www.jgit.org/updates</kbd>
+	  	      </samp>
+			      <a href="images/full/install-eclipse-git-site.png" rel="lightbox" title="Adding a new plugin repository"><img src="images/preview/install-eclipse-git-site.png" alt="Adding a new plugin repository"/></a>
+			    </li>
+			    <li>
+	          Fill the "Name:" field with the <code>GIT</code> name and click the "OK" button:
+			      <a href="images/full/install-eclipse-git-name.png" rel="lightbox" title="Naming the repository"><img src="images/preview/install-eclipse-git-name.png" alt="Naming the repository"/></a>
+			    </li>
+			    <li>
+	          Check the package to install, and click the "Next &gt;" button:
+			      <a href="images/full/install-eclipse-git-package.png" rel="lightbox" title="Installing the plugin"><img src="images/preview/install-eclipse-git-package.png" alt="Installing the plugin"/></a>
+			    </li>
+			    <li>
+	          In the install summary, click again the "Next &gt;" button, and in the license panel, accept the license and click on the "Finish button":
+			      <a href="images/full/install-eclipse-git-licence.png" rel="lightbox" title="Accepting the licences"><img src="images/preview/install-eclipse-git-licence.png" alt="Accepting the licences"/></a>
+			    </li>
+		    </ol>
+		</div>
+		
+	  <!-- Eclipse maven plugin -->
+		<div class="step">
+		  <h3><a name="MAVEN_ECLIPSE"></a>Step 9: installing maven Eclipse plugin</h3>
+		  <p>Maven plugin allow you to use maven commands like test, package and install directly from Eclipse projects. Projects should be created or imported as maven projects, instead of classic Eclipse project. Then, maven is used instead of the internal build system of eclipse, especially during continuous building.</p>
+		  <p>
+		    Installation of an Eclipse plugin is done directly within Eclipse:</p>
+		    <ol>
+		      <li>
+		        Go to "Help" -> "Install New Software...": 
+            <a href="images/full/install-eclipse-plugin.png" rel="lightbox" title="Installing Eclipse plugin"><img src="images/preview/install-eclipse-plugin.png" alt="Installing Eclipse plugin"/></a>
+          </li>
+          <li>
+	          Fill the "Work with:" field with the following site URL, and then click the "Add..." button:
+			      <samp>
+	  	        <kbd>http://m2eclipse.sonatype.org/update/</kbd>
+	  	      </samp>
+			      <a href="images/full/install-eclipse-maven-site.png" rel="lightbox" title="Adding a new plugin repository"><img src="images/preview/install-eclipse-maven-site.png" alt="Adding a new plugin repository"/></a>
+			    </li>
+			    <li>
+	          Fill the "Name:" field with the <code>Maven</code> name and click the "OK" button:
+			      <a href="images/full/install-eclipse-maven-name.png" rel="lightbox" title="Adding a new plugin repository"><img src="images/preview/install-eclipse-maven-name.png" alt="Naming the repository"/></a>
+			    </li>
+			    <li>
+	          Check the following packages to install, and click the "Next &gt;" button:
+			      <a href="images/full/install-eclipse-maven-packages.png" rel="lightbox" title="Installing the plugin"><img src="images/preview/install-eclipse-maven-packages.png" alt="Installing the plugin"/></a>
+			    </li>
+			    <li>
+	          In the install summary, click again the "Next &gt;" button, and in the license panel, accept the license and click on the "Finish button":
+			      <a href="images/full/install-eclipse-maven-licence.png" rel="lightbox" title="Accepting the licences"><img src="images/preview/install-eclipse-maven-licence.png" alt="Accepting the licences"/></a>
+			    </li>
+		    </ol>
+		</div>
+		
+		<!-- Eclipse JBoss plugin -->
+		<div class="step">
+		  <h3><a name="JBOSS_ECLIPSE"></a>Step 10: installing JBoss Eclipse plugin</h3>
+		  <p>JBoss plugin allow you, directly from Eclipse, to launch, stop, and debug JBoss server,  to deploy/undeploy your jar/war/ear directly, and to access the server log.</p>
+		  <p>
+		    Installation of an Eclipse plugin is done directly within Eclipse:</p>
+		    <ol>
+		      <li>
+		        Go to "Help" -> "Install New Software...": 
+            <a href="images/full/install-eclipse-plugin.png" rel="lightbox" title="Installing Eclipse plugin"><img src="images/preview/install-eclipse-plugin.png" alt="Installing Eclipse plugin"/></a>
+          </li>
+          <li>
+	          Fill the "Work with:" field with the following site URL, and then click the "Add..." button:
+			      <samp>
+	  	        <kbd>http://download.jboss.org/jbosstools/updates/development/</kbd>
+	  	      </samp>
+			      <a href="images/full/install-eclipse-jboss-site.png" rel="lightbox" title="Adding a new plugin repository"><img src="images/preview/install-eclipse-jboss-site.png" alt="Adding a new plugin repository"/></a>
+			    </li>
+			    <li>
+	          Fill the "Name:" field with the <code>JBoss</code> name and click the "OK" button:
+			      <a href="images/full/install-eclipse-jboss-name.png" rel="lightbox" title="Naming the repository"><img src="images/preview/install-eclipse-jboss-name.png" alt="Naming the repository"/></a>
+			    </li>
+			    <li>
+	          Check the following packages (and not all!) to install, and click the "Next &gt;" button:
+			      <a href="images/full/install-eclipse-jboss-packages.png" rel="lightbox" title="Installing the plugin"><img src="images/preview/install-eclipse-jboss-packages.png" alt="Installing the plugin"/></a>
+			    </li>
+			    <li>
+	          In the install summary, click again the "Next &gt;" button, and in the license panel, accept the license and click on the "Finish button":
+			      <a href="images/full/install-eclipse-jboss-licence.png" rel="lightbox" title="Accepting the licences"><img src="images/preview/install-eclipse-jboss-licence.png" alt="Accepting the licences"/></a>
+			    </li>
+		    </ol>
+		  <p>
+		    Once the plugin is installed, you can configure it to use the JBoss server you installed previously:</p>
+		    <ol>
+		      <li>
+		        Click on the "jboss server" icon, and select the "New Server..." menu item:
+		        <a href="images/full/config-eclipse-jboss-new.png" rel="lightbox" title="Creating a new server"><img src="images/preview/config-eclipse-jboss-new.png" alt="Creating a new server"/></a>
+		      </li>
+		      <li>
+		        Check that the server host name is "localhost", and in "JBoss Community", choose "JBoss AS 5.0". Fill the server name with "JBoss 5.01 Local", and click on the "Next &gt;" button:
+		        <a href="images/full/config-eclipse-jboss-define.png" rel="lightbox" title="Select the server"><img src="images/preview/config-eclipse-jboss-define.png" alt="Select the server"/></a>
+		      </li>
+		      <li>
+		         Fill the runtime name with "JBoss 5.01 Local", and click on the "Browse" button to select the folder where you installed JBoss previously. Once you've provided a correct JBoss installation, Eclipse will fill up the configuration part of the panel, selecting for you the "server" directory and the "default" configuration, which is exactly what you need. You can then click on the "Finish" button:
+		        <a href="images/full/config-eclipse-jboss-runtime.png" rel="lightbox" title="Configure the new server"><img src="images/preview/config-eclipse-jboss-runtime.png" alt="Configure the new server"/></a>
+		        (server configuration can be changed afterwards in "Windows" -> "Preferences" and then "Server" -> "Runtime Environments").
+		      </li>
+		    </ol>
+		</div>
+		
+		<div id="conclusion">
+			<p>Once you sucessfully finished those 10 steps, you know have a complete and configured development environment (mainly through Eclipse) to develop a Qualispo Factory service. You can know start to <a href="config-jboss.html">configure JBoss</a> for the Qualipso Factory.</p>
+		</div>
+	</div>
+	</div>
+	
+	<div id="footer">
+	  <div id="validation">
+      <a class="xhtml" href="http://validator.w3.org/check?uri=referer">xhtml</a>
+      <a class="css" href="http://jigsaw.w3.org/css-validator/check/referer">css</a>
+    </div>
+	</div>
+
+</body>
+</html>

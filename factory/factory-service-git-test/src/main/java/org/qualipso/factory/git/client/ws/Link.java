@@ -9,12 +9,12 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for Link complex type.
+ * <p>Java class for link complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="Link">
+ * &lt;complexType name="link">
  *   &lt;complexContent>
  *     &lt;extension base="{http://org.qualipso.factory.ws/service/git}factoryResource">
  *       &lt;sequence>
@@ -30,7 +30,7 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Link", namespace = "http://org.qualipso.factory.ws/resource/link", propOrder = {
+@XmlType(name = "link", namespace = "http://org.qualipso.factory.ws/resource/link", propOrder = {
     "link"
 })
 public class Link

@@ -32,9 +32,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qualipso.factory.bugtracker.client.ws.Bootstrap;
-import org.qualipso.factory.bugtracker.client.ws.BootstrapServiceException_Exception;
-import org.qualipso.factory.bugtracker.client.ws.Bootstrap_Service;
 import org.qualipso.factory.bugtracker.client.ws.BugTrackerServiceException_Exception;
 import org.qualipso.factory.bugtracker.client.ws.Bugtracker;
 import org.qualipso.factory.bugtracker.client.ws.Bugtracker_Service;
@@ -42,8 +39,8 @@ import org.qualipso.factory.bugtracker.client.ws.IssueAttributesDto;
 import org.qualipso.factory.bugtracker.client.ws.IssueDto;
 import org.qualipso.factory.bugtracker.client.ws.IssueDtoArray;
 import org.qualipso.factory.bugtracker.client.ws.Project;
-import org.qualipso.factory.bugtracker.client.ws.ProjectException_Exception;
-import org.qualipso.factory.bugtracker.client.ws.ProjectService;
+import org.qualipso.factory.bugtracker.client.ws.ProjectServiceException_Exception;
+import org.qualipso.factory.bugtracker.client.ws.Project_Service;
 import org.qualipso.factory.bugtracker.client.ws.Project_Type;
 import org.qualipso.factory.bugtracker.utils.Utils;
 
@@ -60,16 +57,21 @@ public class BugTrackerWSTest {
 	 */
 	private static final String PROJECT_NAME = "junitproject_ws";
 	
-	/**
-	 * project path
-	 */
-	private static final String PROJECT_PATH = "/" + PROJECT_NAME;
-	
 	
 	/**
 	 * User guest
 	 */
-	private static final String USER_NAME_GUEST = "Anonymous";
+	private static final String PROFILE_GUEST = "/profiles/guest";
+	
+	/**
+	 * User guest
+	 */
+	private static final String PROFILE_ROOT = "/profiles/guest";
+	
+	/**
+	 * project path
+	 */
+	private static final String PROJECT_PATH = PROFILE_GUEST + "/" + PROJECT_NAME;
 	
 	/**
 	 * ProjectService
@@ -94,30 +96,30 @@ public class BugTrackerWSTest {
 		bugTrackerService = serviceBugTracker.getBugTrackerServiceBeanPort();
 		((StubExt) this.bugTrackerService).setConfigName("Standard WSSecurity Client");
     	
-    	ProjectService serviceProject = new ProjectService();
-    	this.projectService = serviceProject.getProjectService();
+    	Project_Service serviceProject = new Project_Service();
+    	this.projectService = serviceProject.getProjectServiceBeanPort();
     	((StubExt) this.projectService).setConfigName("Standard WSSecurity Client");
 	}
 	
 	@BeforeClass
 	public static void init() {
-		try {
+		/*try {
 			Bootstrap port = new Bootstrap_Service().getBootstrapServiceBeanPort(); 
 			((StubExt) port).setConfigName("Standard WSSecurity Client");
 			port.bootstrap();
 		} catch (BootstrapServiceException_Exception e) {
 			logger.error("unable to bootstrap factory", e);
-		}
+		}*/
 	}
 	
 	@Before
-	public void setup() throws ProjectException_Exception {
+	public void setup() throws ProjectServiceException_Exception {
         //Test if project exist
         try {
         	Project_Type project = projectService.getProject(PROJECT_PATH);
         	logger.debug("setup - Project " + project.getName() + "  exists");
         }
-        catch (ProjectException_Exception e) {
+        catch (ProjectServiceException_Exception e) {
         	// Create Project
         	logger.debug("setup - Project " + PROJECT_PATH + "  doesn't exist -> creation");
         	projectService.createProject(PROJECT_PATH, PROJECT_NAME, "description projet", "license projet");
@@ -125,7 +127,7 @@ public class BugTrackerWSTest {
 	}
 	
 	@After
-	public void teardown() throws ProjectException_Exception, BugTrackerServiceException_Exception {
+	public void teardown() throws ProjectServiceException_Exception, BugTrackerServiceException_Exception {
 		
 		//Delete issues
 		IssueDtoArray issues = bugTrackerService.getAllIssues(PROJECT_PATH);
@@ -140,7 +142,7 @@ public class BugTrackerWSTest {
         try {
         	project = projectService.getProject(PROJECT_PATH);
         }
-        catch (ProjectException_Exception e) {
+        catch (ProjectServiceException_Exception e) {
         	logger.debug("teardown - project " + PROJECT_PATH + " doesn't exist");
         }
         
@@ -196,8 +198,8 @@ public class BugTrackerWSTest {
             assertNotNull(issue.getResolution());
             assertNotNull(issue.getSeverity());
             assertNotNull(issue.getStatus());
-            assertEquals(USER_NAME_GUEST, issue.getReporter());
-            assertNull(issue.getAssignee());
+            assertEquals(PROFILE_GUEST, issue.getReporter());
+            assertEquals(PROFILE_ROOT, issue.getAssignee());
             assertNotNull(issue.getDateCreation());
             assertNotNull(issue.getDateModification());
             assertEquals(issue.getDateCreation(), issue.getDateModification());
@@ -222,8 +224,8 @@ public class BugTrackerWSTest {
             assertNotNull(issue.getResolution());
             assertNotNull(issue.getSeverity());
             assertNotNull(issue.getStatus());
-            assertEquals(USER_NAME_GUEST, issue.getReporter());
-            assertNull(issue.getAssignee());
+            assertEquals(PROFILE_GUEST, issue.getReporter());
+            assertEquals(PROFILE_ROOT, issue.getAssignee());
             assertNotNull(issue.getDateCreation());
             assertNotNull(issue.getDateModification());
             assertTrue(issue.getDateLastUpdate() > 0);
@@ -233,6 +235,7 @@ public class BugTrackerWSTest {
              */
             issue.setDescription("description_test_modif");
             issue.setSummary("summary_test_modif");
+            issue.setAssignee(PROFILE_GUEST);
             
             bugTrackerService.updateIssue(issue);
             
@@ -249,12 +252,23 @@ public class BugTrackerWSTest {
             assertNotNull(issue.getResolution());
             assertNotNull(issue.getSeverity());
             assertNotNull(issue.getStatus());
-            assertEquals(USER_NAME_GUEST, issue.getReporter());
-            assertNull(issue.getAssignee());
+            assertEquals(PROFILE_GUEST, issue.getReporter());
+            assertEquals(PROFILE_GUEST, issue.getAssignee());
             assertNotNull(issue.getDateCreation());
             assertNotNull(issue.getDateModification());
             assertTrue(issue.getDateCreation().compare(issue.getDateModification()) < 0);
             assertTrue(issue.getDateLastUpdate() > 0);
+            
+            /*
+             * Update Issue (Assigne null)
+             */
+            issue.setAssignee(null);
+            
+            bugTrackerService.updateIssue(issue);
+            
+          //Check result
+            issue = bugTrackerService.getIssue(PROJECT_PATH, idIssue);
+            assertNull(issue.getAssignee());
             
             /*
              * Delete issue
@@ -348,6 +362,7 @@ public class BugTrackerWSTest {
     	IssueDto dto = new IssueDto();
     	dto.setSummary(summary);
     	dto.setDescription(description);
+    	dto.setAssignee(PROFILE_ROOT);
     	return dto;
     }
 

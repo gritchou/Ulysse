@@ -87,6 +87,8 @@ public class NotificationServiceSBTest {
         loginContext = new LoginContext("qualipso", new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS));
         loginContext.login();
 
+        membership.createProfile("kermit", "Kermit", "kermit@thefrog", 0);
+
         core.createFolder("/tests", "Tests", "Tests folder");
         security.addSecurityRule("/tests", "/profiles/kermit", "read,write,create,update");
 
@@ -106,6 +108,8 @@ public class NotificationServiceSBTest {
 
         security.removeSecurityRule("/tests", "/profiles/kermit");
         core.deleteFolder("/tests");
+
+        membership.deleteProfile("/profiles/kermit");
 
         loginContext.logout();
     }
@@ -175,39 +179,6 @@ public class NotificationServiceSBTest {
         assertTrue("TestNotification1 : expected 0 event into queue1(" + pathQueue1 + ") but found " + lEvent1.length, lEvent1.length == 1);
     }
 
-    /*
-     * Test Right Throw 10 events into one queue and assert the order of these
-     * 10 events
-     * 
-     * @throws Exception
-     * 
-     * @Test(timeout = 10000) public void testNotificationOrderEvent() throws
-     * Exception { logger.info("testNotificationOrderEvent() called");
-     * greeting.createName("/name", "toto");
-     * 
-     * Date beginThrow = new Date(); for (int i = 0; i < 10; i++) {
-     * greeting.readName("/name"); } Date endThrow = new Date();
-     * 
-     * Event[] lEvent2 = new Event[] {}; while (lEvent2.length < 9) { lEvent2 =
-     * eqs.getEvents(pathQueue2); }
-     * 
-     * assertEquals(lEvent2.length, 9); Date d = lEvent2[0].getDate(); int i =
-     * 1; while (i < lEvent2.length) {
-     * assertTrue("TestNotificationOrderEvent : date event " + (i - 1) +
-     * " must be before event " + i, d.before(lEvent2[i].getDate()));
-     * assertTrue("TestNotificationOrderEvent : event" + i +
-     * " must be after the begin of throw ", d.after(beginThrow));
-     * assertTrue("TestNotificationOrderEvent : event" + i +
-     * " must be after the begin of throw ", d.before(endThrow)); d =
-     * lEvent2[i].getDate(); i++; }
-     * 
-     * Event[] lEvent1 = eqs.getEvents(pathQueue1); assertEquals(
-     * "TestNotificationOrderEvent : expected 1 event into queue1(" + pathQueue1
-     * + ") but found " + lEvent1.length + " events", lEvent1.length, 1);
-     * 
-     * greeting.deleteName("/name"); }
-     */
-
     /**
      * Test Right Throw one event matching by 0 queue
      * 
@@ -217,8 +188,7 @@ public class NotificationServiceSBTest {
      * @throws NotificationServiceException
      */
     @Test(timeout = 20000)
-    public void testNotificationEventNotMatching() throws InterruptedException, GreetingServiceException, EventQueueServiceException,
-            NotificationServiceException {
+    public void testNotificationEventNotMatching() throws Exception, NotificationServiceException {
         logger.info("testNotificationEventNotMatching() called");
         greeting.createName("/tests/eventNotMatching", "eventNotMatching");
         greeting.deleteName("/tests/eventNotMatching");
@@ -244,8 +214,7 @@ public class NotificationServiceSBTest {
      * @throws CoreServiceException
      */
     @Test(timeout = 50000)
-    public void testNotificationRightEvent() throws MembershipServiceException, GreetingServiceException, EventQueueServiceException, InterruptedException,
-            LoginException, SecurityServiceException, CoreServiceException {
+    public void testNotificationRightEvent() throws Exception, LoginException, SecurityServiceException, CoreServiceException {
         logger.info("testNotificationRightEvent() called");
 
         loginContext.logout();
@@ -288,17 +257,6 @@ public class NotificationServiceSBTest {
         assertTrue("TestNotificationRighEvent : expected 0 event into queue1 but found " + eqs.getEvents(pathQueue2).length,
                 eqs.getEvents(pathQueue2).length == 0);
 
-    }
-
-    /**
-     * Test Boundary Throw a null event
-     * 
-     * @throws NotificationServiceException
-     */
-    @Test(expected = NotificationServiceException.class)
-    public void testNotificationThrowNull() throws NotificationServiceException {
-        logger.info("testNotificationThrowNull() called");
-        greeting.throwNullEvent();
     }
 
 }

@@ -1,5 +1,6 @@
 package org.qualipso.factory.git.test;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -13,31 +14,33 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.eclipse.jgit.dircache.DirCache;
+import org.eclipse.jgit.dircache.DirCacheBuilder;
+import org.eclipse.jgit.dircache.DirCacheEntry;
+import org.eclipse.jgit.lib.Commit;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.CoreConfig;
+import org.eclipse.jgit.lib.FileMode;
+import org.eclipse.jgit.lib.GitIndex;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectWriter;
+import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.RefComparator;
+import org.eclipse.jgit.lib.RefUpdate;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.RepositoryConfig;
+import org.eclipse.jgit.lib.TransferConfig;
+import org.eclipse.jgit.lib.UserConfig;
+import org.eclipse.jgit.lib.GitIndex.Entry;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.treewalk.TreeWalk;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.qualipso.factory.git.test.sb.GITServiceSBTest;
-import org.spearce.jgit.dircache.DirCache;
-import org.spearce.jgit.dircache.DirCacheEntry;
-import org.spearce.jgit.lib.Commit;
-import org.spearce.jgit.lib.Constants;
-import org.spearce.jgit.lib.CoreConfig;
-import org.spearce.jgit.lib.GitIndex;
-import org.spearce.jgit.lib.ObjectId;
-import org.spearce.jgit.lib.ObjectWriter;
-import org.spearce.jgit.lib.PersonIdent;
-import org.spearce.jgit.lib.Ref;
-import org.spearce.jgit.lib.RefComparator;
-import org.spearce.jgit.lib.RefUpdate;
-import org.spearce.jgit.lib.Repository;
-import org.spearce.jgit.lib.RepositoryConfig;
-import org.spearce.jgit.lib.TransferConfig;
-import org.spearce.jgit.lib.UserConfig;
-import org.spearce.jgit.lib.GitIndex.Entry;
-import org.spearce.jgit.revwalk.RevCommit;
-import org.spearce.jgit.revwalk.RevTree;
-import org.spearce.jgit.revwalk.RevWalk;
-import org.spearce.jgit.treewalk.TreeWalk;
 
 public class LocalGitTest {
 
@@ -90,34 +93,34 @@ public class LocalGitTest {
 			fos12.close();
 
 			// Start tracking resources and commit the new tree :
-			// DirCache dc = DirCache.lock(repository1);
-			// assertTrue(dc.getEntryCount() == 0);
-			// DirCacheBuilder dcb = dc.builder();
-			// DirCacheEntry dce1 = new DirCacheEntry("testfile1.txt");
-			// dce1.setFileMode(FileMode.REGULAR_FILE);
-			// dce1.setAssumeValid(true);
-			// dce1.setLastModified(file11.lastModified());
-			// //dce1.setLength(file11.length());
-			// ObjectWriter ow1 = new ObjectWriter(repository1);
-			// ObjectId objectId1 = ow1.writeBlob(file11);
-			// dce1.setObjectId(objectId1);
-			//			
-			// DirCacheEntry dce2 = new DirCacheEntry("testfile2.txt");
-			// dce2.setFileMode(FileMode.REGULAR_FILE);
-			// dce2.setAssumeValid(true);
-			// dce2.setLastModified(file12.lastModified());
-			// //dce2.setLength(file12.length());
-			// ObjectWriter ow2 = new ObjectWriter(repository1);
-			// ObjectId objectId2 = ow2.writeBlob(file12);
-			// dce2.setObjectId(objectId2);
-			//			
-			// dcb.add(dce1);
-			// dcb.add(dce2);
-			// assertTrue(dcb.commit());
-			// assertTrue(dc.lock());
-			// dc.write();
-			// assertTrue(dc.commit());
-			// assertTrue(dc.getEntryCount() == 2);
+			DirCache dc = DirCache.lock(repository1);
+			assertTrue(dc.getEntryCount() == 0);
+			DirCacheBuilder dcb = dc.builder();
+			DirCacheEntry dce1 = new DirCacheEntry("testfile1.txt");
+			dce1.setFileMode(FileMode.REGULAR_FILE);
+			dce1.setAssumeValid(true);
+			dce1.setLastModified(file11.lastModified());
+			// dce1.setLength(file11.length());
+			ObjectWriter ow1 = new ObjectWriter(repository1);
+			ObjectId objectId1 = ow1.writeBlob(file11);
+			dce1.setObjectId(objectId1);
+
+			DirCacheEntry dce2 = new DirCacheEntry("testfile2.txt");
+			dce2.setFileMode(FileMode.REGULAR_FILE);
+			dce2.setAssumeValid(true);
+			dce2.setLastModified(file12.lastModified());
+			// dce2.setLength(file12.length());
+			ObjectWriter ow2 = new ObjectWriter(repository1);
+			ObjectId objectId2 = ow2.writeBlob(file12);
+			dce2.setObjectId(objectId2);
+
+			dcb.add(dce1);
+			dcb.add(dce2);
+			assertTrue(dcb.commit());
+			assertTrue(dc.lock());
+			dc.write();
+			assertTrue(dc.commit());
+			assertTrue(dc.getEntryCount() == 2);
 
 			GitIndex index = new GitIndex(repository1);
 			logger.debug(workFolder1.getAbsolutePath());
@@ -191,7 +194,7 @@ public class LocalGitTest {
 
 			TreeWalk walk = new TreeWalk(repository);
 			walk.addTree(revTree);
-			
+
 			while (walk.next()) {
 				if (walk.isSubtree()) {
 					logger.debug("tree:   " + walk.getNameString());
@@ -271,7 +274,7 @@ public class LocalGitTest {
 			if (head != null) {
 				String current = head.getName();
 				for (Ref ref : RefComparator.sort(refs.values())) {
-					//logger.debug(ref);
+					// logger.debug(ref);
 					final String name = ref.getName();
 					if (name.startsWith(Constants.R_HEADS)) {
 						brefs.put(name, ref);

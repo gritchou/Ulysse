@@ -1,14 +1,33 @@
+/*
+ *
+ * Qualipso Factory
+ * Copyright (C) 2006-2010 INRIA
+ * http://www.inria.fr - molli@loria.fr
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of LGPL. See licenses details in LGPL.txt
+ *
+ * Initial authors :
+ *
+ * Jérôme Blanchard / INRIA
+ * Pascal Molli / Nancy Université
+ * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
+ * 
+ */
 package org.qualipso.factory.binding.entity;
 
 import java.io.Serializable;
+
 import java.util.HashMap;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+
 /**
- * The Node class is the representation of a path segment. 
- * 
+ * The Node class is the representation of a path segment.
+ *
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 18 June 2009
  */
@@ -22,9 +41,9 @@ public class Node implements Serializable {
     private String bindedResourceIdentifier;
     private HashMap<String, String> children;
     private HashMap<String, String> properties;
-    
+
     public Node() {
-    	properties = new HashMap<String, String>(1);
+        properties = new HashMap<String, String>(1);
         children = new HashMap<String, String>(1);
     }
 
@@ -69,17 +88,17 @@ public class Node implements Serializable {
     }
 
     public void addChild(String pathPart, String id) {
-    	children.put(pathPart, id);
+        children.put(pathPart, id);
     }
 
     public String getChild(String pathPart) {
         return children.get(pathPart);
     }
-    
+
     public void removeChild(String pathPart) {
-    	children.remove(pathPart);
+        children.remove(pathPart);
     }
-    
+
     public HashMap<String, String> getProperties() {
         return properties;
     }
@@ -95,8 +114,8 @@ public class Node implements Serializable {
     public String getProperty(String name) {
         return properties.get(name);
     }
-    
+
     public String toString() {
-    	return "{id:" + id + "} {parent:" + parent + "} {binded:" + bindedResourceIdentifier + "} {path-part:" + pathPart + "}";
+        return "{id:" + id + "} {parent:" + parent + "} {binded:" + bindedResourceIdentifier + "} {path-part:" + pathPart + "}";
     }
 }

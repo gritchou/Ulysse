@@ -3,6 +3,8 @@
     <wb-module deploy-name="factory-service-svn-0.1-SNAPSHOT">
         <wb-resource deploy-path="/" source-path="/src/main/resources"/>
         <wb-resource deploy-path="/" source-path="/src/main/java"/>
+        <wb-resource deploy-path="/" source-path="/src/test/resources"/>
+        <wb-resource deploy-path="/" source-path="/src/test/java"/>
         <property name="java-output-path"/>
     </wb-module>
 </project-modules>

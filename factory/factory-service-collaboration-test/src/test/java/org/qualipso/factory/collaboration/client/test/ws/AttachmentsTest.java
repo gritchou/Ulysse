@@ -3,7 +3,6 @@ package org.qualipso.factory.collaboration.client.test.ws;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
@@ -21,37 +20,81 @@ import org.qualipso.factory.collaboration.client.ws.Bootstrap;
 import org.qualipso.factory.collaboration.client.ws.BootstrapServiceException_Exception;
 import org.qualipso.factory.collaboration.client.ws.Bootstrap_Service;
 import org.qualipso.factory.collaboration.client.ws.Calendar;
+import org.qualipso.factory.collaboration.client.ws.CalendarDetails;
+import org.qualipso.factory.collaboration.client.ws.CalendarEvent;
 import org.qualipso.factory.collaboration.client.ws.CalendarItem;
 import org.qualipso.factory.collaboration.client.ws.CalendarServiceException_Exception;
 import org.qualipso.factory.collaboration.client.ws.Calendar_Service;
 import org.qualipso.factory.collaboration.client.ws.Core;
 import org.qualipso.factory.collaboration.client.ws.Core_Service;
+import org.qualipso.factory.collaboration.client.ws.DocumentDetails;
 import org.qualipso.factory.collaboration.client.ws.DocumentManagement;
 import org.qualipso.factory.collaboration.client.ws.DocumentManagement_Service;
+import org.qualipso.factory.collaboration.client.ws.DocumentServiceException_Exception;
+import org.qualipso.factory.collaboration.client.ws.Forum;
 import org.qualipso.factory.collaboration.client.ws.ForumManagement;
 import org.qualipso.factory.collaboration.client.ws.ForumManagement_Service;
+import org.qualipso.factory.collaboration.client.ws.ForumServiceException_Exception;
 import org.qualipso.factory.collaboration.client.ws.StringArray;
-import org.qualipso.factory.collaboration.utils.TestUtils;
+import org.qualipso.factory.collaboration.client.ws.ThreadDetails;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class AttachmentsTest.
+ */
 public class AttachmentsTest {
 
+    /** The logger. */
     private static Log logger = LogFactory.getLog(AttachmentsTest.class);
+
+    /** The calendar port. */
     private Calendar calendarPort;
+
+    /** The document port. */
     private DocumentManagement documentPort;
+
+    /** The forum port. */
     private ForumManagement forumPort;
+
+    /** The core port. */
     private Core corePort;
 
+    /** The folder name. */
     private String folderName = "f" + System.currentTimeMillis();
+
+    /** The test path. */
     private String testPath = "/" + folderName;
+
+    /** The year. */
     private String year = "2010";
-    private String month = "10";
+
+    /** The month. */
+    private String month = "11";
+
+    /** The lorem ipsum text. */
+    private String loremIpsumText = "Lorem Ipsum.";
+
+    /** The doc paths. */
     private Vector<String> docPaths;
+
+    /** The event path. */
     private String eventPath;
+
+    /** The forum path. */
     private String forumPath;
 
-    int numDocs = 5;
+    /** The thread path. */
+    private String threadPath;
+
+    /** The num docs. */
+    int numDocs = 2;
+
+    /** The num forums. */
     int numForums = 1;
 
+    /**
+     * Instantiates a new attachments test.
+     */
     public AttachmentsTest() {
 	DocumentManagement_Service ds = new DocumentManagement_Service();
 	documentPort = ds.getDocumentManagementPort();
@@ -63,6 +106,9 @@ public class AttachmentsTest {
 	corePort = core.getCoreServiceBeanPort();
     }
 
+    /**
+     * Inits the.
+     */
     @BeforeClass
     public static void init() {
 	try {
@@ -75,6 +121,11 @@ public class AttachmentsTest {
 	}
     }
 
+    /**
+     * Setup.
+     * 
+     * @throws Exception the exception
+     */
     @Before
     public void setup() throws Exception {
 	try {
@@ -127,34 +178,47 @@ public class AttachmentsTest {
 	    docPaths = new Vector<String>();
 	    for (int k = 0; k < numDocs; k++) {
 		String documentName = "document" + k;
-		String fileName = "D_" + System.currentTimeMillis() + ".txt";
-		String docPath = documentPort.createDocumentSimple(testPath,
-			documentName, "2009-12-08", "Readme", "qualipso",
-			"1.0", "DRAFT", fileName, "text/plain",
-			"TG9yZW0gaXBzdW0=".getBytes());
+		String fileName = "D_" + k + System.currentTimeMillis()
+			+ ".txt";
+		DocumentDetails dd = new DocumentDetails();
+		dd.setName(documentName);
+		dd.setDate("2009-12-08");
+		dd.setBinaryContent("TG9yZW0gaXBzdW0=".getBytes());
+		dd.setFileName(fileName);
+		dd.setKeywords("qualipso");
+		dd.setMimeType("text/plain");
+		dd.setStatus("DRAFT");
+		dd.setVersion("1.0");
+		dd.setType("Readme");
+		String docPath = documentPort.createDocument(testPath, dd);
 		logger.debug("Created document" + docPath);
 		docPaths.add(docPath);
 	    }
 	    logger.debug("********************");
 	    logger.debug("FORUMS");
 	    logger.debug("********************");
-	    for (int i = 0; i < numForums; i++) {
-		String forumName = "forumtest" + i;
-		String fId = forumPort.createForum(testPath, forumName);
-		assertNotNull(fId);
-		forumPath = testPath + "/" + fId;
-		logger.debug("Created forum " + forumPath);
-	    }
+	    String forumName = "fr" + System.currentTimeMillis();
+	    forumPath = forumPort.createForum(testPath, forumName);
+	    logger.debug("Created forum " + forumPath);
+
 	    logger.debug("********************");
 	    logger.debug("EVENTS");
 	    logger.debug("********************");
 	    String eventName = "E" + System.currentTimeMillis();
 	    logger.debug("Create event for " + year + "-" + month
 		    + "-12 that occurs once");
-	    StringArray paths = calendarPort.createEvent(testPath, eventName,
-		    "Athens", year + "-" + month + "-12", "10:00:00",
-		    "18:00:00", "strusos", "gstro@delos.eurodyn.com",
-		    "2108094500", "once", 1);
+	    CalendarDetails cd = new CalendarDetails();
+	    cd.setContactEmail("gstro@delos.eurodyn.com");
+	    cd.setContactName("strusos");
+	    cd.setContactPhone("2108094500");
+	    cd.setDate(year + "-" + month + "-05");
+	    cd.setEndTime("18:00:00");
+	    cd.setLocation("Athens");
+	    cd.setName(eventName);
+	    cd.setRecurrence("once");
+	    cd.setTimes(1);
+	    cd.setStartTime("10:00:00");
+	    StringArray paths = calendarPort.createEvent(testPath, cd);
 	    assertNotNull(paths);
 	    eventPath = paths.getItem().get(0);
 	    logger.debug("********************");
@@ -164,40 +228,83 @@ public class AttachmentsTest {
 	}
     }
 
+    /**
+     * Test attachments.
+     */
     @Test
     public void testAttachments() {
 	try {
 	    logger.debug("********************");
-	    logger.debug("Attach forum "+forumPath+" to event" +eventPath);
+
+	    logger.debug("Attach forum " + forumPath + " to event" + eventPath);
 	    calendarPort.attachForumToEvent(eventPath, forumPath);
-	    if(docPaths!=null && docPaths.size()>0)
-	    {
-		logger.debug("Attach documents to event" +eventPath);
-		String[] docArray = docPaths.toArray(new String[docPaths.size()]);
-		StringArray docs  = new StringArray();
+	    if (docPaths != null && docPaths.size() > 0) {
+
+		logger.debug("Attach documents to event" + eventPath);
+		String[] docArray = docPaths
+			.toArray(new String[docPaths.size()]);
+		StringArray docs = new StringArray();
 		for (int i = 0; i < docArray.length; i++) {
 		    docs.getItem().add(docArray[i]);
-		    logger.debug("Will add "+docArray[i]);
+		    logger.debug("Will add " + docArray[i]);
 		}
-		calendarPort.atttachDocumentToEvent(eventPath,docs);
+		// iterate docs:
+		for (int n = 0; n < docs.getItem().size(); n++) {
+		    String cd = (String) docs.getItem().get(n);
+		    logger.debug(cd);
+		    documentPort.readDocumentProperties(cd);
+		}
 		// Get calendar to check if attachments are set ok.
 		CalendarItem ev = calendarPort.readEvent(eventPath);
 		assertNotNull(ev);
-		logger.debug(ev.toString());
-		assertNotNull(ev.getDocumentIds());
-		assertNotNull(ev.getForumId());
+		Forum forum = forumPort.readForum(forumPath);
+		assertNotNull(forum);
+		CalendarEvent cEv = new CalendarEvent();
+		cEv.setName(ev.getName());
+		cEv.setContactEmail(ev.getContactEmail());
+		cEv.setContactName(ev.getContactName());
+		cEv.setContactPhone(ev.getContactPhone());
+		cEv.setDate(ev.getDate());
+		cEv.setEndTime(ev.getEndTime());
+		cEv.setLocation(ev.getLocation());
+		cEv.setName(ev.getName());
+		cEv.setStartTime(ev.getStartTime());
+		//
+		calendarPort.updateEventWithAttachments(eventPath,cEv, docs, forumPath);
+		// calendarPort.atttachDocumentToEvent(eventPath, docs);
+		ev = calendarPort.readEvent(eventPath);
+		assertNotNull(ev);
 		assertNotNull(ev.getForum());
-		assertNotNull(ev.getDocumentPaths());
-		
+		assertNotNull(ev.getAttachments());
+		ThreadDetails threadMessage = new ThreadDetails();
+		threadMessage.setAuthor("qualipsouser");
+		threadMessage.setDatePosted(year + "-" + month + "-12");
+		threadMessage.setForumId(forum.getId());
+		threadMessage.setName("tr" + System.currentTimeMillis());
+		threadMessage.setIsReply(false);
+		threadMessage.setMessageBody(loremIpsumText);
+		threadPath = forumPort.createThreadMessageWithAttachments(
+			forumPath, threadMessage, docs);
 	    }
 	    logger.debug("********************");
 	    //
 	} catch (CalendarServiceException_Exception e) {
 	    e.printStackTrace();
 	    fail(e.getMessage());
+	} catch (DocumentServiceException_Exception e) {
+	    e.printStackTrace();
+	    fail(e.getMessage());
+	} catch (ForumServiceException_Exception e) {
+	    e.printStackTrace();
+	    fail(e.getMessage());
 	}
     }
 
+    /**
+     * Teardown.
+     * 
+     * @throws Exception the exception
+     */
     @After
     public void teardown() throws Exception {
 	try {
@@ -250,6 +357,10 @@ public class AttachmentsTest {
 	    logger.debug("********************");
 	    logger.debug("FORUMS");
 	    logger.debug("********************");
+	    if (threadPath != null) {
+		logger.debug("Delete thread " + threadPath);
+		forumPort.deleteThreadMessage(threadPath);
+	    }
 	    if (forumPath != null) {
 		// delete forum
 		logger.debug("Delete forum" + forumPath);

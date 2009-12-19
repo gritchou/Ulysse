@@ -12,13 +12,16 @@
  * Jérôme Blanchard / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
- *
+ * Christophe Bouthier / INRIA
+ * 
  */
 package org.qualipso.factory.test;
 
 import org.junit.runner.RunWith;
+
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+
 import org.qualipso.factory.test.entity.FileTest;
 import org.qualipso.factory.test.entity.FolderTest;
 import org.qualipso.factory.test.entity.GroupTest;
@@ -38,35 +41,14 @@ import org.qualipso.factory.test.sessionbean.NotificationServiceTest;
 import org.qualipso.factory.test.sessionbean.PAPServiceTest;
 import org.qualipso.factory.test.sessionbean.SecurityServiceTest;
 
+
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 20 May 2009
  */
 @RunWith(Suite.class)
-@SuiteClasses(value = { 
-		PathHelperTest.class,
-		PAPServiceHelperTest.class,
-		PEPServiceHelperTest.class,  
-		FilePolicyRepositoryTest.class,
-		NodeTest.class, 
-		ProfileTest.class,
-		GroupTest.class,
-		FolderTest.class,
-		FileTest.class,
-		LinkTest.class,
-		BootstrapServiceTest.class,
-		AuthenticationServiceTest.class, 
-		BindingServiceTest.class,
-		PAPServiceTest.class,
-		CoreServiceTest.class,
-		BrowserServiceTest.class,
-		MembershipServiceTest.class, 
-		SecurityServiceTest.class,
-		IndexingServiceTest.class,
-		EventQueueServiceTest.class,
-		EventQueueRulesServiceTest.class,
-		NotificationServiceTest.class})
+@SuiteClasses(value =  {
+    PathHelperTest.class, PAPServiceHelperTest.class, PEPServiceHelperTest.class, FilePolicyRepositoryTest.class, NodeTest.class, ProfileTest.class, GroupTest.class, FolderTest.class, FileTest.class, LinkTest.class, BootstrapServiceTest.class, AuthenticationServiceTest.class, BindingServiceTest.class, PAPServiceTest.class, CoreServiceTest.class, BrowserServiceTest.class, MembershipServiceTest.class, SecurityServiceTest.class, IndexingServiceTest.class, EventQueueServiceTest.class, EventQueueRulesServiceTest.class, NotificationServiceTest.class}
+)
 public class AllTests {
-	
-	
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<project default="" basedir=".">
+
+	<target name="bar_creation">
+		<jar destfile="./src/main/resources/qualipsoworkflow.bar">
+			<fileset dir="target/classes" includes="org/qualipso/factory/workflow/**/**" excludes="**/*.xpdl">
+			</fileset>
+			<fileset dir="src/main/resources" includes="ProjectCreation.xpdl">
+			</fileset>
+			<fileset dir="src/test/resources" includes="**/**">
+			</fileset>
+		</jar>	
+	</target>	
+</project>

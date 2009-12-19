@@ -19,25 +19,48 @@
  * Christophe Bouthier / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
+ * 
  */
 package org.qualipso.factory.notification;
 
 import org.qualipso.factory.FactoryException;
 
 /**
+ * Notification Service exceptions.<br/>
+ * All notification service exceptions should extend this one.
+ * 
+ * @author Jerome Blanchard (jayblanc@gmail.com)
  * @author Nicolas HENRY
  * @author Marlène HANTZ
+ * @date 20 May 2009
  */
 @SuppressWarnings("serial")
 public class NotificationServiceException extends FactoryException {
+    /**
+     * Class constructor specifying message and root cause.
+     * 
+     * @param message
+     * @param rootCause
+     */
     public NotificationServiceException(String message, Exception rootCause) {
         super(message, rootCause);
     }
 
+    /**
+     * Class constructor specifying message.
+     * 
+     * @param message
+     */
     public NotificationServiceException(String message) {
         super(message);
     }
 
+    /**
+     * Class constructor specifying root cause
+     * 
+     * @param rootCause
+     */
     public NotificationServiceException(Exception rootCause) {
         super(rootCause);
     }

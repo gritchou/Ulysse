@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="QualiPSo Factory">
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-stylus-skin</artifactId>
+    <version>1.1</version>
+  </skin>	
+  <bannerLeft>
+    <name>${project.name}</name>
+    <src>http://qualipso.gforge.inria.fr/images/qualipso-factory.png</src>
+    <href>http://qualipso.gforge.inria.fr/</href>
+  </bannerLeft>
+  <bannerRight>
+	<name>Maven</name>
+    <src>images/maven-logo-2.gif</src>
+    <href>http://maven.apache.org/</href>
+  </bannerRight>
+  <body>
+	<menu name="Main">
+	  <item name="Welcome" href="index.html"/>	
+	</menu>
+	
+	<menu name="Get Factory">
+	  <item name="Download" href="download.html"/>
+	  <item name="License" href="license.html"/>	
+	</menu>
+	
+	<menu name="Factory Design">
+	  <item name="Architecture" href="design/architecture.html"/>
+	  <item name="Resource Naming" href="design/naming.html"/>
+	  <item name="Modules" href="design/modules.html"/>
+	</menu>
+	
+	<menu name="User Guide (WD 7.1.1.2)">
+	  <item name="Access to Source Code" href="source-repository.html"/>
+	  <item name="Compiling the factory" href="userguide/compile.html"/>
+	  <item name="Installing and running the factory" href="userguide/install.html"/>
+  </menu>
+  
+  <menu name="Developer Guide">
+    <item name="Environment installation" href="Install/install-env-service.html"/>
+    <item name="API and tests (WD 7.1.1.3)" href="dev/api.html"/>
+  </menu>
+  
+  <menu name="Service Integration tutorials (WD 7.1.1.1)">
+	  <item name="Tutorial: Hello World " href="tutorials/helloworld.html"/>
+	  <item name="Tutorial: Hello" href="tutorials/hello.html"/>
+	</menu>
+	
+	<menu name="Modules">
+	  <item name="Factory Core" href="factory-core/index.html"/>
+	  <item name="Factory Service Git" href="factory-service-git/index.html"/>
+	</menu>
+	
+<!--	<menu ref="modules"/>-->
+  <menu ref="reports"/>
+	
+    <links>
+      <item name="QualiPSo.org" href="http://www.qualipso.org/" />
+      <item name="INRIA" href="http://www.inria.fr/" />
+      <item name="SCORE Team" href="http://score.loria.fr/" />
+      <item name="Maven 2" href="http://maven.apache.org/"/>
+    </links>
+  </body>
+</project>

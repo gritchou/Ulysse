@@ -1,0 +1,24 @@
+ ------
+Next Generation Forge
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster, Christophe Bouthier
+ ------
+June 2009
+ ------
+ 
+Factory Core
+
+* Description
+
+  The factory core module provide all the necessary functionnality for other services, that is:
+  
+  * binding
+  
+  * security
+  
+  * indexing
+  
+  * searching
+  
+  * notification
+   

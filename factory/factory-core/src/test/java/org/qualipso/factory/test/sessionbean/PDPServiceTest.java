@@ -1,40 +1,58 @@
+/*
+ *
+ * Qualipso Factory
+ * Copyright (C) 2006-2010 INRIA
+ * http://www.inria.fr - molli@loria.fr
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of LGPL. See licenses details in LGPL.txt
+ *
+ * Initial authors :
+ *
+ * Jérôme Blanchard / INRIA
+ * Pascal Molli / Nancy Université
+ * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
+ * 
+ */
 package org.qualipso.factory.test.sessionbean;
+
+import com.bm.testsuite.BaseSessionBeanFixture;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.junit.Test;
+
+import org.qualipso.factory.security.pdp.PDPServiceBean;
+import org.qualipso.factory.security.pep.PEPServiceHelper;
+import org.qualipso.factory.security.repository.FilePolicyRepository;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.junit.Test;
-import org.qualipso.factory.security.pdp.PDPServiceBean;
-import org.qualipso.factory.security.pep.PEPServiceHelper;
-import org.qualipso.factory.security.repository.FilePolicyRepository;
-
-import com.bm.testsuite.BaseSessionBeanFixture;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 2 September 2009
  */
 public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
+    private static Log logger = LogFactory.getLog(PDPServiceTest.class);
+    @SuppressWarnings("unchecked")
+    private static final Class[] usedBeans = {  };
 
-	private static Log logger = LogFactory.getLog(PDPServiceTest.class);
+    public PDPServiceTest() {
+        super(PDPServiceBean.class, usedBeans);
+    }
 
-	@SuppressWarnings("unchecked")
-	private static final Class[] usedBeans = {};
+    public void setUp() throws Exception {
+        super.setUp();
+        logger.debug("setting up pdp service");
+    }
 
-	public PDPServiceTest() {
-		super(PDPServiceBean.class, usedBeans);
-	}
-
-	public void setUp() throws Exception {
-		super.setUp();
-		logger.debug("setting up pdp service");
-	}
-	
-	public void tearDown() throws Exception {
-		File file = ((FilePolicyRepository) getBeanToTest().getPolicyRepositoryService().getPolicyRepository()).getRepositoryFolder();
+    public void tearDown() throws Exception {
+        File file = ((FilePolicyRepository) getBeanToTest().getPolicyRepositoryService().getPolicyRepository()).getRepositoryFolder();
 
         if (file.exists() && file.isDirectory()) {
             File[] files = file.listFiles();
@@ -45,9 +63,9 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
         }
 
         file.delete();
-	}
+    }
 
-	public void testRequest1() {
+    public void testRequestWithoutPolicies() {
         try {
             InputStream is = ClassLoader.getSystemResourceAsStream("requests/request-01.xml");
             StringBuffer request = new StringBuffer();
@@ -66,7 +84,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
         }
     }
 
-	public void testRequest2() {
+    public void testRequestWithOneMatchingPermitPolicy() {
         try {
             InputStream is = ClassLoader.getSystemResourceAsStream("policies/policy-01.xml");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -77,7 +95,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy01",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy01", baos.toByteArray());
 
             is = ClassLoader.getSystemResourceAsStream("requests/request-01.xml");
 
@@ -98,7 +116,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
     }
 
     @Test
-    public void testRequest3() {
+    public void testRequestTwoPoliciesTwoRequests() {
         try {
             InputStream is = ClassLoader.getSystemResourceAsStream("policies/policy-01.xml");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -109,7 +127,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy01",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy01", baos.toByteArray());
 
             is = ClassLoader.getSystemResourceAsStream("policies/policy-02.xml");
             baos = new ByteArrayOutputStream();
@@ -120,7 +138,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy02",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy02", baos.toByteArray());
 
             is = ClassLoader.getSystemResourceAsStream("requests/request-02.xml");
 
@@ -154,7 +172,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
     }
 
     @Test
-    public void testRequest5() {
+    public void testDifferentActionsRequests() {
         try {
             InputStream is = ClassLoader.getSystemResourceAsStream("policies/policy-04.xml");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -165,7 +183,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy04",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy04", baos.toByteArray());
 
             String request1 = PEPServiceHelper.buildRequest("root", "/test/testuri", "read");
             String request2 = PEPServiceHelper.buildRequest("root", "/test/testuri", "create");
@@ -197,7 +215,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
     }
 
     @Test
-    public void testRequest6() {
+    public void testRequestsOnGlobalPolicy() {
         try {
             InputStream is = ClassLoader.getSystemResourceAsStream("policies/policy-05.xml");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -208,7 +226,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy05",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy05", baos.toByteArray());
 
             String request1 = PEPServiceHelper.buildRequest("guest", "/test/testuri", "read");
             String request2 = PEPServiceHelper.buildRequest("guest", "/test/anotheruri", "read");
@@ -228,7 +246,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
     }
 
     @Test
-    public void testRequest7() {
+    public void testConcreteRequestScenario() {
         try {
             InputStream is = ClassLoader.getSystemResourceAsStream("policies/policy-06.xml");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -239,7 +257,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy06",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy06", baos.toByteArray());
 
             is = ClassLoader.getSystemResourceAsStream("policies/policy-07.xml");
             baos = new ByteArrayOutputStream();
@@ -250,7 +268,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy07",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy07", baos.toByteArray());
 
             String request11 = PEPServiceHelper.buildRequest("user1", "/tests/node1", "read");
             String request12 = PEPServiceHelper.buildRequest("user1", "/tests/node1", "create");
@@ -330,7 +348,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
     }
 
     @Test
-    public void testRequest8() {
+    public void testRootGuestGlobalScenario() {
         try {
             InputStream is = ClassLoader.getSystemResourceAsStream("policies/policy-04.xml");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -341,7 +359,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy04",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy04", baos.toByteArray());
 
             is = ClassLoader.getSystemResourceAsStream("policies/policy-05.xml");
             baos = new ByteArrayOutputStream();
@@ -352,7 +370,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy05",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy05", baos.toByteArray());
 
             is = ClassLoader.getSystemResourceAsStream("policies/policy-06.xml");
             baos = new ByteArrayOutputStream();
@@ -363,7 +381,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy06",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy06", baos.toByteArray());
 
             is = ClassLoader.getSystemResourceAsStream("policies/policy-07.xml");
             baos = new ByteArrayOutputStream();
@@ -374,7 +392,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy07",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy07", baos.toByteArray());
 
             String request11 = PEPServiceHelper.buildRequest("root", "/tests/node1", "owner");
             String request12 = PEPServiceHelper.buildRequest("root", "/tests/node2", "delete");
@@ -415,7 +433,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
     }
 
     @Test
-    public void testRequest9() {
+    public void testRootGuestAndUserScenario() {
         try {
             InputStream is = ClassLoader.getSystemResourceAsStream("policies/policy-08.xml");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -426,7 +444,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy08",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy08", baos.toByteArray());
 
             is = ClassLoader.getSystemResourceAsStream("policies/policy-06.xml");
             baos = new ByteArrayOutputStream();
@@ -437,7 +455,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy06",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy06", baos.toByteArray());
 
             String request11 = PEPServiceHelper.buildRequest("root", "/", "create");
             String request12 = PEPServiceHelper.buildRequest("root", "/tests", "create");
@@ -492,7 +510,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy09",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy09", baos.toByteArray());
 
             String request11 = PEPServiceHelper.buildRequest("somebody", "/", "create");
             String request12 = PEPServiceHelper.buildRequest("somebody", "/", "exists");
@@ -529,7 +547,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy10",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy10", baos.toByteArray());
 
             String request11 = PEPServiceHelper.buildRequest("somebody", "/", "create");
             String request12 = PEPServiceHelper.buildRequest("somebody", "/", "read");
@@ -569,7 +587,7 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
                 baos.write(buffer, 0, nbRead);
             }
 
-            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy11",baos.toByteArray());
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy11", baos.toByteArray());
 
             String request11 = PEPServiceHelper.buildRequest("somebody", "/", "exists");
 
@@ -626,4 +644,72 @@ public class PDPServiceTest extends BaseSessionBeanFixture<PDPServiceBean> {
         }
     }
 
+    @Test
+    public void testUserAndGroupRequestScenario() {
+        try {
+            InputStream is = ClassLoader.getSystemResourceAsStream("policies/policy-23.xml");
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int nbRead = 0;
+
+            while ((nbRead = is.read(buffer)) > -1) {
+                baos.write(buffer, 0, nbRead);
+            }
+
+            getBeanToTest().getPolicyRepositoryService().getPolicyRepository().addPolicy("policy23", baos.toByteArray());
+
+            String request11 = PEPServiceHelper.buildRequest("somebody", "/projects/project1", "exists");
+
+            String request21 = PEPServiceHelper.buildRequest("/profiles/jayblanc", "/projects/project2", "read");
+            String request22 = PEPServiceHelper.buildRequest("/profiles/jayblanc", "/projects/project1", "read");
+            String request23 = PEPServiceHelper.buildRequest("/profiles/jayblanc", "/projects/project1", "update");
+            String request24 = PEPServiceHelper.buildRequest("/profiles/jayblanc", "/projects/project1", "delete");
+            String request25 = PEPServiceHelper.buildRequest("/profiles/jayblanc", "/projects/project1", "owner");
+
+            String request31 = PEPServiceHelper.buildRequest(new String[] { "somebody", "group1" }, "/projects/project1", "read");
+            String request32 = PEPServiceHelper.buildRequest(new String[] { "somebody", "group1" }, "/projects/project1", "delete");
+
+            String request41 = PEPServiceHelper.buildRequest(new String[] { "somebody", "/projects/project1/groups/developers" }, "/projects/project1", "read");
+            String request42 = PEPServiceHelper.buildRequest(new String[] { "/profiles/jayblanc", "/projects/project1/groups/developers" },
+                    "/projects/project1", "read");
+            String request43 = PEPServiceHelper.buildRequest(new String[] { "somebody", "group1", "/projects/project1/groups/developers" },
+                    "/projects/project1", "read");
+            String request44 = PEPServiceHelper.buildRequest(new String[] { "somebodyelse", "group1", "group2", "group3", "/projects/project1/groups/developers" },
+                    "/projects/project1", "read");
+
+            String response11 = getBeanToTest().query(request11);
+            String response21 = getBeanToTest().query(request21);
+            String response22 = getBeanToTest().query(request22);
+            System.out.println(response22);
+
+            String response23 = getBeanToTest().query(request23);
+            String response24 = getBeanToTest().query(request24);
+            String response25 = getBeanToTest().query(request25);
+            String response31 = getBeanToTest().query(request31);
+            String response32 = getBeanToTest().query(request32);
+            String response41 = getBeanToTest().query(request41);
+            String response42 = getBeanToTest().query(request42);
+            String response43 = getBeanToTest().query(request43);
+            String response44 = getBeanToTest().query(request44);
+
+            assertTrue(response11.indexOf("Deny") != -1);
+
+            assertTrue(response21.indexOf("NotApplicable") != -1);
+            assertTrue(response22.indexOf("Permit") != -1);
+            assertTrue(response23.indexOf("Permit") != -1);
+            assertTrue(response24.indexOf("Permit") != -1);
+            assertTrue(response25.indexOf("Permit") != -1);
+
+            assertTrue(response31.indexOf("Deny") != -1);
+            assertTrue(response32.indexOf("Deny") != -1);
+
+            assertTrue(response41.indexOf("Permit") != -1);
+            assertTrue(response42.indexOf("Permit") != -1);
+            assertTrue(response43.indexOf("Permit") != -1);
+            assertTrue(response44.indexOf("Permit") != -1);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        }
+    }
 }

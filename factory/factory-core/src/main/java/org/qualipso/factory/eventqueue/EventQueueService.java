@@ -36,6 +36,7 @@ import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.eventqueue.entity.EventQueue;
 import org.qualipso.factory.eventqueue.entity.Rule;
+import org.qualipso.factory.notification.NotificationServiceException;
 
 /**
  * @author Nicolas HENRY

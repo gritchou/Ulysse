@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+# QualiPSo
+# http://www.qualipso.org/
+# 
+# Programming Language: HTML
+# 
+# File: MailmanLists.xml
+# Autor: Maria Alejandra Trujillo Valencia
+# E-Mail: alejandra.trujillo@atosorigin.com
+# Creation date: 13-03-2009
+# Last modification: 22-05-2009 by Maria Alejandra Trujillo Valencia
+#
+-->
+<Template schemaLocation="http://qualipso-project.org/2007/Template">
+	<!-- Meta tags define gadgets properties -->
+	<Catalog.ResourceDescription>
+        <Vendor>QualiPSo</Vendor>
+		<Name>Mailman Lists</Name>
+		<Version>1.0</Version>
+		<Author>Alejandra Trujillo</Author>
+		<Mail>alejandra.trujillo@atosorigin.es</Mail>
+		<Description>This gadget return mailman lists resource</Description>
+        <ImageURI>http://www.gnu.org/software/mailman/images/logo-70.jpg</ImageURI>
+		<WikiURI></WikiURI>
+	</Catalog.ResourceDescription>
+	<!-- EzWeb Gadgets Tags -->
+
+    <Platform.Preferences>
+		<Preference name="ezweb_url" default="http://localhost:8000/" type="text" description="EzWeb URL" label="EzWeb URL"/>
+	</Platform.Preferences>
+
+
+    <Platform.StateProperties>
+    </Platform.StateProperties>
+
+	<Platform.Wiring>
+        <Slot name="project_id" type="text" label="project_id" friendcode = "project_id"/>
+        <Event name="list_id" type="text" label="list_id" friendcode = "list_id"/>
+        <Event name="archive_id" type="text" label="archive_id" friendcode = "archive_id"/>
+	</Platform.Wiring>
+	<Platform.Link>
+        <XHTML href="http://ezwebdev.eurodyn.com/repository/MailingGadgets/MailmanLists.html">
+	</Platform.Link>
+	<Platform.Rendering width="6" height="25"/>
+</Template>

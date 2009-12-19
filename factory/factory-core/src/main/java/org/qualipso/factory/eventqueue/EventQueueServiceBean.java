@@ -58,10 +58,10 @@ import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.eventqueue.entity.EventQueue;
 import org.qualipso.factory.eventqueue.entity.Rule;
 import org.qualipso.factory.membership.MembershipService;
-import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
+import org.qualipso.factory.security.pep.AccessDeniedException;
 import org.qualipso.factory.security.pep.PEPService;
 import org.qualipso.factory.security.pep.PEPServiceException;
 
@@ -1310,12 +1310,12 @@ public class EventQueueServiceBean implements EventQueueService {
         try {
             caller = membership.getProfilePathForConnectedIdentifier();
             pep.checkSecurity(caller, queuePath, "update");
-        } catch (MembershipServiceException e) {
-            e.printStackTrace();
-            throw new EventQueueServiceException("unable to know the connected profil");
         } catch (PEPServiceException e) {
             e.printStackTrace();
             throw new EventQueueServiceException("unable to add rule on the queue " + queuePath);
+        } catch (AccessDeniedException e) {
+            e.printStackTrace();
+            throw new EventQueueServiceException("unable to know the connected profil");
         }
 
         if ((subjectre == null) || (objectre == null) || (targetre == null) || (queuePath == null))
@@ -1344,12 +1344,12 @@ public class EventQueueServiceBean implements EventQueueService {
         try {
             caller = membership.getProfilePathForConnectedIdentifier();
             pep.checkSecurity(caller, queuePath, "update");
-        } catch (MembershipServiceException e) {
-            e.printStackTrace();
-            throw new EventQueueServiceException("unable to know the connected profil");
         } catch (PEPServiceException e) {
             e.printStackTrace();
             throw new EventQueueServiceException("unable to remove rule on the queue " + queuePath);
+        } catch (AccessDeniedException e) {
+            e.printStackTrace();
+            throw new EventQueueServiceException("unable to know the connected profil");
         }
 
         if ((subjectre == null) || (objectre == null) || (targetre == null) || (queuePath == null))

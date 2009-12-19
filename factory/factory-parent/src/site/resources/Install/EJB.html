@@ -1,0 +1,237 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
+	<meta http-equiv="Content-Style-Type" content="text/css" />
+	<meta http-equiv="Content-Script-Type" content="text/javascript" />
+	
+	<meta http-equiv="imagetoolbar" content="no" />
+	
+	<meta name="author" content="Christophe Bouthier" />
+	<meta name="copyright" content="copyright 2009 - INRIA" />
+	<meta name="keywords" content="Qualipso, qualipso factory, open-source, quality, service, development" />
+	<meta name="description" content="Documentation for the Qualiso factory - defining EJB service" />
+	
+	<link rel="stylesheet" href="commons/css/style.css" type="text/css" />
+	<link rel="stylesheet" href="commons/css/lightbox.css" type="text/css" media="screen" />
+	
+	<script type="text/javascript" src="commons/js/prototype.js"></script>
+  <script type="text/javascript" src="commons/js/scriptaculous.js?load=effects,builder"></script>
+  <script type="text/javascript" src="commons/js/lightbox.js"></script>
+	
+	<title>Qualipso Factory - Tutorial - Part III</title>
+</head>
+<body id="www.qualipso.org">
+	
+	<h1>Qualipso Factory</h1>
+	
+  <div id="wrapper">
+  	
+	<div id="menu">
+		<div id="menu_all">
+	    <ul>
+	      <li><a href="install-env-service.html">Installation</a</li>
+	      <li class="selected"><a href="create-new-service.html">Development</a></li>
+	    </ul>
+	  </div>
+	 <div id="menu_global">
+  	  <h2>Tutorial map:</h2>
+	  	<ol>
+	  	  <li><a href="create-new-service.html">Create a new service</a></li>
+	  	  <li><a href="add-test.html">Add the test structure</a></li>
+	  	  <li id="selected"><a href="EJB.html">Define the EJB service</a></li>
+	  	  <li><a href="remote.html">Implements remote access</a></li>
+	  	  <li><a href="factory.html">Qualipso Factory services</a></li> 
+	    </ol>
+	  </div>
+	  <div id="menu_local">
+		  <h2>Steps:</h2>
+		  <ul>
+	    </ul>
+	 </div>
+	</div>
+	
+	<div id="content">
+		<h2>Defining the EJB Service</h2>
+
+		<div id="introduction">
+			<p>Now that the whole <a href="add-test.html">projects infrastructure</a> is ready for development, the real work can start, that is designing, implementing, and testing the new service. The goal of this tutorial page is to give the necessary instructions to fullfill those steps. The approach chosen is a test-driven approach: first implementing the functional tests, then the unit test, then the interface, and finally implementing the service. Concerning the implementation, only the basic EJB part will be done here, not the full service implementation. Indeed, a full real service needs to call Qualipso Factory services (after all, that's the whole goal of the game here), and the use of Qualispo Factory services will be done only in the last part of the tutorial. In the meantime, this page concentrate on the EJB part of the service.</p>
+		</div>
+		
+		<div id="checklist">
+		  <h3>Checklist</h3>
+		  <p>Here is the checklist of everything that you will do on this level:</p>
+		  <ul>
+		    <li><a href="#FUNCTIONAL">Create the functional tests</a></li>
+		  </ul>
+		</div>
+
+    <!-- Functional tests -->
+		<div class="step">
+		  <h3><a name="FUNCTIONAL"></a>Step 1: Create the functional tests</h3>
+			<p>The functional tests correspond to user stories for the service, testing its whole functionality. That's why it's a good idea to start by creating those functional tests before even implementing the service: you create a running specification of your service, that will help you concentrate on the <em>usage</em> of your service (instead of loosing yourself in implementation details). Moreover, those tests provide you with a easily checkable achievement point: you have finished implementing the service <em>once and only once</em> all the functional tests are passing correctly.</p>
+			<p>The first thing to do is thus to define how the twitter service will be used, that is to create user stories. As this is just a tutorial and the goal is not to create a full usable service, simple user stories will be enough:</p>
+			 <ul class="projects">
+			  <li>a first user, <em>"Caleb"</em>, create a tweet about something; then a second user, <em>"Kurtzmann"</em>, gets the tweet from Caleb. The test should assert that Kurtzmann get the correct tweet from Caleb.</li>
+			  <li>Kurtzmann create <em>two</em> tweets, and Caleb get the tweets from Kurtzmann. The test should assert that Caleb get the two tweets from Kurtzmann, and in the correct order.</li>
+			 </ul>
+			<p>Let's translate that in a functionnal test. Functional tests are defined in the <em>"funkyfactory-service-twitter-ftests"</em> project.</p>
+			<ol>
+			  <li>
+			    In the <em>"funkyfactory-service-twitter-ftests"</em> project, open the <em>"TwitterServiceFunctionalTest.java"</em> file, in <em>src/test/java</em>. There should already be the declaration of an empty class called <em>"TwitterServiceFunctionalTest"</em>.
+<pre><samp>public class TwitterServiceFunctionalTest {
+	
+}</samp></pre>
+			  </li>
+			  <li>
+			     Create a first method, called <kbd>"testSingleTweet"</kbd>, that take no parameters and return <code>void</code>:
+<pre><samp>public class TwitterServiceFunctionalTest {
+
+  <span class="new">public void testSingleTweet() {
+  }</span>
+  
+}</samp></pre>
+			  </li>
+			  <li>
+			    To indicate to ejb3unit that this method is a test, add the <kbd>@Test</kbd> annotation to the method:
+<pre><samp>public class TwitterServiceFunctionalTest {
+
+  <span class="new">@Test</span>
+  public void testSingleTweet() {
+  }
+  
+}</samp></pre>
+			    (In fact, the <em>@Test</em> annotation is a JUnit annotation, not an ejb3unit annotation. But ejb3unit goal is precisely to bring JUnit functionalities for testing EJB. Thus the use of JUnit annotations.)
+			  </li>
+			  <li>
+			    Now, you can implement the first user story in this method. Concentrating on the story itself and not on the implementation details, the story can be written like this:
+<pre><samp>@Test
+public void testSingleTweet() {
+  <span class="new">String tweetText = "1001 way to use cryptonite is a fabulous book.";
+	
+  Caleb.login();
+  Caleb.getTweetService().tweet(tweetText);
+  Caleb.logout();
+  
+  Kurtzmann.login();
+  Tweet[] tweets = Kurtzmann.getTweetService().getTweetsOf(Caleb.profile);
+  Kurtzmann.logout();
+		
+  assertEquals("There should be only one tweet", 1, tweets.length);
+  assertNotNull("Caleb tweet", tweets[0]);
+  assertEquals("Caleb tweet content", tweetText, tweets[0].getContent());</span>
+}</samp></pre>
+          A lot of objects are missing for this code to even compile: don't worry, you will remede to that in a few moments. But first, let's concentrate on the second user story.
+			  </li>
+			  <li>
+          In order to implement the second user story, create in the same manner a second method called <kbd>"testMultipleTweets"</kbd>, that take no parameters and return <code>void</code>, and with the <kbd>@Test</kbd> annotation:
+<pre><samp>public class TwitterServiceFunctionalTest {
+
+  @Test
+  public void testSingleTweet() {
+    [...]
+  }
+  
+  <span class="new">@Test
+  public void testMultipleTweets() {
+  }</span>
+  
+}</samp></pre>
+			  </li>
+			  <li>
+			    Again, concentrating on the story itself, the second user story can be written like this:
+<pre><samp>@Test
+public void testMultipleTweets() {
+  <span class="new">String firstTweetText = "Grrrrr";
+  String secondTweetText = "I'm happy";
+
+  Kurtzmann.login();
+  Kurtzmann.getTweetService().tweet(firstTweetText);
+  Kurtzmann.getTweetService().tweet(secondTweetText);
+  Kurtzmann.logout();
+
+  Caleb.login();
+  Tweet[] tweets = Caleb.getTweetService().getTweetsOf(Kurtzmann.getProfile());
+  Caleb.logout();
+
+  assertEquals("There should be only two tweets", 2, tweets.length);
+  assertNotNull("First Kurtzmann tweet", tweets[0]);
+  assertNotNull("Second Kurtzmann tweet", tweets[1]);
+  assertEquals("First Kurtzmann tweet content", firstTweetText, tweets[0]);
+  assertEquals("Second Kurtzmann tweet content", secondTweetText, tweets[1]);</span>
+}</samp></pre>
+          As for the first user story, a lot of objects are missing for this code to even compile.
+			  </li>
+			  <li>
+			    To implement those stories, you need to create the <em>Caleb</em> and <em>Kurtzmann</em> object. Those objects are just wrapper for tests methods, so that the user story is easier to read (this is call that a <em>DSL</em>: <em>Domain Specific Language</em>). You need to define a specific class for those objects, a class that will answer to those methods. Let's call this class <em>"User"</em>, and let it be a inner class of <em>TwitterServiceFunctionalTest</em>:
+<pre><samp>public class TwitterServiceFunctionalTest {
+	
+  @Test
+  public void testSingleTweet() {
+    [...]
+  }
+	
+  <span class="new">private class User {
+  }</span>
+
+}</samp></pre>   
+			  </li>
+			  <li>
+			    Add to this class the necessary methods that will be called in your tests:
+<pre><samp>private class User {
+  <span class="new">public void login() {
+  }
+  
+  public void logout() {
+  }
+  
+  public TweetService getTweetService() {
+  }
+  
+  public String getProfile() {
+  }</span>
+}</samp></pre>   
+			  </li>
+			  <li>
+			    An instance of this class will need only two informations, those necessary for login: the username and the password. Those information will be passed in the constructor. So add a constructor with the necessary parameters:
+<pre><samp>private class User {
+  <span class="new">public User(String username, String password) {
+  }</span>
+  
+  [...]
+}</samp></pre>			    
+			  </li>
+			  <li>
+			    <p>Now, you need to instantiate the objects so that they are ready for the tests. They have to be created before each test is running. To do this, you only need to put the code in a method and annotate this method with the <em>"@Before"</em> annotation. This JUnit annotation tells ejb3unit to run the annotated method before each test.</p>
+			    <p>Create a new method called <em>"initialize"</em>, that take no parameters and return <code>void</code>, and annotate it with the <em>"@Before"</em> annotation:</p>
+<pre><samp>public class TwitterServiceFunctionalTest {
+
+  <span class="new">@Before
+  public void initialize() {
+  }</span>
+
+  [...]
+}</samp></pre>   
+			  </li>
+			  <li>
+			    
+			  </li>
+			</ol>
+	  </div>
+
+		<div id="conclusion">
+			<p>In this page, you have defined your service, implemented the whole EJB part of it, and even tested it, with unit testing and functional testing. You now have a fonctional and tested EJB service. The main thing missing for it to be a fully functional factory service is to calls the necessary Qualipso Factory services, to be able to integrate in the factory. But before doing that, you will first add a <a href="remote.html">webservice remote access</a> to your service.</p>
+		</div>
+
+	</div>
+	</div>
+	
+	<div id="footer">
+	  <div id="validation">
+      <a class="xhtml" href="http://validator.w3.org/check?uri=referer">xhtml</a>
+      <a class="css" href="http://jigsaw.w3.org/css-validator/check/referer">css</a>
+    </div>
+	</div>
+
+</body>
+</html>

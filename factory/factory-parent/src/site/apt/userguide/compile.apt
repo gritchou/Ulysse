@@ -1,0 +1,73 @@
+ ------
+Next Generation Forge Documentation
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster, Christophe Bouthier
+ ------
+June 2009
+ ------
+
+Compiling the Qualipso Factory
+   
+* Prerequisites
+
+   * A copy of the sources, that you can get from the {{{../source-repository.html}source repository}}
+
+   * Java SDK 1.6
+   
+   * maven
+
+* Composition of the factory
+
+  The Qualipso Factory is composed of several modules. 
+  
+  Some are essential to the factory. 
+  "factory-core" is such a package.
+  
+  Some are tests packages. 
+  The goal of those are to be able to test the other modules simulating client access. 
+  "factory-core-test" is such a package.
+  
+  Some are additionnal services, that could be added to the Factory in order to add functionnality.
+  "factory-service-git" is such a package.
+  
+  Finally, the last module is the one that package everything together in a readily-executable item, that is an EAR file, ready to be deployed in a JBoss server.
+  This module is "factory-package-basic"
+  
+* Compiling the factory
+
+  Every compilation is done through the maven utility. 
+  The maven utility should be called in each module that need to be compiled.
+  The last module that should be compiled is theone doing the final packaging, that is "factory-package-basic".
+  
+* Compiling Factory Core
+
+  Go in the "factory-core" package, and type the following command:
+  
+-----------------------------------
+mvn install
+-----------------------------------  
+
+  The command will compile the project, run its unit tests, package it in the correct format, and copy a version in the specific maven folder, in order for it to be easily referenced by other modules.
+
+* Compiling other modules
+
+  Go in the folder containing the module that you want to compile, for example "factory-service-git", and type the following command:
+
+-----------------------------------
+mvn install
+-----------------------------------  
+  
+  Repeat the operation for all and every module that you want to be included in the factory.
+
+* Create the final package
+
+  Go in the "factory-package-basic" module.
+  Edit the "pom.xml" file so that all the necessary services are put as dependencies.
+  Type the following command:
+
+-----------------------------------
+mvn package
+-----------------------------------  
+  
+   The command will package all services specified as dependencies in its "pom.xml" file, and create a corresponding EAR file in the "target" folder.
+

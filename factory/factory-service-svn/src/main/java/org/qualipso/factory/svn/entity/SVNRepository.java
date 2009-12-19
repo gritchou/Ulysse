@@ -8,9 +8,11 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
+import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
-import org.qualipso.factory.FactoryNamingConvention;
+import org.qualipso.factory.membership.entity.Profile;
+import org.qualipso.factory.svn.utils.SVNConstants;
 
 /**
  * @author Gerald Oster (oster@loria.fr)
@@ -45,14 +47,14 @@ public class SVNRepository extends FactoryResource {
 	}
 	
 	@XmlAttribute(name = "path", required = true)
-	@Transient
+    @Transient
 	@Override
 	public String getResourcePath() {
 		return path;
 	}
 	
-	public void setResourcePath(String path) {
-		this.path = path;
+	public void setResourcePath(String resourcePath) {
+		this.path = resourcePath;
 	}
 	
 	@XmlElement(name = "name", required = true)
@@ -85,7 +87,7 @@ public class SVNRepository extends FactoryResource {
 	@Override
 	@XmlTransient
 	public FactoryResourceIdentifier getFactoryResourceIdentifier() {
-		return new FactoryResourceIdentifier("SVNService", "SVNRepository", getId());
+		return new FactoryResourceIdentifier(SVNConstants.SVN_SERVICE_NAME, RESOURCE_NAME, getId());
 	}
 
 	@Override

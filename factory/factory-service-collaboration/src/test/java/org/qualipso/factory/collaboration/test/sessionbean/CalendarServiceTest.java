@@ -17,6 +17,8 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.browser.BrowserService;
+import org.qualipso.factory.collaboration.beans.CalendarDetails;
+import org.qualipso.factory.collaboration.beans.CalendarEvent;
 import org.qualipso.factory.collaboration.calendar.CalendarService;
 import org.qualipso.factory.collaboration.calendar.CalendarServiceBean;
 import org.qualipso.factory.collaboration.calendar.entity.CalendarItem;
@@ -34,36 +36,65 @@ import org.qualipso.factory.security.pep.PEPService;
 
 import com.bm.testsuite.BaseSessionBeanFixture;
 
+// TODO: Auto-generated Javadoc
 /**
-* This is test case for the Calendar Service
-* @author George Strousopoulos
-*/
-public class CalendarServiceTest extends BaseSessionBeanFixture<CalendarServiceBean>
-{
+ * This is test case for the Calendar Service.
+ * 
+ * @author George Strousopoulos
+ */
+public class CalendarServiceTest extends
+	BaseSessionBeanFixture<CalendarServiceBean> {
 
+    /** The logger. */
     private static Log logger = LogFactory.getLog(CalendarServiceTest.class);
 
+    /** The Constant usedBeans. */
     @SuppressWarnings("unchecked")
     private static final Class[] usedBeans = { CalendarItem.class };
 
+    /** The mockery. */
     private Mockery mockery;
+
+    /** The binding. */
     private BindingService binding;
+
+    /** The membership. */
     private MembershipService membership;
+
+    /** The pep. */
     private PEPService pep;
+
+    /** The pap. */
     private PAPService pap;
+
+    /** The notification. */
     private NotificationService notification;
+
+    /** The browser. */
     private BrowserService browser;
+
+    /** The core. */
     private CoreService core;
+
+    /** The calendar ws. */
     private CalendarWService calendarWS;
+
+    /** The document service. */
     private DocumentService documentService;
 
-    public CalendarServiceTest()
-    {
+    /**
+     * Instantiates a new calendar service test.
+     */
+    public CalendarServiceTest() {
 	super(CalendarServiceBean.class, usedBeans);
     }
 
-    public void setUp() throws Exception
-    {
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.bm.testsuite.BaseSessionBeanFixture#setUp()
+     */
+    public void setUp() throws Exception {
 	super.setUp();
 	logger.debug("injecting mock partners session beans");
 	mockery = new Mockery();
@@ -87,32 +118,37 @@ public class CalendarServiceTest extends BaseSessionBeanFixture<CalendarServiceB
 	getBeanToTest().setDocumentService(documentService);
     }
 
-    public void testCRUDCalendar()
-    {
-	logger.debug("****************************************************************");
+    /**
+     * Test crud calendar.
+     */
+    public void testCRUDCalendar() {
+	logger
+		.debug("****************************************************************");
 	logger.debug("testing CRUD Calendar(...)");
-	logger.debug("****************************************************************");
+	logger
+		.debug("****************************************************************");
 	final Sequence sequence1 = mockery.sequence("sequence1");
 	final Vector<Object> params1 = new Vector<Object>();
 
-	try
-	{
+	try {
 	    final String randomNameStr = "E" + System.currentTimeMillis();
-	    final String randomName4Path = CollaborationUtils.normalizeForPath(randomNameStr);
-	    final String ocId = CollaborationUtils.normalizeForPath(UUID.randomUUID().toString());
-	    final String sId = CollaborationUtils.normalizeForPath(UUID.randomUUID().toString());
+	    final String randomName4Path = CollaborationUtils
+		    .normalizeForPath(randomNameStr);
+	    final String ocId = CollaborationUtils.normalizeForPath(UUID
+		    .randomUUID().toString());
+	    final String sId = CollaborationUtils.normalizeForPath(UUID
+		    .randomUUID().toString());
 	    final String path = "/calendar/2010/9/2/" + ocId;
 	    CalendarService service = getBeanToTest();
 	    // TEST Create Event
-	    mockery.checking(new Expectations()
-	    {
+	    mockery.checking(new Expectations() {
 		{
 		    //
 		    oneOf(membership).getProfilePathForConnectedIdentifier();
 		    will(returnValue("/profiles/jayblanc"));
 		    inSequence(sequence1);
-		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/calendar")),
-			    with(equal("create")));
+		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),
+			    with(equal("/calendar")), with(equal("create")));
 		    inSequence(sequence1);
 		    // mock Mermig WS
 		    HashMap<String, Object> resultMap = new HashMap<String, Object>();
@@ -122,8 +158,7 @@ public class CalendarServiceTest extends BaseSessionBeanFixture<CalendarServiceB
 		    HashMap ocIds = new HashMap();
 		    ocIds.put(ocId, ocId);
 		    resultMap.put("occurenceIds", ocIds);
-		    oneOf(calendarWS).createEvent(randomNameStr, "Athens", "2010-09-02", "10:00:00", "18:00:00",
-			    "strusos", "gstro@delos.eurodyn.com", "2108094500", "once", 1);
+		    oneOf(calendarWS).createEvent(with(any(CalendarDTO.class)));
 		    will(returnValue(resultMap));
 		    inSequence(sequence1);
 		    // mock core
@@ -142,42 +177,57 @@ public class CalendarServiceTest extends BaseSessionBeanFixture<CalendarServiceB
 		    will(returnValue(folder));
 		    inSequence(sequence1);
 		    //
-		    oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(equal(path)));
+		    oneOf(binding).bind(
+			    with(any(FactoryResourceIdentifier.class)),
+			    with(equal(path)));
 		    will(saveParams(params1));
 		    inSequence(sequence1);
-		    oneOf(binding).setProperty(with(equal(path)),
-			    with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)), with(any(String.class)));
+		    oneOf(binding)
+			    .setProperty(
+				    with(equal(path)),
+				    with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)),
+				    with(any(String.class)));
+		    inSequence(sequence1);
+		    oneOf(binding)
+			    .setProperty(
+				    with(equal(path)),
+				    with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)),
+				    with(any(String.class)));
 		    inSequence(sequence1);
 		    oneOf(binding).setProperty(with(equal(path)),
-			    with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
-		    inSequence(sequence1);
-		    oneOf(binding).setProperty(with(equal(path)), with(equal(FactoryResourceProperty.AUTHOR)),
+			    with(equal(FactoryResourceProperty.AUTHOR)),
 			    with(equal("/profiles/jayblanc")));
 		    inSequence(sequence1);
-		    oneOf(pap).createPolicy(with(any(String.class)), with(containsString(path)));
+		    oneOf(pap).createPolicy(with(any(String.class)),
+			    with(containsString(path)));
 		    inSequence(sequence1);
-		    oneOf(binding).setProperty(with(equal(path)), with(equal(FactoryResourceProperty.OWNER)),
+		    oneOf(binding).setProperty(with(equal(path)),
+			    with(equal(FactoryResourceProperty.OWNER)),
 			    with(equal("/profiles/jayblanc")));
 		    inSequence(sequence1);
-		    oneOf(binding).setProperty(with(equal(path)), with(equal(FactoryResourceProperty.POLICY_ID)),
+		    oneOf(binding).setProperty(with(equal(path)),
+			    with(equal(FactoryResourceProperty.POLICY_ID)),
 			    with(any(String.class)));
 		    inSequence(sequence1);
 		    oneOf(notification).throwEvent(
-			    with(anEventWithTypeEqualsTo(Event.buildEventType(CalendarService.SERVICE_NAME,
+			    with(anEventWithTypeEqualsTo(Event.buildEventType(
+				    CalendarService.SERVICE_NAME,
 				    CalendarItem.RESOURCE_NAME, "create"))));
 		    inSequence(sequence1);
 		}
 	    });
-	    service.createEvent("/calendar", randomNameStr, "Athens", "2010-09-02", "10:00:00", "18:00:00", "strusos",
+	    CalendarDetails cdet = new CalendarDetails(randomNameStr, "Athens",
+		    "2010-09-02", "10:00:00", "18:00:00", "strusos",
 		    "gstro@delos.eurodyn.com", "2108094500", "once", 1);
+	    service.createEvent("/calendar", cdet);
 	    // TEST Read Event
-	    mockery.checking(new Expectations()
-	    {
+	    mockery.checking(new Expectations() {
 		{
 		    oneOf(membership).getProfilePathForConnectedIdentifier();
 		    will(returnValue("/profiles/jayblanc"));
 		    inSequence(sequence1);
-		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal(path)), with(equal("read")));
+		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),
+			    with(equal(path)), with(equal("read")));
 		    inSequence(sequence1);
 		    oneOf(binding).lookup(with(equal(path)));
 		    will(returnValue(params1.get(0)));
@@ -194,7 +244,8 @@ public class CalendarServiceTest extends BaseSessionBeanFixture<CalendarServiceB
 		    inSequence(sequence1);
 		    //
 		    oneOf(notification).throwEvent(
-			    with(anEventWithTypeEqualsTo(Event.buildEventType(CalendarService.SERVICE_NAME,
+			    with(anEventWithTypeEqualsTo(Event.buildEventType(
+				    CalendarService.SERVICE_NAME,
 				    CalendarItem.RESOURCE_NAME, "read"))));
 		    inSequence(sequence1);
 		}
@@ -205,15 +256,14 @@ public class CalendarServiceTest extends BaseSessionBeanFixture<CalendarServiceB
 	    assertTrue(event.getLocation().equals("Athens"));
 
 	    // TEST Update Event
-	    mockery.checking(new Expectations()
-	    {
+	    mockery.checking(new Expectations() {
 		{
 		    // Update the event :
 		    oneOf(membership).getProfilePathForConnectedIdentifier();
 		    will(returnValue("/profiles/jayblanc"));
 		    inSequence(sequence1);
-		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal(path)),
-			    with(equal("update")));
+		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),
+			    with(equal(path)), with(equal("update")));
 		    inSequence(sequence1);
 		    oneOf(binding).lookup(with(equal(path)));
 		    will(returnValue(params1.get(0)));
@@ -222,23 +272,29 @@ public class CalendarServiceTest extends BaseSessionBeanFixture<CalendarServiceB
 		    HashMap<String, Object> resultMap = new HashMap<String, Object>();
 		    resultMap.put("statusCode", "SUCCESS");
 		    resultMap.put("statusMessage", "done");
-		    oneOf(calendarWS).updateEvent(ocId, sId, randomNameStr, "Athens", "2010-09-02", "10:30:00",
-			    "18:30:00", "strusos", "gstro@delos.eurodyn.com", "2108094500");
+		    oneOf(calendarWS).updateEvent(ocId, sId, randomNameStr,
+			    "Athens", "2010-09-02", "10:30:00", "18:30:00",
+			    "strusos", "gstro@delos.eurodyn.com", "2108094500");
 		    will(returnValue(resultMap));
 		    inSequence(sequence1);
 		    //
-		    oneOf(binding).setProperty(with(equal(path)),
-			    with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
+		    oneOf(binding)
+			    .setProperty(
+				    with(equal(path)),
+				    with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)),
+				    with(any(String.class)));
 		    inSequence(sequence1);
 		    oneOf(notification).throwEvent(
-			    with(anEventWithTypeEqualsTo(Event.buildEventType(CalendarService.SERVICE_NAME,
+			    with(anEventWithTypeEqualsTo(Event.buildEventType(
+				    CalendarService.SERVICE_NAME,
 				    CalendarItem.RESOURCE_NAME, "update"))));
 		    inSequence(sequence1);
 		    // Read the event:
 		    oneOf(membership).getProfilePathForConnectedIdentifier();
 		    will(returnValue("/profiles/jayblanc"));
 		    inSequence(sequence1);
-		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal(path)), with(equal("read")));
+		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),
+			    with(equal(path)), with(equal("read")));
 		    inSequence(sequence1);
 		    oneOf(binding).lookup(with(equal(path)));
 		    will(returnValue(params1.get(0)));
@@ -253,25 +309,28 @@ public class CalendarServiceTest extends BaseSessionBeanFixture<CalendarServiceB
 		    inSequence(sequence1);
 		    //
 		    oneOf(notification).throwEvent(
-			    with(anEventWithTypeEqualsTo(Event.buildEventType(CalendarService.SERVICE_NAME,
+			    with(anEventWithTypeEqualsTo(Event.buildEventType(
+				    CalendarService.SERVICE_NAME,
 				    CalendarItem.RESOURCE_NAME, "read"))));
 		    inSequence(sequence1);
 
 		}
 	    });
-	    service.updateEvent(path, randomNameStr, "Athens", "2010-09-02", "10:30:00", "18:30:00", "strusos",
+	    CalendarEvent cE = new CalendarEvent(randomNameStr, "Athens", "2010-09-02",
+		    "10:30:00", "18:30:00", "strusos",
 		    "gstro@delos.eurodyn.com", "2108094500");
-	    assertTrue(service.readEvent(path).getStartTime().equals("10:30:00"));
+	    service.updateEvent(path,cE );
+	    assertTrue(service.readEvent(path).getStartTime()
+		    .equals("10:30:00"));
 
-	    mockery.checking(new Expectations()
-	    {
+	    mockery.checking(new Expectations() {
 		{
 		    // Delete the event :
 		    oneOf(membership).getProfilePathForConnectedIdentifier();
 		    will(returnValue("/profiles/jayblanc"));
 		    inSequence(sequence1);
-		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal(path)),
-			    with(equal("delete")));
+		    oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")),
+			    with(equal(path)), with(equal("delete")));
 		    inSequence(sequence1);
 		    oneOf(binding).lookup(with(equal(path)));
 		    will(returnValue(params1.get(0)));
@@ -284,7 +343,8 @@ public class CalendarServiceTest extends BaseSessionBeanFixture<CalendarServiceB
 		    will(returnValue(resultMap));
 		    inSequence(sequence1);
 		    //
-		    oneOf(binding).getProperty(with(equal(path)), with(equal(FactoryResourceProperty.POLICY_ID)),
+		    oneOf(binding).getProperty(with(equal(path)),
+			    with(equal(FactoryResourceProperty.POLICY_ID)),
 			    with(equal(false)));
 		    inSequence(sequence1);
 		    oneOf(pap).deletePolicy(with(any(String.class)));
@@ -292,7 +352,8 @@ public class CalendarServiceTest extends BaseSessionBeanFixture<CalendarServiceB
 		    oneOf(binding).unbind(with(equal(path)));
 		    inSequence(sequence1);
 		    oneOf(notification).throwEvent(
-			    with(anEventWithTypeEqualsTo(Event.buildEventType(CalendarService.SERVICE_NAME,
+			    with(anEventWithTypeEqualsTo(Event.buildEventType(
+				    CalendarService.SERVICE_NAME,
 				    CalendarItem.RESOURCE_NAME, "delete"))));
 		    inSequence(sequence1);
 		}
@@ -301,8 +362,7 @@ public class CalendarServiceTest extends BaseSessionBeanFixture<CalendarServiceB
 
 	    mockery.assertIsSatisfied();
 
-	} catch (Exception e)
-	{
+	} catch (Exception e) {
 	    logger.error(e.getMessage(), e);
 	    fail(e.getMessage());
 	}

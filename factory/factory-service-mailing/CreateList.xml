@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+# QualiPSo
+# http://www.qualipso.org/
+#
+# Programming Language: XML
+#
+# File: AddUser.xml
+# Version: 1.0
+# Date: 01/06/2009
+#
+-->
+<Template schemaLocation="http://morfeo-project.org/2007/Template">
+	<!-- Meta tags define gadgets properties -->
+	<Catalog.ResourceDescription>
+		<Vendor>QualiPSo</Vendor>
+		<Name>Mailman Create List</Name>
+		<Version>1.0</Version>
+        <Author>Alejandra Trujillo</Author>
+		<Mail>alejandra.trujillo@atosorigin.es</Mail>
+		<Description>This gadget let to create a mailman list</Description>
+        <ImageURI>http://www.gnu.org/software/mailman/images/logo-70.jpg </ImageURI>
+		<WikiURI></WikiURI>
+	</Catalog.ResourceDescription>
+	<!-- EzWeb Gadgets Tags -->
+
+    <Platform.Preferences>
+    </Platform.Preferences>
+
+    <Platform.StateProperties>
+    </Platform.StateProperties>
+
+	<Platform.Wiring>
+	</Platform.Wiring>
+	<Platform.Context>			
+		<Context name="user" type="text" concept="user_name"/>	
+	</Platform.Context>
+	<Platform.Link>
+        <XHTML href="http://ezwebdev.eurodyn.com/repository/MailingGadgets/CreateList.html"/>
+	</Platform.Link>
+	<Platform.Rendering width="11" height="30"/>
+</Template>

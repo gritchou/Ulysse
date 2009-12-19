@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" "http://java.sun.com/dtd/web-app_2_3.dtd">
+<web-app>
+  <display-name>ChatOS</display-name>
+
+  <listener>
+    <listener-class>org.claros.chat.utility.SessionListener</listener-class>
+  </listener>
+
+  <servlet>
+	<servlet-name>InitiatorBase</servlet-name>
+	<display-name>InitiatorBase</display-name>
+	<servlet-class>org.claros.commons.configuration.Initiator</servlet-class>
+	<load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet>
+    <servlet-name>Authenticate</servlet-name>
+    <servlet-class>org.claros.chat.ajax.Authenticate</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>Contacts</servlet-name>
+    <servlet-class>org.claros.chat.ajax.Contacts</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>Listener</servlet-name>
+    <servlet-class>org.claros.chat.ajax.Listener</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>Subscriptions</servlet-name>
+    <servlet-class>org.claros.chat.ajax.Subscriptions</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>Logout</servlet-name>
+    <servlet-class>org.claros.chat.ajax.Logout</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>Sender</servlet-name>
+    <servlet-class>org.claros.chat.ajax.Sender</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>ClearServlet</servlet-name>
+    <servlet-class>org.claros.chat.controllers.ClearServlet</servlet-class>
+	<load-on-startup>2</load-on-startup>
+  </servlet>
+  <servlet>
+    <servlet-name>ShowAvatar</servlet-name>
+    <servlet-class>org.claros.chat.ajax.ShowAvatar</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>Preferences</servlet-name>
+    <servlet-class>org.claros.chat.ajax.Preferences</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>Status</servlet-name>
+    <servlet-class>org.claros.chat.ajax.Status</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>Roaster</servlet-name>
+    <servlet-class>org.claros.chat.ajax.Roaster</servlet-class>
+  </servlet>
+
+
+
+
+
+
+
+  <servlet-mapping>
+    <servlet-name>Authenticate</servlet-name>
+    <url-pattern>/authenticate.cl</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Contacts</servlet-name>
+    <url-pattern>/contacts.cl</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Listener</servlet-name>
+    <url-pattern>/listener.cl</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Subscriptions</servlet-name>
+    <url-pattern>/subscriptions.cl</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Logout</servlet-name>
+    <url-pattern>/logout.cl</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Sender</servlet-name>
+    <url-pattern>/sender.cl</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>ShowAvatar</servlet-name>
+    <url-pattern>/avatar.cl</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Preferences</servlet-name>
+    <url-pattern>/preferences.cl</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Status</servlet-name>
+    <url-pattern>/status.cl</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Roaster</servlet-name>
+    <url-pattern>/roaster.cl</url-pattern>
+  </servlet-mapping>
+  
+  <welcome-file-list>
+	<welcome-file>index.html</welcome-file>
+	<welcome-file>index.htm</welcome-file>
+	<welcome-file>index.jsp</welcome-file>
+	<welcome-file>default.html</welcome-file>
+	<welcome-file>default.htm</welcome-file>
+	<welcome-file>default.jsp</welcome-file>
+  </welcome-file-list>
+
+  <taglib>
+	<taglib-uri>/WEB-INF/tld/ajax.tld</taglib-uri>
+	<taglib-location>/WEB-INF/tld/ajax.tld</taglib-location>
+  </taglib>
+</web-app>

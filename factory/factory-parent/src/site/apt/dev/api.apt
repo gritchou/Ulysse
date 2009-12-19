@@ -1,0 +1,53 @@
+ ------
+Next Generation Forge Documentation
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster, Christophe Bouthier
+ ------
+June 2009
+ ------
+
+API and tests of the Qualipso Factory
+
+* Principles
+
+  The API of every module of the Factory is documented directly in the source code of the corresponding module, under the Javadoc format.
+  Moreover, each module is developed with a set of unit tests (testing the methods individually) and a set of functionnal tests (testing the functionality itself, even if it spread over several methods).
+
+* Accessing the API
+
+  To access the API of a specific module, just clic on the module name, on the left-hand menu.
+  Then, in the "Project Documentation" section, select the "Project Reports", and then the "Javadocs" items.
+  
+* Accessing and running the unit tests
+
+  To access the unit test, you need to get a copy of the source code, from the {{{../source-repository.html}source repository}}.
+  Then, go to the folder of the module you're interested in.
+  In the module folder, the unit tests sources are under the "src/test/java" folder.
+  
+  To run the unit test, just run the following command in the module folder:
+
+-----------------------------------
+mvn test
+-----------------------------------  
+  
+  You will get an indication describing how many unit tests are passing, how many are failling (assertion failure), and how many have an error (generally an exception not catched).
+
+* Accessing and running the functionnal tests
+
+  To access the functional test, you need to get a copy of the source code, from the {{{../source-repository.html}source repository}}.
+  There should be, for each service, a specific test module for this service, named from the service name, with the "test" suffix.
+  For example, for the "factory-core" module, there is a "factory-core-test" module, and for the 'factory-service-git" module, there is a "factory-service-git-test" module.
+  The functional tests are in a separated modules because, as they are run as client of the service, they are run from a separated JVM than the service itself (in JBoss).
+  For this reason, it is MANDATORY to have a running Factory, deployed and running in a JBoss server, in order for the functional tests to run.
+  Once you have a deployed and running factory, to run the functional tests, just run the following command in the module test folder:
+
+-----------------------------------
+mvn test
+-----------------------------------  
+  
+  You will get an indication describing how many unit tests are passing, how many are failling (assertion failure), and how many have an error (generally an exception not catched).
+
+* More information
+
+  More detailled information are available in the {{{../Install/install-env-service.html}developer section}}
+

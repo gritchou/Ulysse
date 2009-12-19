@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.1
  * 
  */
-@WebServiceClient(name = "bugtracker", targetNamespace = "http://org.qualipso.factory.ws/service/bugtracker", wsdlLocation = "http://localhost:8080/factory-service-bugtracker/bugtracker?wsdl")
+@WebServiceClient(name = "bugtracker", targetNamespace = "http://org.qualipso.factory.ws/service/bugtracker", wsdlLocation = "http://localhost:8080/factory-bugtracker/bugtracker?wsdl")
 public class Bugtracker_Service
     extends Service
 {
@@ -30,9 +30,9 @@ public class Bugtracker_Service
         try {
             URL baseUrl;
             baseUrl = org.qualipso.factory.bugtracker.client.ws.Bugtracker_Service.class.getResource(".");
-            url = new URL(baseUrl, "http://localhost:8080/factory-service-bugtracker/bugtracker?wsdl");
+            url = new URL(baseUrl, "http://localhost:8080/factory-bugtracker/bugtracker?wsdl");
         } catch (MalformedURLException e) {
-            logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:8080/factory-service-bugtracker/bugtracker?wsdl', retrying as a local file");
+            logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:8080/factory-bugtracker/bugtracker?wsdl', retrying as a local file");
             logger.warning(e.getMessage());
         }
         BUGTRACKER_WSDL_LOCATION = url;

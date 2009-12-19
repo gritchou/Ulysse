@@ -133,6 +133,8 @@ public class SVNServiceTest extends BaseSessionBeanFixture<SVNServiceBean> {
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/oster")); inSequence(sequence1);
 					oneOf(pep).checkSecurity(with(equal("/profiles/oster")), with(equal("/repo1")), with(equal("delete"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/repo1"))); will(returnValue(params1.get(0))); inSequence(sequence1);
+					oneOf(binding).list(with(equal("/repo1")));will(returnValue(null)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal("/profiles/oster")), with(equal("/repo1")), with(equal("delete"))); inSequence(sequence1);
 					oneOf(binding).getProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); will(returnValue("aFakePolicyID"));  inSequence(sequence1);
 					oneOf(pap).deletePolicy("aFakePolicyID"); inSequence(sequence1);
 					oneOf(binding).unbind(with(equal("/repo1"))); inSequence(sequence1);

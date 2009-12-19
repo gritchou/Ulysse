@@ -23,7 +23,6 @@ import org.qualipso.factory.membership.entity.Profile;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
-import org.qualipso.factory.ssh.SSHService;
 
 import com.bm.testsuite.BaseSessionBeanFixture;
 
@@ -44,7 +43,6 @@ public class GITServiceTest extends BaseSessionBeanFixture<GITServiceBean> {
 	private PEPService pep;
 	private PAPService pap;
 	private NotificationService notification;
-	private SSHService ssh;
 	
     public GITServiceTest() {
     	super(GITServiceBean.class, usedBeans);
@@ -59,13 +57,11 @@ public class GITServiceTest extends BaseSessionBeanFixture<GITServiceBean> {
 		pep = mockery.mock(PEPService.class);
 		pap = mockery.mock(PAPService.class);
 		notification = mockery.mock(NotificationService.class);
-		ssh = mockery.mock(SSHService.class);
 		getBeanToTest().setMembershipService(membership);
 		getBeanToTest().setNotificationService(notification);
 		getBeanToTest().setBindingService(binding);
 		getBeanToTest().setPEPService(pep);
 		getBeanToTest().setPAPService(pap);
-		getBeanToTest().setSSHService(ssh);
 	}
     
     public void testCRUDGITRepository() {
@@ -78,7 +74,8 @@ public class GITServiceTest extends BaseSessionBeanFixture<GITServiceBean> {
 			mockery.checking(new Expectations() {
 				{
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/")), with(equal("create"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(new String[] {"/profiles/jayblanc"})); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(new String[] {"/profiles/jayblanc"})), with(equal("/")), with(equal("create"))); inSequence(sequence1);
 					oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(equal("/repo1"))); will(saveParams(params1));  inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
@@ -96,7 +93,8 @@ public class GITServiceTest extends BaseSessionBeanFixture<GITServiceBean> {
             mockery.checking(new Expectations() {
 				{
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/repo1")), with(equal("read"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(new String[] {"/profiles/jayblanc"})); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(new String[] {"/profiles/jayblanc"})), with(equal("/repo1")), with(equal("read"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/repo1"))); will(returnValue(params1.get(0))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("git.git-repository.read"))); inSequence(sequence1);
 				}
@@ -107,7 +105,8 @@ public class GITServiceTest extends BaseSessionBeanFixture<GITServiceBean> {
             mockery.checking(new Expectations() {
 				{
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/repo1")), with(equal("update"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(new String[] {"/profiles/jayblanc"})); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(new String[] {"/profiles/jayblanc"})), with(equal("/repo1")), with(equal("update"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/repo1"))); will(returnValue(params1.get(0))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("git.git-repository.update"))); inSequence(sequence1);
@@ -119,7 +118,8 @@ public class GITServiceTest extends BaseSessionBeanFixture<GITServiceBean> {
             mockery.checking(new Expectations() {
 				{
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/repo1")), with(equal("read"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(new String[] {"/profiles/jayblanc"})); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(new String[] {"/profiles/jayblanc"})), with(equal("/repo1")), with(equal("read"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/repo1"))); will(returnValue(params1.get(0))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("git.git-repository.read"))); inSequence(sequence1);
 				}
@@ -132,7 +132,8 @@ public class GITServiceTest extends BaseSessionBeanFixture<GITServiceBean> {
             mockery.checking(new Expectations() {
 				{
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/repo1")), with(equal("delete"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(new String[] {"/profiles/jayblanc"})); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(new String[] {"/profiles/jayblanc"})), with(equal("/repo1")), with(equal("delete"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/repo1"))); will(returnValue(params1.get(0))); inSequence(sequence1);
 					oneOf(binding).getProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); will(returnValue("aFakePolicyID"));  inSequence(sequence1);
 					oneOf(pap).deletePolicy("aFakePolicyID"); inSequence(sequence1);

@@ -12,51 +12,51 @@
  * Jérôme Blanchard / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
- *
+ * Christophe Bouthier / INRIA
+ * 
  */
 package org.qualipso.factory.membership.entity;
+
+import org.qualipso.factory.FactoryNamingConvention;
 
 import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-import org.qualipso.factory.FactoryNamingConvention;
-
 
 /**
+ * An utility class to represent a key/value for setting meta data informations on a Profile.
+ *
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 8 june 2009
  */
-
 @XmlType(name = "profile-info", namespace = FactoryNamingConvention.RESOURCE_NAMESPACE + "profile-info", propOrder =  {
-	"name", "value"}
+    "name", "value"}
 )
 @SuppressWarnings("serial")
 public class ProfileInfo implements Serializable {
-	
-	private String name;
-	private String value;
-	
-	public ProfileInfo() {
-	}
-	
-	@XmlElement(name="name", required=true)
+    private String name;
+    private String value;
+
+    public ProfileInfo() {
+    }
+
+    @XmlElement(name = "name", required = true)
     public String getName() {
-    	return name;
+        return name;
     }
-    
+
     public void setName(String name) {
-    	this.name = name;
+        this.name = name;
     }
-    
-    @XmlElement(name="value", required=true)
+
+    @XmlElement(name = "value", required = true)
     public String getValue() {
-    	return value;
+        return value;
     }
-    
-    public void setValue (String value) {
-    	this.value = value;
+
+    public void setValue(String value) {
+        this.value = value;
     }
-    
 }

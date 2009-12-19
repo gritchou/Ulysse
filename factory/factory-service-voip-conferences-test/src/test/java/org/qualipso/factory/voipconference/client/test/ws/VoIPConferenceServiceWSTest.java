@@ -13,9 +13,9 @@ import org.apache.commons.logging.LogFactory;
 import org.jboss.ws.core.StubExt;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qualipso.factory.voipservice.client.ws.BootstrapService;
+import org.qualipso.factory.voipservice.client.ws.Bootstrap;
 import org.qualipso.factory.voipservice.client.ws.BootstrapServiceException_Exception;
-import org.qualipso.factory.voipservice.client.ws.BootstrapService_Service;
+import org.qualipso.factory.voipservice.client.ws.Bootstrap_Service;
 import org.qualipso.factory.voipservice.client.ws.ConferenceDetails;
 import org.qualipso.factory.voipservice.client.ws.VoIPConferenceService;
 import org.qualipso.factory.voipservice.client.ws.VoIPConferenceService_Service;
@@ -37,12 +37,13 @@ public class VoIPConferenceServiceWSTest
     public VoIPConferenceServiceWSTest() {
 	    service_service = new VoIPConferenceService_Service();
 	    service = service_service.getVoIPConferenceServicePort();
+	    
     }
     
     @BeforeClass
     public static void init() {
 	try {
-    		BootstrapService port = new BootstrapService_Service().getBootstrapServicePort();
+    		Bootstrap port = new Bootstrap_Service().getBootstrapServiceBeanPort();
     		((StubExt) port).setConfigName("Standard WSSecurity Client");
     		port.bootstrap();
 	} catch (BootstrapServiceException_Exception e) {
@@ -58,7 +59,7 @@ public class VoIPConferenceServiceWSTest
 
 	    String value = service.getServiceVersion();
 	    log.debug("service version: " + value);
-	    assertTrue(value.equals("0.0.3-SNAPSHOT"));
+	    assertTrue(value.equals("0.4.2-SNAPSHOT"));
 	    assertFalse(value.equals("1.0.1"));
 
 	    /*
@@ -142,7 +143,7 @@ public class VoIPConferenceServiceWSTest
     @Test
     public void testConference() {
 	log.debug("testing conferences (...)");
-	String userId = "test";
+	String userId = "admin";
 	String pass = "";
 
 	try {
@@ -153,8 +154,8 @@ public class VoIPConferenceServiceWSTest
 	    short accessType = AccessTypes.PUBLIC;
 	    String pin = "1234";
 	    String adminpin = "4321";
-	    Long startDate = new Long(new Date().getTime());
-	    Long endDate = new Long(new Date().getTime() + 10000);
+	    Long startDate = new Long(new Date().getTime() / 1000);
+	    Long endDate = new Long(new Date().getTime() /1000 + 3600);
 	    Integer maxUsers = new Integer(10);
 	    String name = "name";
 	    String agenda = "agenda";
@@ -231,7 +232,7 @@ public class VoIPConferenceServiceWSTest
 
 	    log.debug("end testing conferences (...)");
 	    
-	    
+
 	    service.removeConference(userId, pass,  confNo1);
 	    service.removeConference(userId, pass,  confNo2);
 	    service.removeConference(userId, pass,  confNo3);

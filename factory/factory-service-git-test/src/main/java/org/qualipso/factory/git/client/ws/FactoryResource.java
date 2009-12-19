@@ -29,11 +29,11 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "factoryResource")
 @XmlSeeAlso({
     Profile.class,
-    File.class,
     Link.class,
+    Group.class,
     Folder.class,
-    GITRepository.class,
-    Group.class
+    GitRepository.class,
+    File.class
 })
 public abstract class FactoryResource {
 

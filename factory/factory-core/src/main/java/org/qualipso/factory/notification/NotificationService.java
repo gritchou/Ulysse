@@ -19,6 +19,8 @@
  * Christophe Bouthier / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
+ * 
  */
 package org.qualipso.factory.notification;
 
@@ -59,9 +61,10 @@ import org.qualipso.factory.eventqueue.entity.Event;
  * With this rule, if jeff commits in <code>/p1/t1</code>, it will match, but if
  * jack or john also commits in <code>/p1/t1</code>, it will match as well.
  * 
- * @author Jean-Francois Grand
  * @author Nicolas HENRY
  * @author Marlène HANTZ
+ * @author Jean-Francois Grand
+ * @author Jerome Blanchard (jayblanc@gmail.com)
  * @version 11/19/2009
  */
 @Local

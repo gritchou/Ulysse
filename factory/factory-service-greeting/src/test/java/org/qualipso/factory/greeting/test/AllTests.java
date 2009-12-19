@@ -17,20 +17,21 @@
 package org.qualipso.factory.greeting.test;
 
 import org.junit.runner.RunWith;
+
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+
 import org.qualipso.factory.greeting.test.entity.NameTest;
 import org.qualipso.factory.greeting.test.sessionbean.GreetingServiceTest;
+
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 26 August 2009
  */
 @RunWith(Suite.class)
-@SuiteClasses(value = { 
-		NameTest.class, 
-		GreetingServiceTest.class})
+@SuiteClasses(value =  {
+    NameTest.class, GreetingServiceTest.class}
+)
 public class AllTests {
-	
-	
 }

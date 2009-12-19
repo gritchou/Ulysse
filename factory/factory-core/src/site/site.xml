@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<project name="QualiPSo SCA Factory">
+<project name="QualiPSo Factory Core">
   <skin>
     <groupId>org.apache.maven.skins</groupId>
     <artifactId>maven-stylus-skin</artifactId>
@@ -7,7 +7,7 @@
   </skin>	
   <bannerLeft>
     <name>${project.name}</name>
-    <src>images/qualipso-factory.png</src>
+    <src>../images/qualipso-factory.png</src>
     <href>http://qualipso.gforge.inria.fr/</href>
   </bannerLeft>
   <bannerRight>
@@ -21,6 +21,11 @@
 	  <item name="Go to parent" href="../index.html"/>	
 	</menu>
 	
+	<menu name="Get Factory Core sources">
+	  <item name="Download" href="download.html"/>
+	  <item name="License" href="license.html"/>	
+	</menu>
+	
 	<menu ref="modules"/>
 
     <menu ref="reports"/>
@@ -28,7 +33,7 @@
     <links>
       <item name="QualiPSo.org" href="http://www.qualipso.org/" />
       <item name="INRIA" href="http://www.inria.fr/" />
-      <item name="ECOO Project-Team" href="http://ecoo.loria.fr/" />
+      <item name="SCORE Team" href="http://ecoo.loria.fr/" />
       <item name="Maven 2" href="http://maven.apache.org/"/>
     </links>
   </body>

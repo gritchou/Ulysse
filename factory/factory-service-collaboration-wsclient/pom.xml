@@ -2,15 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
-		<artifactId>factory</artifactId>
+		<artifactId>factory-parent</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.5-SNAPSHOT</version>
+		<version>0.5</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-collaboration-wsclient</artifactId>
 	<name>Qualipso Factory Collaboration Tools - WebService Client</name>
-	<version>0.2.5-SNAPSHOT</version>
+	<version>0.2.8-SNAPSHOT</version>
 	<packaging>ejb</packaging>
 	<scm>
 		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-collaboration-wsclient</connection>
@@ -48,7 +48,18 @@
 						</manifest>
 					</archive>
 				</configuration>
-			</plugin>		
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>2.0-beta-7</version>
+				<configuration>
+					<templateFile>${project.parent.basedir}/src/site/resources/qualipso-factory-template.vm
+					</templateFile>
+					<outputDirectory>${project.parent.reporting.outputDirectory}/${name}
+					</outputDirectory>
+				</configuration>
+			</plugin>			
 		</plugins>
 	</build>
 	<dependencies>
@@ -63,6 +74,7 @@
     		<groupId>log4j</groupId>
     		<artifactId>log4j</artifactId>
     		<version>1.2.14</version>
+			<scope>compile</scope>
 		</dependency>			
 		<dependency>
 			<groupId>javax.ejb</groupId>
@@ -81,14 +93,30 @@
 			<groupId>org.apache.axis2</groupId>
 			<artifactId>axis2</artifactId>
 			<version>1.5</version>
-			<scope>provided</scope>
+			<scope>compile</scope>
+			<type>jar</type>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.axis2</groupId>
 			<artifactId>axis2-adb</artifactId>
 			<version>1.5</version>
-			<scope>provided</scope>
+			<scope>compile</scope>
+			<type>jar</type>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.axis2</groupId>
+			<artifactId>axis2-transport-local</artifactId>
+			<version>1.5</version>
+			<scope>compile</scope>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.axis2</groupId>
+			<artifactId>axis2-transport-http</artifactId>
+			<version>1.5</version>
+			<scope>compile</scope>
+			<type>jar</type>
+		</dependency>		
 	</dependencies>
 
 </project>

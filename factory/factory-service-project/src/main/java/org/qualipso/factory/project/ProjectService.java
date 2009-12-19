@@ -26,28 +26,28 @@ import org.qualipso.factory.project.entity.Project;
 @Remote
 @WebService(name = ProjectService.SERVICE_NAME, targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + ProjectService.SERVICE_NAME)
 @SOAPBinding(style = SOAPBinding.Style.RPC)
-public interface ProjectService extends FactoryService{
+public interface ProjectService extends FactoryService {
 	
 	public static final String SERVICE_NAME = "project";
 	public static final String[] RESOURCE_TYPE_LIST = new String[] { Project.RESOURCE_NAME };
 	
 	@WebMethod
-	public void createProject(String path, String name, String summary, String licence) throws ProjectException;
+	public void createProject(String path, String name, String summary, String licence) throws ProjectServiceException;
 
 	@WebMethod
 	public void updateProject(String path, String name, String status, String summary,
-			String licence) throws ProjectException;
+			String licence) throws ProjectServiceException;
 
 	@WebMethod
 	public void updateTagsProject(String path, String[] os, String[] topics,
 			String[] language, String[] programming_language,
-			String[] intended_audience) throws ProjectException;
+			String[] intended_audience) throws ProjectServiceException;
 
 	@WebMethod
 	@WebResult(name = "project")
-	public Project getProject(String path) throws ProjectException;
+	public Project getProject(String path) throws ProjectServiceException;
 
 	@WebMethod
 	public void deleteProject(String path)
-			throws ProjectException;
+			throws ProjectServiceException;
 }

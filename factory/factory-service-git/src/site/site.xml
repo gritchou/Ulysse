@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="QualiPSo Factory Service Git">
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-stylus-skin</artifactId>
+    <version>1.1</version>
+  </skin>	
+  <bannerLeft>
+    <name>${project.name}</name>
+    <src>../images/qualipso-factory.png</src>
+    <href>http://qualipso.gforge.inria.fr/</href>
+  </bannerLeft>
+  <bannerRight>
+	<name>Maven</name>
+    <src>images/maven-logo-2.gif</src>
+    <href>http://maven.apache.org/</href>
+  </bannerRight>
+  <body>
+	<menu name="Welcome">
+	  <item name="Home" href="index.html"/>
+	  <item name="Go to parent" href="../index.html"/>	
+	</menu>
+	
+	<menu name="Get Factory Service Git sources">
+	  <item name="Download" href="download.html"/>
+	  <item name="License" href="license.html"/>	
+	</menu>
+	
+	<menu ref="modules"/>
+
+    <menu ref="reports"/>
+	
+    <links>
+      <item name="QualiPSo.org" href="http://www.qualipso.org/" />
+      <item name="INRIA" href="http://www.inria.fr/" />
+      <item name="SCORE Team" href="http://ecoo.loria.fr/" />
+      <item name="Maven 2" href="http://maven.apache.org/"/>
+    </links>
+  </body>
+</project>

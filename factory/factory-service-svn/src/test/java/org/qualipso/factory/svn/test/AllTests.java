@@ -3,6 +3,8 @@ package org.qualipso.factory.svn.test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+import org.qualipso.factory.svn.utils.FilterUtilsTest;
+import org.qualipso.factory.svn.utils.SVNPropertiesTest;
 
 /**
  * @author Gerald Oster (oster@loria.fr)
@@ -11,7 +13,9 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses(value =  {
     SVNServiceTest.class,
-    SVNServeCommandTest.class
+    SVNServiceLocalTest.class,
+    FilterUtilsTest.class,
+    SVNPropertiesTest.class
     }
 )
 public class AllTests {

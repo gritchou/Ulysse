@@ -1,4 +1,5 @@
 package org.qualipso.factory.indexing;
+
 /*
  *
  * Qualipso Factory
@@ -16,22 +17,20 @@ package org.qualipso.factory.indexing;
  *
  */
 import org.qualipso.factory.FactoryService;
-/**
-  * @date 2 dec 2009
-  * @author Benjamin Dreux(benjiiiiii@gmail.com)
-  */
-
 
 /**
-  * Define the expectation to allow a service to index it's resource.
-  */
-public interface IndexableService extends FactoryService{
+ * Define the expectation to allow a service to index it's resource.
+ */
+public interface IndexableService extends FactoryService {
 
     /**
-    * Get the indexable Content related to the resource located at a given path.
-    * @param path the path to the resource.
-    * @return the IndexableDocument correspoding to the resource to index.
-    * @thows IndexingServiceExcpetion if the resource can't be found.
-    */
+     * Get the indexable Content related to the resource located at a given
+     * path.
+     * 
+     * @param path
+     *            the path to the resource.
+     * @return the IndexableDocument correspoding to the resource to index.
+     * @thows IndexingServiceExcpetion if the resource can't be found.
+     */
     public IndexableDocument getIndexableDocument(String path) throws IndexingServiceException;
 }

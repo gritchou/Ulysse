@@ -52,35 +52,19 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Group }
-     * 
-     */
-    public Group createGroup() {
-        return new Group();
-    }
-
-    /**
-     * Create an instance of {@link Folder }
-     * 
-     */
-    public Folder createFolder() {
-        return new Folder();
-    }
-
-    /**
-     * Create an instance of {@link Profile }
-     * 
-     */
-    public Profile createProfile() {
-        return new Profile();
-    }
-
-    /**
      * Create an instance of {@link StringArray }
      * 
      */
     public StringArray createStringArray() {
         return new StringArray();
+    }
+
+    /**
+     * Create an instance of {@link Group }
+     * 
+     */
+    public Group createGroup() {
+        return new Group();
     }
 
     /**
@@ -97,6 +81,22 @@ public class ObjectFactory {
      */
     public File createFile() {
         return new File();
+    }
+
+    /**
+     * Create an instance of {@link Profile }
+     * 
+     */
+    public Profile createProfile() {
+        return new Profile();
+    }
+
+    /**
+     * Create an instance of {@link Folder }
+     * 
+     */
+    public Folder createFolder() {
+        return new Folder();
     }
 
     /**

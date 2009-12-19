@@ -10,7 +10,11 @@
         </layout>
     </appender>
 
-    <category name="org.qualipso">
+    <category name="org.qualipso.factory.svn.ssh.command.filter.RequestFilter">
+        <priority value="DEBUG"/>
+    </category>
+    
+    <category name="org.qualipso.factory.svn.ssh.command.PumpingTask">
         <priority value="DEBUG"/>
     </category>
     

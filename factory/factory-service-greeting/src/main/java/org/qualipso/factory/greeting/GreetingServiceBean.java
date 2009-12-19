@@ -1,3 +1,20 @@
+/*
+ *
+ * Qualipso Factory
+ * Copyright (C) 2006-2010 INRIA
+ * http://www.inria.fr - molli@loria.fr
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of LGPL. See licenses details in LGPL.txt
+ *
+ * Initial authors :
+ *
+ * Jérôme Blanchard / INRIA
+ * Pascal Molli / Nancy Université
+ * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
+ *
+ */
 package org.qualipso.factory.greeting;
 
 import java.util.UUID;
@@ -36,7 +53,6 @@ import org.qualipso.factory.indexing.IndexingServiceException;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationService;
-import org.qualipso.factory.notification.NotificationServiceException;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
 import org.qualipso.factory.security.pep.PEPService;
@@ -54,7 +70,7 @@ import org.qualipso.factory.security.pep.PEPService;
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
-public class GreetingServiceBean implements GreetingService{
+public class GreetingServiceBean implements GreetingService {
 
     private static Log logger = LogFactory.getLog(GreetingServiceBean.class);
 
@@ -97,6 +113,7 @@ public class GreetingServiceBean implements GreetingService{
     public BindingService getBindingService() {
         return this.binding;
     }
+
     @EJB
     public void setIndexingService(IndexingService indexing) {
         this.indexing = indexing;
@@ -141,62 +158,67 @@ public class GreetingServiceBean implements GreetingService{
     public MembershipService getMembershipService() {
         return this.membership;
     }
-    
+
     @EJB
-    public void setCoreService(CoreService core){
-    	this.core = core;
+    public void setCoreService(CoreService core) {
+        this.core = core;
     }
-    
-    public CoreService getCoreService(){
-    	return this.core;
+
+    public CoreService getCoreService() {
+        return this.core;
     }
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void createName(String path, String value) throws GreetingServiceException {
-    
+
         logger.info("createName(...) called");
         logger.debug("params : path=" + path + ", value=" + value);
-        
+
         try {
-            //Checking if the connected user has the permission to create a resource giving pep : 
-            //  - the profile path of the connected user (caller)
-            //  - the parent of the path (we check the 'create' permission on the parent of the given path)
-            //  - the name of the permission to check ('create')
+            // Checking if the connected user has the permission to create a
+            // resource giving pep :
+            // - the profile path of the connected user (caller)
+            // - the parent of the path (we check the 'create' permission on the
+            // parent of the given path)
+            // - the name of the permission to check ('create')
             String caller = membership.getProfilePathForConnectedIdentifier();
             pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
-            
-            //STARTING SPECIFIC EXTERNAL SERVICE RESOURCE CREATION OR METHOD CALL
+
+            // STARTING SPECIFIC EXTERNAL SERVICE RESOURCE CREATION OR METHOD
+            // CALL
             Name name = new Name();
             name.setId(UUID.randomUUID().toString());
             name.setValue(value);
             em.persist(name);
-            //END OF EXTERNAL INVOCATION
-            
-            //Binding the external resource in the naming using the generated resource ID : 
+            // END OF EXTERNAL INVOCATION
+
+            // Binding the external resource in the naming using the generated
+            // resource ID :
             binding.bind(name.getFactoryResourceIdentifier(), path);
-            
-            //Need to set some properties on the node : 
+
+            // Need to set some properties on the node :
             binding.setProperty(path, FactoryResourceProperty.CREATION_TIMESTAMP, "" + System.currentTimeMillis());
             binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, "" + System.currentTimeMillis());
             binding.setProperty(path, FactoryResourceProperty.AUTHOR, caller);
-            
-            //Need to create a new security policy for this resource : 
-            //Giving the caller the Owner permission (aka all permissions)
+
+            // Need to create a new security policy for this resource :
+            // Giving the caller the Owner permission (aka all permissions)
             String policyId = UUID.randomUUID().toString();
             pap.createPolicy(policyId, PAPServiceHelper.buildOwnerPolicy(policyId, caller, path));
-            pap.createPolicy(UUID.randomUUID().toString(), PAPServiceHelper.buildPolicy(policyId, caller,path, new String[]{"read"}));
-            
-            //Setting security properties on the node : 
+            pap.createPolicy(UUID.randomUUID().toString(), PAPServiceHelper.buildPolicy(policyId, caller, path, new String[] { "read" }));
+
+            // Setting security properties on the node :
             binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
             binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
-            
-            //Using the notification service to throw an event : 
-            notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "create"), ""));
 
-            //Using the indexing service to index the name newly created
+            // Using the notification service to throw an event :
+            notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event
+                    .buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "create"), ""));
+
+            // Using the indexing service to index the name newly created
             indexing.index(getServiceName(), path);
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             ctx.setRollbackOnly();
             logger.error("unable to create the name at path " + path, e);
             throw new GreetingServiceException("unable to create the name at path " + path, e);
@@ -204,40 +226,49 @@ public class GreetingServiceBean implements GreetingService{
     }
 
     /**
-    * Give name at the given path.
-    * @param pepCheck true to make the check.
-    * @param path the path to the name.
-    * @throws GreetingServiceException if the name can't be find.
-    */
+     * Give name at the given path.
+     * 
+     * @param pepCheck
+     *            true to make the check.
+     * @param path
+     *            the path to the name.
+     * @throws GreetingServiceException
+     *             if the name can't be find.
+     */
 
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     private Name readName(String path, boolean pepCheck) throws GreetingServiceException {
-    try {
-            //Checking if the connected user has the permission to read the resource giving pep : 
+        try {
+            // Checking if the connected user has the permission to read the
+            // resource giving pep :
             String caller = membership.getProfilePathForConnectedIdentifier();
-            
-            if(pepCheck)
-            pep.checkSecurity(caller, path, "read");
-            
-            //Performing a lookup in the naming to recover the Resource Identifier 
+
+            if (pepCheck)
+                pep.checkSecurity(caller, path, "read");
+
+            // Performing a lookup in the naming to recover the Resource
+            // Identifier
             FactoryResourceIdentifier identifier = binding.lookup(path);
-            
-            //Checking if this resource identifier is really a resource managed by this service (a Hello resource)
+
+            // Checking if this resource identifier is really a resource managed
+            // by this service (a Hello resource)
             checkResourceType(identifier, Name.RESOURCE_NAME);
-        
-            //STARTING SPECIFIC EXTERNAL SERVICE RESOURCE LOADING OR METHOD CALLS
+
+            // STARTING SPECIFIC EXTERNAL SERVICE RESOURCE LOADING OR METHOD
+            // CALLS
             Name name = em.find(Name.class, identifier.getId());
-            if ( name == null ) {
+            if (name == null) {
                 throw new GreetingServiceException("unable to find a name for id " + identifier.getId());
             }
             name.setResourcePath(path);
-            //END OF EXTERNAL SERVICE INVOCATION
+            // END OF EXTERNAL SERVICE INVOCATION
 
-            //Using the notification service to throw an event : 
-            notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "read"), ""));
-            
+            // Using the notification service to throw an event :
+            notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "read"),
+                    ""));
+
             return name;
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             logger.error("unable to read the name at path " + path, e);
             throw new GreetingServiceException("unable to read the name at path " + path, e);
         }
@@ -249,7 +280,7 @@ public class GreetingServiceBean implements GreetingService{
         logger.info("readName(...) called");
         logger.debug("params : path=" + path);
         return readName(path, true);
-        
+
     }
 
     @Override
@@ -257,38 +288,43 @@ public class GreetingServiceBean implements GreetingService{
     public void updateName(String path, String value) throws GreetingServiceException {
         logger.info("updateName(...) called");
         logger.debug("params : path=" + path + ", value=" + value);
-        
+
         try {
-            //Checking if the connected user has the permission to update the resource giving pep : 
+            // Checking if the connected user has the permission to update the
+            // resource giving pep :
             String caller = membership.getProfilePathForConnectedIdentifier();
             pep.checkSecurity(caller, path, "update");
-            
-            //Performing a lookup in the naming to recover the Resource Identifier 
+
+            // Performing a lookup in the naming to recover the Resource
+            // Identifier
             FactoryResourceIdentifier identifier = binding.lookup(path);
-            
-            //Checking if this resource identifier is really a resource managed by this service (a Hello resource)
+
+            // Checking if this resource identifier is really a resource managed
+            // by this service (a Hello resource)
             checkResourceType(identifier, Name.RESOURCE_NAME);
-        
-            //STARTING SPECIFIC EXTERNAL SERVICE RESOURCE LOADING OR METHOD CALLS
+
+            // STARTING SPECIFIC EXTERNAL SERVICE RESOURCE LOADING OR METHOD
+            // CALLS
             Name name = em.find(Name.class, identifier.getId());
-            if ( name == null ) {
+            if (name == null) {
                 throw new GreetingServiceException("unable to find a name for id " + identifier.getId());
             }
             name.setValue(value);
             em.merge(name);
-            //END OF EXTERNAL SERVICE INVOCATION
-        
-            //Need to set some properties on the node : 
+            // END OF EXTERNAL SERVICE INVOCATION
+
+            // Need to set some properties on the node :
             binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-            
-            //Using the notification service to throw an event : 
-            notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "update"), ""));
-            
-            //Using the indexing service to reindex the name newly updated
+
+            // Using the notification service to throw an event :
+            notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event
+                    .buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "update"), ""));
+
+            // Using the indexing service to reindex the name newly updated
             indexing.reindex(getServiceName(), path);
 
-        } catch ( Exception e ) {
-         //   ctx.setRollbackOnly();
+        } catch (Exception e) {
+            // ctx.setRollbackOnly();
             logger.error("unable to update the name at path " + path, e);
             throw new GreetingServiceException("unable to update the name at path " + path, e);
         }
@@ -299,91 +335,99 @@ public class GreetingServiceBean implements GreetingService{
     public void deleteName(String path) throws GreetingServiceException {
         logger.info("deleteName(...) called");
         logger.debug("params : path=" + path);
-        
+
         try {
-            //Checking if the connected user has the permission to delete the resource giving pep : 
+            // Checking if the connected user has the permission to delete the
+            // resource giving pep :
             String caller = membership.getProfilePathForConnectedIdentifier();
             pep.checkSecurity(caller, path, "delete");
-            
-            //Performing a lookup in the naming to recover the Resource Identifier 
+
+            // Performing a lookup in the naming to recover the Resource
+            // Identifier
             FactoryResourceIdentifier identifier = binding.lookup(path);
-            
-            //Checking if this resource identifier is really a resource managed by this service (a Hello resource)
+
+            // Checking if this resource identifier is really a resource managed
+            // by this service (a Hello resource)
             checkResourceType(identifier, Name.RESOURCE_NAME);
-        
-            //STARTING SPECIFIC EXTERNAL SERVICE RESOURCE LOADING OR METHOD CALLS
+
+            // STARTING SPECIFIC EXTERNAL SERVICE RESOURCE LOADING OR METHOD
+            // CALLS
             Name name = em.find(Name.class, identifier.getId());
-            if ( name == null ) {
+            if (name == null) {
                 throw new GreetingServiceException("unable to find a name for id " + identifier.getId());
             }
             em.remove(name);
-            //END OF EXTERNAL SERVICE INVOCATION
-            
-            //Removing the security policy of this node : 
+            // END OF EXTERNAL SERVICE INVOCATION
+
+            // Removing the security policy of this node :
             String policyId = binding.getProperty(path, FactoryResourceProperty.POLICY_ID, false);
             pap.deletePolicy(policyId);
 
-            //Unbinding the resource from this path : 
+            // Unbinding the resource from this path :
             binding.unbind(path);
-            
-            //Using the notification service to throw an event : 
-            notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "delete"), ""));
 
-            //Using the indexing service to unindex the name 
+            // Using the notification service to throw an event :
+            notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event
+                    .buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "delete"), ""));
+
+            // Using the indexing service to unindex the name
             indexing.remove(getServiceName(), path);
 
-        } catch ( Exception e ) {
-           // ctx.setRollbackOnly();
+        } catch (Exception e) {
+            // ctx.setRollbackOnly();
             logger.error("unable to delete the name at path " + path, e);
             throw new GreetingServiceException("unable to delete the name at path " + path, e);
         }
     }
-    
+
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public String sayHello(String path) throws GreetingServiceException {
         logger.info("sayHello(...) called");
         logger.debug("params : path=" + path);
-        
+
         try {
-            //Checking if the connected user has the permission to say-hello the resource giving pep : 
+            // Checking if the connected user has the permission to say-hello
+            // the resource giving pep :
             String caller = membership.getProfilePathForConnectedIdentifier();
             pep.checkSecurity(caller, path, "say-hello");
-            
-            //Performing a lookup in the naming to recover the Resource Identifier 
+
+            // Performing a lookup in the naming to recover the Resource
+            // Identifier
             FactoryResourceIdentifier identifier = binding.lookup(path);
-            
-            //Checking if this resource identifier is really a resource managed by this service (a Hello resource)
+
+            // Checking if this resource identifier is really a resource managed
+            // by this service (a Hello resource)
             checkResourceType(identifier, Name.RESOURCE_NAME);
-        
-            //STARTING SPECIFIC EXTERNAL SERVICE RESOURCE LOADING OR METHOD CALLS
+
+            // STARTING SPECIFIC EXTERNAL SERVICE RESOURCE LOADING OR METHOD
+            // CALLS
             Name name = em.find(Name.class, identifier.getId());
-            if ( name == null ) {
+            if (name == null) {
                 throw new GreetingServiceException("unable to find a name for id " + identifier.getId());
             }
-            //END OF EXTERNAL SERVICE INVOCATION
-            
-            //Building hello message : 
+            // END OF EXTERNAL SERVICE INVOCATION
+
+            // Building hello message :
             String message = "Hello dear " + name.getValue() + " !!";
 
-            //Using the notification service to throw an event : 
-            notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME, "say-hello"), ""));
-            
+            // Using the notification service to throw an event :
+            notification.throwEvent(new Event(path, caller, Name.RESOURCE_NAME, Event.buildEventType(GreetingService.SERVICE_NAME, Name.RESOURCE_NAME,
+                    "say-hello"), ""));
+
             return message;
-        } catch ( Exception e ) {
-          //  ctx.setRollbackOnly();
+        } catch (Exception e) {
+            // ctx.setRollbackOnly();
             logger.error("unable to say hello to the name at path " + path, e);
             throw new GreetingServiceException("unable to say hello to the name at path " + path, e);
         }
     }
 
-    
-    
     private void checkResourceType(FactoryResourceIdentifier identifier, String resourceType) throws MembershipServiceException {
-        if ( !identifier.getService().equals(getServiceName()) ) {
+        if (!identifier.getService().equals(getServiceName())) {
             throw new MembershipServiceException("resource identifier " + identifier + " does not refer to service " + getServiceName());
         }
-        if ( !identifier.getType().equals(resourceType) ) {
+        if (!identifier.getType().equals(resourceType)) {
             throw new MembershipServiceException("resource identifier " + identifier + " does not refer to a resource of type " + resourceType);
         }
     }
@@ -398,27 +442,30 @@ public class GreetingServiceBean implements GreetingService{
         return SERVICE_NAME;
     }
 
-   /** 
-    * Read name with an optional pep check.
-    * @param path path to the given resource.
-    * @param pepCheck  true to make the check.
-    * @return a factoryResource if it can be find.
-    */
+    /**
+     * Read name with an optional pep check.
+     * 
+     * @param path
+     *            path to the given resource.
+     * @param pepCheck
+     *            true to make the check.
+     * @return a factoryResource if it can be find.
+     */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    private FactoryResource findResource (String path, boolean pepCheck) throws FactoryException {
+    private FactoryResource findResource(String path, boolean pepCheck) throws FactoryException {
         try {
             FactoryResourceIdentifier identifier = binding.lookup(path);
-            
-            if ( !identifier.getService().equals(GreetingService.SERVICE_NAME) ) {
+
+            if (!identifier.getService().equals(GreetingService.SERVICE_NAME)) {
                 throw new GreetingServiceException("Resource " + identifier + " is not managed by " + GreetingService.SERVICE_NAME);
             }
-            
-            if ( identifier.getType().equals(Name.RESOURCE_NAME) ) {
+
+            if (identifier.getType().equals(Name.RESOURCE_NAME)) {
                 return readName(path, pepCheck);
-            } 
-            
+            }
+
             throw new GreetingServiceException("Resource " + identifier + " is not managed by Greeting Service");
-            
+
         } catch (Exception e) {
             logger.error("unable to find the resource at path " + path, e);
             throw new GreetingServiceException("unable to find the resource at path " + path, e);
@@ -430,51 +477,32 @@ public class GreetingServiceBean implements GreetingService{
     public FactoryResource findResource(String path) throws FactoryException {
         logger.info("findResource(...) called");
         logger.debug("params : path=" + path);
-        
+
         return findResource(path, true);
     }
-    
-	@Override
-	public IndexableDocument getIndexableDocument(String path) throws IndexingServiceException{
-	try{
-        // use internal findResource
-		Name name = (Name)findResource(path, false);
-		IndexableContent content = new IndexableContent();
-		content.addContentPart(name.getValue());
 
- 
-        IndexableDocument doc = new IndexableDocument();
+    @Override
+    public IndexableDocument getIndexableDocument(String path) throws IndexingServiceException {
+        try {
+            // use internal findResource
+            Name name = (Name) findResource(path, false);
+            IndexableContent content = new IndexableContent();
+            content.addContentPart(name.getValue());
 
-		doc.setIndexableContent(content);
-		doc.setResourceService(getServiceName());
-		doc.setResourceShortName(name.getValue());
-		doc.setResourceType(Name.RESOURCE_NAME);
-		doc.setResourcePath(path);
-		doc.setResourceFRI(name.getFactoryResourceIdentifier());
+            IndexableDocument doc = new IndexableDocument();
 
-		return doc;
-	} catch (Exception e) {
+            doc.setIndexableContent(content);
+            doc.setResourceService(getServiceName());
+            doc.setResourceShortName(name.getValue());
+            doc.setResourceType(Name.RESOURCE_NAME);
+            doc.setResourcePath(path);
+            doc.setResourceFRI(name.getFactoryResourceIdentifier());
+
+            return doc;
+        } catch (Exception e) {
             ctx.setRollbackOnly();
             logger.error("unable to convert name to IndexableContent " + path, e);
             throw new IndexingServiceException("unable to convert name to IndexableContent" + path, e);
         }
-	}
-
-    @Override
-    public void throwNullEvent() throws NotificationServiceException {
-        notification.throwEvent(null);
-    }
-
-    @Override
-    public void throw2SameEvent(String path) throws NotificationServiceException, MembershipServiceException {
-        String caller = membership.getProfilePathForConnectedIdentifier();
-        Event e = new Event(path, caller, "Name", "greeting.name.create", "");
-        notification.throwEvent(e);
-        notification.throwEvent(e);
-    }
-
-    @Override
-    public void throwFacticeEvent() throws NotificationServiceException {
-        notification.throwEvent(new Event("/unexist/path", "toto", "Name", "greeting", ""));
     }
 }

@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
 		<artifactId>factory-parent</artifactId>
 		<groupId>org.qualipso</groupId>
 		<version>0.5-SNAPSHOT</version>
+		<relativePath>../factory-parent</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-git</artifactId>
 	<name>Qualipso Factory GIT Repository Component</name>
-	<version>0.1.2-SNAPSHOT</version>
+	<version>0.4.0-SNAPSHOT</version>
 	<packaging>ejb</packaging>
 	<scm>
 		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-git</connection>
 		<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-git</developerConnection>
-	</scm>
+	  <url>https://gforge.inria.fr/plugins/scmsvn/viewcvs.php/tags/factory-parent-0.5?root=qualipso/factory-service-git</url>
+  </scm>
 	<build>
 		<defaultGoal>package</defaultGoal>
 		<finalName>factory-service-git</finalName>
@@ -38,6 +39,11 @@
 				<artifactId>maven-ejb-plugin</artifactId>
 				<configuration>
 					<ejbVersion>3.0</ejbVersion>
+					<archive>
+            			<manifest>
+              				<addClasspath>true</addClasspath>
+           				</manifest>
+         			</archive>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -45,10 +51,16 @@
 				<artifactId>maven-site-plugin</artifactId>
 				<version>2.0-beta-7</version>
 				<configuration>
-					<templateFile>${project.parent.basedir}/src/site/resources/qualipso-factory-template.vm
-					</templateFile>
-					<outputDirectory>${project.parent.reporting.outputDirectory}/${name}
-					</outputDirectory>
+					<outputDirectory>${project.parent.reporting.outputDirectory}/${name}</outputDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptors>
+						<descriptor>src/main/assembly/src.xml</descriptor>
+					</descriptors>
+					<outputDirectory>${project.parent.reporting.outputDirectory}/${name}/download</outputDirectory>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -62,23 +74,23 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.spearce</groupId>
+			<groupId>org.eclipse</groupId>
 			<artifactId>jgit</artifactId>
-			<version>0.5.0-93-g5b89a2c</version>
+			<version>0.6.0-23-g36af95b7</version>
 			<type>jar</type>
 			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.qualipso</groupId>
-			<artifactId>factory-core</artifactId>
-			<version>0.3.3-SNAPSHOT</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
 			<version>1.1.1</version>
 			<type>jar</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.qualipso</groupId>
+			<artifactId>factory-core</artifactId>
+			<version>0.4.0-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -90,13 +102,13 @@
 		<dependency>
 			<groupId>org.jboss.ws.native</groupId>
 			<artifactId>jbossws-native-core</artifactId>
-			<version>3.0.5.GA</version>
+			<version>3.1.2.GA</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.jbossas</groupId>
-			<artifactId>jboss-as-embedded</artifactId>
-			<version>5.0.1.GA</version>
+			<artifactId>jboss-as-ejb3</artifactId>
+			<version>5.1.0.GA</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

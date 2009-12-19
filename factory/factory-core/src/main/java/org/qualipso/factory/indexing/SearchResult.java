@@ -12,7 +12,8 @@
  * Jérôme Blanchard / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
- *
+ * Christophe Bouthier / INRIA
+ * 
  */
 package org.qualipso.factory.indexing;
 
@@ -23,20 +24,23 @@ import javax.xml.bind.annotation.XmlType;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResourceIdentifier;
 
-
 /**
- * <p>Class which represent the result of a search with a query</p>
+ * <p>
+ * Class which represent the result of a search with a query
+ * </p>
+ * 
  * @author Benjamin DREUX
- * @author cynthia FLORENTIN 
+ * @author Cynthia FLORENTIN
+ * @author Jerome Blanchard (jayblanc@gmail.com)
+ * @date 20 May 2009
  */
-//TODO move this class to the factory level (FactorySearchResult)
-@XmlType(name = "search-result", namespace = FactoryNamingConvention.SEARCH_NAMESPACE, propOrder =  {
-    "path", "score", "explain", "name", "type", "identifier"}
-)
+
+// TODO move this class to the factory level (FactorySearchResult)
+@XmlType(name = "search-result", namespace = FactoryNamingConvention.SEARCH_NAMESPACE, propOrder = { "path", "score", "explain", "name", "type", "identifier" })
 public class SearchResult implements SearchResultI {
-    
-	private static final long serialVersionUID = 1L;
-	private String path;
+
+    private static final long serialVersionUID = 1L;
+    private String path;
     private float score;
     private String explain;
     private String name;
@@ -50,14 +54,14 @@ public class SearchResult implements SearchResultI {
     public String getPath() {
         return path;
     }
-    
+
     /**
      * @see SearchResultI#setPath(String)
      */
     public void setPath(String path) {
         this.path = path;
     }
-    
+
     /**
      * @see SearchResultI#getScore()
      */
@@ -80,14 +84,14 @@ public class SearchResult implements SearchResultI {
     public String getExplain() {
         return explain;
     }
-    
+
     /**
      * @see SearchResultI#setExplain(String)
      */
     public void setExplain(String explain) {
         this.explain = explain;
     }
-    
+
     /**
      * @see SearchResultI#getName()
      */
@@ -95,14 +99,14 @@ public class SearchResult implements SearchResultI {
     public String getName() {
         return name;
     }
-    
+
     /**
      * @see SearchResultI#setName(String)
      */
     public void setName(String name) {
         this.name = name;
     }
-    
+
     /**
      * @see SearchResultI#getType()
      */
@@ -110,7 +114,7 @@ public class SearchResult implements SearchResultI {
     public String getType() {
         return type;
     }
-    
+
     /**
      * @see SearchResultI#setType(String)
      */
@@ -125,9 +129,10 @@ public class SearchResult implements SearchResultI {
     public FactoryResourceIdentifier getFactoryResourceIdentifier() {
         return resourceFRI;
     }
-    
+
     /**
-     * @see SearchResultI#setResourceIdentifier(FactoryResourceIdentfier Identifier)
+     * @see SearchResultI#setResourceIdentifier(FactoryResourceIdentfier
+     *      Identifier)
      */
     public void setFactoryResourceIdentifier(FactoryResourceIdentifier resourceIdentifier) {
         this.resourceFRI = resourceIdentifier;
@@ -139,6 +144,5 @@ public class SearchResult implements SearchResultI {
     public void setFactoryResourceIdentifier(String resourceIdentifier) {
         this.resourceFRI = FactoryResourceIdentifier.deserialize(resourceIdentifier);
     }
-    
-    
+
 }

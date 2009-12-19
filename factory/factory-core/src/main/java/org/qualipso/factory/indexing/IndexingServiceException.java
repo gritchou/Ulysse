@@ -12,12 +12,12 @@
  * Jérôme Blanchard / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
- *
+ * Christophe Bouthier / INRIA
+ * 
  */
 package org.qualipso.factory.indexing;
 
 import org.qualipso.factory.FactoryException;
-
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)

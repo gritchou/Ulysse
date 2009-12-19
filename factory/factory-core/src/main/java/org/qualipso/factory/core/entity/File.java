@@ -1,4 +1,29 @@
+/*
+ *
+ * Qualipso Factory
+ * Copyright (C) 2006-2010 INRIA
+ * http://www.inria.fr - molli@loria.fr
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of LGPL. See licenses details in LGPL.txt
+ *
+ * Initial authors :
+ *
+ * Jérôme Blanchard / INRIA
+ * Pascal Molli / Nancy Université
+ * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
+ * 
+ */
 package org.qualipso.factory.core.entity;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.qualipso.factory.FactoryNamingConvention;
+import org.qualipso.factory.FactoryResource;
+import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.core.CoreService;
 
 import java.sql.Blob;
 import java.sql.SQLException;
@@ -9,35 +34,33 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.Transient;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.qualipso.factory.FactoryNamingConvention;
-import org.qualipso.factory.FactoryResource;
-import org.qualipso.factory.FactoryResourceIdentifier;
-import org.qualipso.factory.core.CoreService;
 
 /**
+ * The File class representing a File FactoryResource.<br/>
+ * <br/>
+ * File uses Blob to store content directly in database but to perform better XML serialization,
+ * content is included in another object using specific optimized JAXB annotations.
+ *
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 19 august 2009
  */
 @Entity
 @XmlType(name = File.RESOURCE_NAME, namespace = FactoryNamingConvention.RESOURCE_NAMESPACE + File.RESOURCE_NAME, propOrder =  {
-    "name", "description", "size", "contentType", "nbReads"})
+    "name", "description", "size", "contentType", "nbReads"}
+)
 @SuppressWarnings("serial")
 public class File extends FactoryResource {
-	
-	public static final String RESOURCE_NAME = "file";
-	
-	private static Log logger = LogFactory.getLog(File.class);
-	
-	@Id
+    public static final String RESOURCE_NAME = "file";
+    private static Log logger = LogFactory.getLog(File.class);
+    @Id
     private String id;
-	private String path;
+    private String path;
     private String name;
     private String description;
     private double size;
@@ -53,17 +76,17 @@ public class File extends FactoryResource {
     public void setId(String id) {
         this.id = id;
     }
-    
+
     @XmlAttribute(name = "path", required = true)
-	@Transient
-	@Override
-	public String getResourcePath() {
-		return path;
-	}
-	
-	public void setResourcePath(String path) {
-		this.path = path;
-	}
+    @Transient
+    @Override
+    public String getResourcePath() {
+        return path;
+    }
+
+    public void setResourcePath(String path) {
+        this.path = path;
+    }
 
     @XmlElement(name = "name", required = true)
     public String getName() {
@@ -110,32 +133,32 @@ public class File extends FactoryResource {
         this.nbReads = nbReads;
     }
 
-	@Lob 
-	@Basic(fetch = FetchType.LAZY)
-	@XmlTransient
-	public Blob getBlob() {
-		return blob;
-	}
-	
-	public void setBlob(Blob blob) {
-		try {
-			logger.debug("setting blob for file with id : " + id + ", blob length : " + blob.length());
-		} catch (SQLException e) {
-			logger.warn("unable to get blob informations" + e);
-		}
-		this.blob = blob;
-	}
-	
-	@Override
-	@XmlTransient
-	public FactoryResourceIdentifier getFactoryResourceIdentifier() {
-		return new FactoryResourceIdentifier(CoreService.SERVICE_NAME, File.RESOURCE_NAME, getId());
-	}
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @XmlTransient
+    public Blob getBlob() {
+        return blob;
+    }
 
-	@Override
-	@XmlTransient
-	public String getResourceName() {
-		return getName();
-	}
-	
+    public void setBlob(Blob blob) {
+        try {
+            logger.debug("setting blob for file with id : " + id + ", blob length : " + blob.length());
+        } catch (SQLException e) {
+            logger.warn("unable to get blob informations" + e);
+        }
+
+        this.blob = blob;
+    }
+
+    @Override
+    @XmlTransient
+    public FactoryResourceIdentifier getFactoryResourceIdentifier() {
+        return new FactoryResourceIdentifier(CoreService.SERVICE_NAME, File.RESOURCE_NAME, getId());
+    }
+
+    @Override
+    @XmlTransient
+    public String getResourceName() {
+        return getName();
+    }
 }

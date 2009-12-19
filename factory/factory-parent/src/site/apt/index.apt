@@ -1,0 +1,60 @@
+ ------
+Next Generation Forge
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster
+ ------
+June 2009
+ ------
+ 
+Qualipso Factory
+
+* Context
+
+  Forges transform foreigners into collaborators, sometimes into developers.
+  Forges is an online service that allow to instantiate, compose and manage collaborative services.
+  Collaborative services are traditionally Version Control Systems, Bug Trackers, Forums, Mailing list, Wikis etc.
+  The Next Generation Forge aims to provide a Factory framework allowing to ease collaboration between forge users.
+  
+* Current forges issues
+
+  Integrating a new collaborative service in a forge is costly: Hot plugin deployment is not possible, forge ecosystems do not exist.
+  Hosting a forge is costly: resources such as storage, bandwidth, hardware and maintenance are expensive ; quotas and security are not possible. 
+  Customizing a forge is also costly: changing the security model implies huge developments, indexation policies are not secure, user interface is not efficient.
+  Process support is currently poor: how to define and enact processes in a forge?
+  Interoperability and data lock-in of forges are a reality. 
+  There are always scalability issues.
+  
+* The Next Generation Forge
+
+  This forge is re-factored with Service Oriented Architecture:
+   
+   * remove coupling in order to improve new service integration,
+   
+   * factorize generic collaborative services such as security, notification, indexation, composition and naming,
+   
+   * externalize collaborative services in order to share forge costs among partners.
+   
+   * collaborative service providers receive requests that are: authenticated, security checked, indexed, and notified.
+
+  The factory allows composition of abstract services.
+
+* Current contributions
+ 
+   * The forge is built on open standards. A reference implementation is provided which is built using open-source implementations of these standards. 
+
+   * The forge is an abstract forge: it does not depend on tools. Tools do not depend on the forge. There is a loose coupling between forge and the provided collaborative services.
+   
+   * The forge factorizes generic services: new collaborative services can focus on their added values.
+   
+   * The forge can delegate to external service providers for sharing costs (or take advantages of external warrantees) .
+   
+   * Composition of resources allows to create complex services by composing simple service (e.g. a bug tracker).
+   
+   * Composition of components allows to only take components you need, assemble them as you want (Service Component Architecture).
+   
+   * Composition of services allows the forge to orchestrate the services (what about writing your own BPELs within the forge?). 
+   
+   * Take advantages of OASIS eXtensible Access Control Markup Language (XACML) to implement and deploy your own security policies (customize the forge with your own access control policies).
+   
+   * Forge actions are semantically indexed offering support to query not on collaborative services states but also on their histories. For instance, the forge it able to answer to the following query: Who has committed something in /p1 between 1/01/08 and 1/10/08 without referring to a bug tracker ticket?
+   

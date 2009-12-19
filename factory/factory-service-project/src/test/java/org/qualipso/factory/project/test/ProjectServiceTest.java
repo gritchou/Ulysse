@@ -83,8 +83,13 @@ public class ProjectServiceTest extends BaseSessionBeanFixture<ProjectServiceBea
 		try {
 			mockery.checking(new Expectations() {
 				{
+					String[] subjects = new String[2];
+					subjects[0] = "toto";
+					subjects[1] = "titi";
+					
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/toto")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/toto")), with(equal("/projects")), with(equal("create"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(subjects)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(subjects)), with(equal("/projects")), with(equal("create"))); inSequence(sequence1);
 					oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(equal("/projects/test"))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/projects/test")), with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/projects/test")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
@@ -98,9 +103,7 @@ public class ProjectServiceTest extends BaseSessionBeanFixture<ProjectServiceBea
 				}
 			});
 			
-			getBeanToTest().getEntityManager().getTransaction().begin();
 			getBeanToTest().createProject("/projects/test", "projectTest", "this is a test", "GPL");
-			getBeanToTest().getEntityManager().getTransaction().commit();	
 			mockery.assertIsSatisfied();
 			
 		} catch (Exception e) {
@@ -119,8 +122,13 @@ public class ProjectServiceTest extends BaseSessionBeanFixture<ProjectServiceBea
 			//create Project
 			mockery.checking(new Expectations() {
 				{
+					String[] subjects = new String[2];
+					subjects[0] = "toto";
+					subjects[1] = "titi";
+					
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/toto")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/toto")), with(equal("/projects")), with(equal("create"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(subjects)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(subjects)), with(equal("/projects")), with(equal("create"))); inSequence(sequence1);
 					oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(equal("/projects/test"))); will(saveParams(params)); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/projects/test")), with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/projects/test")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
@@ -134,29 +142,30 @@ public class ProjectServiceTest extends BaseSessionBeanFixture<ProjectServiceBea
 				}
 			});
 			
-			getBeanToTest().getEntityManager().getTransaction().begin();
 			getBeanToTest().createProject("/projects/test", "projectTest", "this is a test", "GPL");
-			getBeanToTest().getEntityManager().getTransaction().commit();	
 			mockery.assertIsSatisfied();
 			
 			//get project and check parameters
 			//---------------------------------------
 			mockery.checking(new Expectations() {
 				{
+					String[] subjects = new String[2];
+					subjects[0] = "toto";
+					subjects[1] = "titi";
+					
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/toto")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/toto")), with(equal("/projects/test")), with(equal("read"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(subjects)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(subjects)), with(equal("/projects/test")), with(equal("read"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/projects/test"))); will(returnValue(params.get(0))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.project.read"))); inSequence(sequence1);
 				}
 			});
 			
-			getBeanToTest().getEntityManager().getTransaction().begin();
 			Project project = getBeanToTest().getProject("/projects/test");
 			assertTrue(project.getResourcePath().equals("/projects/test"));
 			assertTrue(project.getName().equals("projectTest"));
 			assertTrue(project.getSummary().equals("this is a test"));
 			assertTrue(project.getLicence().equals("GPL"));
-			getBeanToTest().getEntityManager().getTransaction().commit();
 			mockery.assertIsSatisfied();
 			//---------------------------------------
 			
@@ -176,8 +185,13 @@ public class ProjectServiceTest extends BaseSessionBeanFixture<ProjectServiceBea
 			//create Project
 			mockery.checking(new Expectations() {
 				{
+					String[] subjects = new String[2];
+					subjects[0] = "toto";
+					subjects[1] = "titi"; 
+					
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/toto")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/toto")), with(equal("/projects")), with(equal("create"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(subjects)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(subjects)), with(equal("/projects")), with(equal("create"))); inSequence(sequence1);
 					oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(equal("/projects/test"))); will(saveParams(params)); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/projects/test")), with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/projects/test")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
@@ -191,45 +205,49 @@ public class ProjectServiceTest extends BaseSessionBeanFixture<ProjectServiceBea
 				}
 			});
 			
-			getBeanToTest().getEntityManager().getTransaction().begin();
 			getBeanToTest().createProject("/projects/test", "projectTest", "this is a test", "GPL");
-			getBeanToTest().getEntityManager().getTransaction().commit();	
 			mockery.assertIsSatisfied();
 			
 			//update project
 			mockery.checking(new Expectations() {
 				{
+					String[] subjects = new String[2];
+					subjects[0] = "toto";
+					subjects[1] = "titi";
+					
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/toto")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/toto")), with(equal("/projects/test")), with(equal("update"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(subjects)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(subjects)), with(equal("/projects/test")), with(equal("update"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/projects/test"))); will(returnValue(params.get(0))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/projects/test")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.project.update"))); inSequence(sequence1);
 				}
 			});
 			
-			getBeanToTest().getEntityManager().getTransaction().begin();
 			getBeanToTest().updateProject("/projects/test", "projectTestUpdate", "alpha","this is a test update", "GPL update");
-			getBeanToTest().getEntityManager().getTransaction().commit();	
 			mockery.assertIsSatisfied();
 			
 			//check update
 			mockery.checking(new Expectations() {
 				{
+					String[] subjects = new String[2];
+					subjects[0] = "toto";
+					subjects[1] = "titi";
+					
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/toto")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/toto")), with(equal("/projects/test")), with(equal("read"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(subjects)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(subjects)), with(equal("/projects/test")), with(equal("read"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/projects/test"))); will(returnValue(params.get(0))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.project.read"))); inSequence(sequence1);
 				}
 			});
 			
-			getBeanToTest().getEntityManager().getTransaction().begin();
 			Project project = getBeanToTest().getProject("/projects/test");
 			assertTrue(project.getResourcePath().equals("/projects/test"));
 			assertTrue(project.getName().equals("projectTestUpdate"));
 			assertTrue(project.getSummary().equals("this is a test update"));
 			assertTrue(project.getLicence().equals("GPL update"));
 			assertTrue(project.getDev_status().equals("alpha"));
-			getBeanToTest().getEntityManager().getTransaction().commit();
 			mockery.assertIsSatisfied();
 			
 			
@@ -250,8 +268,13 @@ public class ProjectServiceTest extends BaseSessionBeanFixture<ProjectServiceBea
 			//create Project
 			mockery.checking(new Expectations() {
 				{
+					String[] subjects = new String[2];
+					subjects[0] = "toto";
+					subjects[1] = "titi";
+					
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/toto")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/toto")), with(equal("/projects")), with(equal("create"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(subjects)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(subjects)), with(equal("/projects")), with(equal("create"))); inSequence(sequence1);
 					oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(equal("/projects/test"))); will(saveParams(params)); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/projects/test")), with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/projects/test")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
@@ -265,16 +288,19 @@ public class ProjectServiceTest extends BaseSessionBeanFixture<ProjectServiceBea
 				}
 			});
 			
-			getBeanToTest().getEntityManager().getTransaction().begin();
 			getBeanToTest().createProject("/projects/test", "projectTest", "this is a test", "GPL");
-			getBeanToTest().getEntityManager().getTransaction().commit();	
 			mockery.assertIsSatisfied();
 			
 			//update project
 			mockery.checking(new Expectations() {
 				{
+					String[] subjects = new String[2];
+					subjects[0] = "toto";
+					subjects[1] = "titi";
+					
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/toto")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/toto")), with(equal("/projects/test")), with(equal("update"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(subjects)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(subjects)), with(equal("/projects/test")), with(equal("update"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/projects/test"))); will(returnValue(params.get(0))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/projects/test")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.project.update"))); inSequence(sequence1);
@@ -285,22 +311,24 @@ public class ProjectServiceTest extends BaseSessionBeanFixture<ProjectServiceBea
 			//String[] language, String[] programming_language,
 			//String[] intended_audience)
 			
-			getBeanToTest().getEntityManager().getTransaction().begin();
 			getBeanToTest().updateTagsProject("/projects/test", new String[] {"windows NT", "GPL/Linux"}, new String[] {"Software Development/", "Internet/"},new String[] {"English"}, new String[] {"Java", "Caml"}, new String[] {"Developers" ,"End Users"});
-			getBeanToTest().getEntityManager().getTransaction().commit();	
 			mockery.assertIsSatisfied();
 			
 			//check update
 			mockery.checking(new Expectations() {
 				{
+					String[] subjects = new String[2];
+					subjects[0] = "toto";
+					subjects[1] = "titi";
+					
 					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/toto")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/toto")), with(equal("/projects/test")), with(equal("read"))); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(subjects)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(subjects)), with(equal("/projects/test")), with(equal("read"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/projects/test"))); will(returnValue(params.get(0))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.project.read"))); inSequence(sequence1);
 				}
 			});
 			
-			getBeanToTest().getEntityManager().getTransaction().begin();
 			Project project = getBeanToTest().getProject("/projects/test");
 			assertTrue(project.getResourcePath().equals("/projects/test"));
 			assertTrue(project.getName().equals("projectTest"));
@@ -312,7 +340,6 @@ public class ProjectServiceTest extends BaseSessionBeanFixture<ProjectServiceBea
 			assertTrue(java.util.Arrays.equals(project.getSpoken_language(),new String[] {"English"}));
 			assertTrue(java.util.Arrays.equals(project.getProgramming_language(),new String[] {"Java", "Caml"}));
 			assertTrue(java.util.Arrays.equals(project.getIntended_audience(),new String[] {"Developers" ,"End Users"}));
-			getBeanToTest().getEntityManager().getTransaction().commit();
 			mockery.assertIsSatisfied();
 			
 			

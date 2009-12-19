@@ -35,9 +35,17 @@ import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
+import org.qualipso.factory.binding.InvalidPathException;
+import org.qualipso.factory.binding.PathAlreadyBoundException;
 import org.qualipso.factory.binding.PathHelper;
+import org.qualipso.factory.binding.PathNotFoundException;
 import org.qualipso.factory.browser.BrowserService;
-import org.qualipso.factory.collaboration.calendar.entity.CalendarDetails;
+import org.qualipso.factory.collaboration.beans.AttachmentDetails;
+import org.qualipso.factory.collaboration.beans.CalendarDetails;
+import org.qualipso.factory.collaboration.beans.CalendarEvent;
+import org.qualipso.factory.collaboration.beans.CalendarExtra;
+import org.qualipso.factory.collaboration.beans.CalendarListItem;
+import org.qualipso.factory.collaboration.beans.ParticipantDetails;
 import org.qualipso.factory.collaboration.calendar.entity.CalendarItem;
 import org.qualipso.factory.collaboration.document.DocumentService;
 import org.qualipso.factory.collaboration.document.DocumentServiceException;
@@ -50,20 +58,17 @@ import org.qualipso.factory.collaboration.ws.beans.CalendarDTO;
 import org.qualipso.factory.core.CoreService;
 import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.core.entity.Folder;
+import org.qualipso.factory.core.entity.Link;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
+import org.qualipso.factory.membership.entity.Group;
 import org.qualipso.factory.notification.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
+import org.qualipso.factory.security.pep.AccessDeniedException;
 import org.qualipso.factory.security.pep.PEPService;
 
-// TODO: Auto-generated Javadoc
-/**
- * The Class implements the CalendarService.
- * 
- * @author gstro
- */
 @Stateless(name = "CalendarServiceBean", mappedName = FactoryNamingConvention.SERVICE_PREFIX
 	+ CalendarService.SERVICE_NAME)
 @WebService(endpointInterface = "org.qualipso.factory.collaboration.calendar.CalendarService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE
@@ -76,238 +81,41 @@ import org.qualipso.factory.security.pep.PEPService;
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class CalendarServiceBean implements CalendarService {
 
-    /** The logger. */
     private static Log logger = LogFactory.getLog(CalendarServiceBean.class);
 
-    /** The binding. */
     private BindingService binding;
-
-    /** The pep. */
     private PEPService pep;
-
-    /** The pap. */
     private PAPService pap;
-
-    /** The notification. */
     private NotificationService notification;
-
-    /** The membership. */
     private MembershipService membership;
-    //
-    /** The browser. */
     private BrowserService browser;
-
-    /** The core. */
     private CoreService core;
-    //
-    /** The ctx. */
     private SessionContext ctx;
 
-    /** The em. */
     private EntityManager em;
-    //
-    /** The calendar ws. */
+
     private CalendarWService calendarWS;
-
-    /** The document service. */
     private DocumentService documentService;
-
-    /** The forum service. */
     private ForumService forumService;
 
-    //
-    /**
-     * Instantiates a new calendar service bean.
-     */
     public CalendarServiceBean() {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.qualipso.factory.collaboration.calendar.CalendarService#createEvent
-     * (java.lang.String, java.lang.String, java.lang.String, java.lang.String,
-     * java.lang.String, java.lang.String, java.lang.String, java.lang.String,
-     * java.lang.String, java.lang.String, long)
-     */
     @SuppressWarnings("unchecked")
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public String[] createEvent(String calendarPath, String name,
-	    String location, String date, String startTime, String endTime,
-	    String contactName, String contactEmail, String contactPhone,
-	    String recurrence, long times) throws CalendarServiceException {
-	String[] paths = null;
-	logIt("Create event under " + calendarPath);
-	try {
-	    // Security check
-	    String caller = membership.getProfilePathForConnectedIdentifier();
-	    if (caller == null) {
-		throw new CalendarServiceException(
-			"Could not get connected profile");
-	    }
-	    logIt("caller: " + caller);
-	    // Check the values
-	    CollaborationUtils
-		    .checkCreateEventValues(name, location, date, startTime,
-			    endTime, contactName, contactEmail, contactPhone);
-	    // Set path for the event. We assume that all calendar items are
-	    // under a defined calendar path. For example
-	    // /any-folder/calendar
-	    // The path wil be /path/yyyy/M/dd f.e. /calendar/2009/9/16/UID
-	    pep.checkSecurity(caller, calendarPath, "create");
-	    // Call the mermig WS to create the event
-	    HashMap resultMap = calendarWS.createEvent(name, location, date,
-		    startTime, endTime, contactName, contactEmail,
-		    contactPhone, recurrence, times);
-	    logIt("Message Code:" + resultMap.get("statusCode") + " Message: "
-		    + resultMap.get("statusMessage"));
-	    if (!resultMap.get("statusCode").equals(
-		    CollaborationUtils.SUCCESS_CODE)) {
-		throw new CalendarServiceException(
-			"Error code recieved from the WS." + " Code"
-				+ resultMap.get("statusCode") + " Message:"
-				+ resultMap.get("statusMessage"));
-	    }
-	    String seriesID = (String) resultMap.get("seriesID");
-	    HashMap<String, String> occurences = (HashMap<String, String>) resultMap
-		    .get("occurenceIds");
-	    // We save the series and the occurences
-	    if (occurences != null && occurences.size() > 1) {
-		// Calculate paths first becuase we need to save them on every
-		// occurence
-		paths = createOcPaths(occurences, date, calendarPath);
-		logIt("Need to save the series and the occurences "
-			+ occurences.size());
-		Iterator iterator = occurences.entrySet().iterator();
-		int cnt = 0;
-		while (iterator.hasNext()) {
-		    String newDate = getNextDay(date, cnt);
-		    Map.Entry entry = (Map.Entry) iterator.next();
-		    String ocID = (String) entry.getValue();
-		    String ocPath = PathHelper.normalize(paths[cnt]);
-		    logIt("Save occurence " + ocID + " at path " + ocPath);
-		    // Save the entity (set values only to ones we persist)
-		    // We persist
-		    // id,name,path,seriesId,date,recurrence,times,ocpaths and
-		    // type
-		    CalendarItem event = new CalendarItem();
-		    event.setId(ocID);
-		    event.setName(name);
-		    event.setResourcePath(ocPath);
-		    event.setSeriesId(seriesID);
-		    event.setDate(newDate);
-		    event.setRecurrence(recurrence);
-		    event.setTimes(times);
-		    event.setOccurencePaths(paths);
-		    event.setType(CollaborationUtils.CALENDAR_EVENT);
-		    // save it
-		    em.persist(event);
-		    // Bind the event with the path
-		    binding.bind(event.getFactoryResourceIdentifier(), ocPath);
-		    binding.setProperty(ocPath,
-			    FactoryResourceProperty.CREATION_TIMESTAMP, ""
-				    + System.currentTimeMillis());
-		    binding.setProperty(ocPath,
-			    FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, ""
-				    + System.currentTimeMillis());
-		    binding.setProperty(ocPath, FactoryResourceProperty.AUTHOR,
-			    caller);
-
-		    // Create policy (owner)
-		    String policyId = UUID.randomUUID().toString();
-		    pap.createPolicy(policyId, PAPServiceHelper
-			    .buildOwnerPolicy(policyId, caller, ocPath));
-		    // Setting security properties on the node :
-		    binding.setProperty(ocPath, FactoryResourceProperty.OWNER,
-			    caller);
-		    binding.setProperty(ocPath,
-			    FactoryResourceProperty.POLICY_ID, policyId);
-		    // Notify for the creation
-		    notification.throwEvent(new Event(ocPath, caller,
-			    CalendarItem.RESOURCE_NAME, Event.buildEventType(
-				    CalendarService.SERVICE_NAME,
-				    CalendarItem.RESOURCE_NAME, "create"), ""));
-		    logIt(event.toString());
-		    cnt++;
-		}
-	    } else {
-		String datePath = createDatePath(date, calendarPath);
-		String path = calendarPath;
-		if (datePath != null) {
-		    path += "/" + datePath;
-		}
-		// path += "/" + CollaborationUtils.normalizeForPath(name);
-		String firstOcID = CollaborationUtils
-			.getFirstElement(occurences);
-		path += "/" + firstOcID;
-		path = PathHelper.normalize(path);
-		logIt("Path " + path);
-		// Save the entity
-		CalendarItem event = new CalendarItem();
-		event.setId(firstOcID);
-		event.setSeriesId(seriesID);
-		event.setName(name);
-		event.setDate(date);
-		event.setType(CollaborationUtils.CALENDAR_EVENT);
-		event.setResourcePath(path);
-		event.setRecurrence(recurrence);
-		event.setTimes(times);
-		// save it
-		em.persist(event);
-		// Bind the event with the path
-		binding.bind(event.getFactoryResourceIdentifier(), path);
-		binding.setProperty(path,
-			FactoryResourceProperty.CREATION_TIMESTAMP, ""
-				+ System.currentTimeMillis());
-		binding.setProperty(path,
-			FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, ""
-				+ System.currentTimeMillis());
-		binding.setProperty(path, FactoryResourceProperty.AUTHOR,
-			caller);
-		// Create policy (owner)
-		String policyId = UUID.randomUUID().toString();
-		pap.createPolicy(policyId, PAPServiceHelper.buildOwnerPolicy(
-			policyId, caller, path));
-		binding
-			.setProperty(path, FactoryResourceProperty.OWNER,
-				caller);
-		binding.setProperty(path, FactoryResourceProperty.POLICY_ID,
-			policyId);
-		// Notify for the creation
-		notification.throwEvent(new Event(path, caller,
-			CalendarItem.RESOURCE_NAME, Event.buildEventType(
-				CalendarService.SERVICE_NAME,
-				CalendarItem.RESOURCE_NAME, "create"), ""));
-		logIt(event.toString());
-		paths = new String[1];
-		paths[0] = path;
-	    }
-	    return paths;
-	} catch (Exception e) {
-	    // ctx.setRollbackOnly();
-	    logger.error("Unable to create the event at path " + calendarPath,
-		    e);
-	    throw new CalendarServiceException(
-		    "Unable to create the event at path " + calendarPath, e);
-	}
-
+    public String[] createEvent(String calendarPath,
+	    CalendarDetails calendarDetails) throws CalendarServiceException {
+	return createEventWithAttachments(calendarPath, calendarDetails, null,
+		null);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @seeorg.qualipso.factory.collaboration.calendar.CalendarService#
-     * createCalendarItem(java.lang.String,
-     * org.qualipso.factory.collaboration.calendar.entity.CalendarDetails)
-     */
-    @SuppressWarnings("unchecked")
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public String[] createCalendarItem(String calendarPath,
-	    CalendarDetails calendarDetails) throws CalendarServiceException {
+    public String[] createEventWithAttachments(String calendarPath,
+	    CalendarDetails calendarDetails, String[] documentPaths,
+	    String forumPath) throws CalendarServiceException {
 	String[] paths = null;
 	logIt("Create event under " + calendarPath);
 	try {
@@ -326,6 +134,7 @@ public class CalendarServiceBean implements CalendarService {
 			    .getContactName(), calendarDetails
 			    .getContactEmail(), calendarDetails
 			    .getContactPhone());
+
 	    // Set path for the event. We assume that all calendar items are
 	    // under a defined calendar path. For example
 	    // /any-folder/calendar
@@ -333,6 +142,53 @@ public class CalendarServiceBean implements CalendarService {
 	    pep.checkSecurity(caller, calendarPath, "create");
 	    // Call the mermig WS to create the event
 	    CalendarDTO dto = convert2DTO(calendarDetails);
+	    AttachmentDetails forumAtt = null;
+	    AttachmentDetails[] attdetArray = null;
+	    // Get id(s) of documents binded with given paths
+	    if (documentPaths != null && documentPaths.length > 0) {
+		HashMap<String, String> attachments = new HashMap<String, String>();
+		attdetArray = new AttachmentDetails[documentPaths.length];
+		for (int i = 0; i < documentPaths.length; i++) {
+		    if (documentPaths[i] != null
+			    && !documentPaths[i].equals("")) {
+			Document doc = documentService
+				.readDocumentProperties(documentPaths[i]);
+			if (doc != null) {
+			    attachments.put(doc.getId(), doc.getResourceId());
+			    AttachmentDetails attachment = new AttachmentDetails();
+			    attachment.setId(doc.getId());
+			    attachment.setName(doc.getName());
+			    attachment.setPath(documentPaths[i]);
+			    attachment.setResourceId(doc.getResourceId());
+			    attdetArray[i] = attachment;
+			} else {
+			    throw new CalendarServiceException(
+				    "Cannot read document from given path "
+					    + documentPaths[i]);
+			}
+		    } else {
+			throw new CalendarServiceException(
+				"Invalid document path to attach.");
+		    }
+		}
+		dto.setAttachments(attachments);
+	    }
+
+	    if (forumPath != null) {
+		Forum forum = forumService.readForumProperties(forumPath);
+		if (forum != null) {
+		    forumAtt = new AttachmentDetails();
+		    forumAtt.setId(forum.getId());
+		    forumAtt.setName(forum.getName());
+		    forumAtt.setType("forum");
+		    forumAtt.setPath(forumPath);
+		    //
+		    dto.setForum(forum.getId());
+		} else {
+		    throw new CalendarServiceException(
+			    "Cannot read forum from given path " + forumPath);
+		}
+	    }
 	    HashMap resultMap = calendarWS.createEvent(dto);
 	    logIt("Message Code:" + resultMap.get("statusCode") + " Message: "
 		    + resultMap.get("statusMessage"));
@@ -376,6 +232,19 @@ public class CalendarServiceBean implements CalendarService {
 		    event.setTimes(calendarDetails.getTimes());
 		    event.setOccurencePaths(paths);
 		    event.setType(CollaborationUtils.CALENDAR_EVENT);
+		    // attachment handling
+		    if (attdetArray != null && attdetArray.length > 0) {
+			event.setAttachments(attdetArray);
+		    }
+		    if (forumAtt != null) {
+			event.setForum(forumAtt);
+		    }
+		    // Set as participant the creator
+		    ParticipantDetails[] partDetails = new ParticipantDetails[1];
+		    partDetails[0] = new ParticipantDetails();
+		    partDetails[0].setPath(ocPath);
+		    partDetails[0].setProfile(caller);
+		    event.setParticipants(partDetails);
 		    // save it
 		    em.persist(event);
 		    // Bind the event with the path
@@ -429,6 +298,12 @@ public class CalendarServiceBean implements CalendarService {
 		event.setResourcePath(path);
 		event.setRecurrence(calendarDetails.getRecurrence());
 		event.setTimes(calendarDetails.getTimes());
+		// Set as participant the creator
+		ParticipantDetails[] partDetails = new ParticipantDetails[1];
+		partDetails[0] = new ParticipantDetails();
+		partDetails[0].setPath(path);
+		partDetails[0].setProfile(caller);
+		event.setParticipants(partDetails);
 		// save it
 		em.persist(event);
 		// Bind the event with the path
@@ -459,94 +334,89 @@ public class CalendarServiceBean implements CalendarService {
 		paths = new String[1];
 		paths[0] = path;
 	    }
+	    // TODO Call the email service to notify all invited users.
 	    return paths;
 	} catch (Exception e) {
 	    // ctx.setRollbackOnly();
-	    logger.error("Unable to create the event at path " + calendarPath,
-		    e);
+	    logger.error("Unable to create the event at path " + calendarPath
+		    + ". Reason: " + e.getMessage(), e);
 	    throw new CalendarServiceException(
-		    "Unable to create the event at path " + calendarPath, e);
+		    "Unable to create the event at path " + calendarPath
+			    + ". Reason: " + e.getMessage(), e);
 	}
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.qualipso.factory.collaboration.calendar.CalendarService#readEvent
-     * (java.lang.String)
-     */
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public CalendarItem readEvent(String path) throws CalendarServiceException {
 	CalendarItem event = null;
 	logIt("Read event " + path);
 	try {
-	    // Security check
-	    String caller = membership.getProfilePathForConnectedIdentifier();
-	    if (caller == null) {
-		throw new CalendarServiceException(
-			"Could not get connected profile");
-	    }
-	    logIt("caller: " + caller);
-	    pep.checkSecurity(caller, path, "read");
-
-	    // Look up given path and check resource type
-	    FactoryResourceIdentifier identifier = binding.lookup(path);
-	    checkResourceType(identifier, CalendarItem.RESOURCE_NAME);
-	    // Find the entity
-	    event = em.find(CalendarItem.class, identifier.getId());
-	    if (event == null) {
-		throw new CalendarServiceException(
-			"unable to find a event for id " + identifier.getId());
-	    }
-	    logIt("Found entity with id" + event.getId() + " Series id "
-		    + event.getSeriesId());
-	    // Call the WS to retrieve values that are not stored in
-	    HashMap<String, Object> values = calendarWS.readEvent(
-		    event.getId(), event.getSeriesId(), "occurence");
-	    if (values != null && !values.isEmpty()) {
-		String code = (String) values.get("statusCode");
-		String msg = (String) values.get("statusMessage");
-		logIt("Message Code:" + code + " Message: " + msg);
-		if (!code.equals(CollaborationUtils.SUCCESS_CODE)
-			|| values.get("calendar-item") == null) {
+	    if (path != null) {
+		// Security check
+		String caller = membership
+			.getProfilePathForConnectedIdentifier();
+		if (caller == null) {
 		    throw new CalendarServiceException(
-			    "Error code recieved from the WS." + " Code" + code
-				    + " Message:" + msg);
+			    "Could not get connected profile");
 		}
-		CalendarDTO eventDTO = (CalendarDTO) values
-			.get("calendar-item");
-		if (eventDTO != null) {
-		    // we set the values not persisted in the factory
-		    // We don't persist ocIds,location,start/end time,contact
-		    // details
-		    event.setOccurenceIds(eventDTO.getOccurenceIds());
-		    event.setLocation(eventDTO.getLocation());
-		    event.setStartTime(eventDTO.getStartTime());
-		    event.setEndTime(eventDTO.getEndTime());
-		    event.setContactName(eventDTO.getContactName());
-		    event.setContactEmail(eventDTO.getContactEmail());
-		    event.setContactPhone(eventDTO.getContactPhone());
-		    if(eventDTO.getAttachments()!=null){
-			event.setDocumentIds(eventDTO.getAttachments());
-		    }
-		    if(eventDTO.getForum()!=null){
-			event.setForumId(eventDTO.getForum());
-		    }
-		}
-	    } else {
-		throw new CalendarServiceException(
-			"Wrong response recieved from the WS.Check Logs");
-	    }
-	    // Notify
-	    notification.throwEvent(new Event(path, caller,
-		    CalendarItem.RESOURCE_NAME, Event.buildEventType(
-			    CalendarService.SERVICE_NAME,
-			    CalendarItem.RESOURCE_NAME, "read"), ""));
-	    logIt(event.toString());
-	    return event;
+		logIt("caller: " + caller);
+		pep.checkSecurity(caller, path, "read");
 
+		// Look up given path and check resource type
+		FactoryResourceIdentifier identifier = binding.lookup(path);
+		checkResourceType(identifier, CalendarItem.RESOURCE_NAME);
+		// Find the entity
+		event = em.find(CalendarItem.class, identifier.getId());
+		if (event == null) {
+		    throw new CalendarServiceException(
+			    "unable to find a event for id "
+				    + identifier.getId());
+		}
+		logIt("Found entity with id" + event.getId() + " Series id "
+			+ event.getSeriesId());
+		// Call the WS to retrieve values that are not stored in
+		HashMap<String, Object> values = calendarWS.readEvent(event
+			.getId(), event.getSeriesId(), "occurence");
+		if (values != null && !values.isEmpty()) {
+		    String code = (String) values.get("statusCode");
+		    String msg = (String) values.get("statusMessage");
+		    logIt("Message Code:" + code + " Message: " + msg);
+		    if (!code.equals(CollaborationUtils.SUCCESS_CODE)
+			    || values.get("calendar-item") == null) {
+			throw new CalendarServiceException(
+				"Error code recieved from the WS." + " Code"
+					+ code + " Message:" + msg);
+		    }
+		    CalendarDTO eventDTO = (CalendarDTO) values
+			    .get("calendar-item");
+		    if (eventDTO != null) {
+			// we set the values not persisted in the factory
+			// We don't persist ocIds,location,start/end
+			// time,contact
+			// details
+			event.setOccurenceIds(eventDTO.getOccurenceIds());
+			event.setLocation(eventDTO.getLocation());
+			event.setStartTime(eventDTO.getStartTime());
+			event.setEndTime(eventDTO.getEndTime());
+			event.setContactName(eventDTO.getContactName());
+			event.setContactEmail(eventDTO.getContactEmail());
+			event.setContactPhone(eventDTO.getContactPhone());
+		    }
+		} else {
+		    throw new CalendarServiceException(
+			    "Wrong response recieved from the WS.Check Logs");
+		}
+		// Notify
+		notification.throwEvent(new Event(path, caller,
+			CalendarItem.RESOURCE_NAME, Event.buildEventType(
+				CalendarService.SERVICE_NAME,
+				CalendarItem.RESOURCE_NAME, "read"), ""));
+		logIt(event.toString());
+	    } else {
+		throw new CalendarServiceException("No valid path for event.");
+	    }
+	    return event;
 	} catch (Exception e) {
 	    logger.error("Unable to read the event at path " + path, e);
 	    throw new CalendarServiceException(
@@ -554,24 +424,13 @@ public class CalendarServiceBean implements CalendarService {
 	}
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.qualipso.factory.collaboration.calendar.CalendarService#updateEvent
-     * (java.lang.String, java.lang.String, java.lang.String, java.lang.String,
-     * java.lang.String, java.lang.String, java.lang.String, java.lang.String,
-     * java.lang.String)
-     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public String updateEvent(String path, String name, String location,
-	    String date, String startTime, String endTime, String contactName,
-	    String contactEmail, String contactPhone)
+    public String updateEvent(String path, CalendarEvent calendarEvent)
 	    throws CalendarServiceException {
 	String updatedPath = path;
 	logIt("updateEvent(...) called");
-	logIt("params : path=" + path + ", name=" + name);
+	logIt("params : path=" + path);
 	try {
 	    // Security check
 	    String caller = membership.getProfilePathForConnectedIdentifier();
@@ -583,8 +442,13 @@ public class CalendarServiceBean implements CalendarService {
 	    pep.checkSecurity(caller, path, "update");
 	    // Check supplied values
 	    CollaborationUtils
-		    .checkCreateEventValues(name, location, date, startTime,
-			    endTime, contactName, contactEmail, contactPhone);
+		    .checkCreateEventValues(calendarEvent.getName(),
+			    calendarEvent.getLocation(), calendarEvent
+				    .getDate(), calendarEvent.getStartTime(),
+			    calendarEvent.getEndTime(), calendarEvent
+				    .getContactName(), calendarEvent
+				    .getContactEmail(), calendarEvent
+				    .getContactPhone());
 	    // Look up given path and check resource type
 	    FactoryResourceIdentifier identifier = binding.lookup(path);
 	    checkResourceType(identifier, CalendarItem.RESOURCE_NAME);
@@ -598,14 +462,19 @@ public class CalendarServiceBean implements CalendarService {
 	    boolean changedDate = false;
 	    String oldPath = path;
 	    String oldDate = event.getDate();
-	    if (!date.equals(event.getDate())) {
+	    if (!calendarEvent.getDate().equals(event.getDate())) {
 		changedDate = true;
 	    }
 	    // Call the WebService
 	    HashMap<String, String> values = calendarWS
-		    .updateEvent(event.getId(), event.getSeriesId(), name,
-			    location, date, startTime, endTime, contactName,
-			    contactEmail, contactPhone);
+		    .updateEvent(event.getId(), event.getSeriesId(),
+			    calendarEvent.getName(), calendarEvent
+				    .getLocation(), calendarEvent.getDate(),
+			    calendarEvent.getStartTime(), calendarEvent
+				    .getEndTime(), calendarEvent
+				    .getContactName(), calendarEvent
+				    .getContactEmail(), calendarEvent
+				    .getContactPhone());
 	    if (values != null && !values.isEmpty()) {
 		String code = (String) values.get("statusCode");
 		String msg = (String) values.get("statusMessage");
@@ -617,12 +486,13 @@ public class CalendarServiceBean implements CalendarService {
 		}
 
 		// Save the entity in the factory
-		event.setName(name);
-		event.setDate(date);
+		event.setName(calendarEvent.getName());
+		event.setDate(calendarEvent.getDate());
 		// If changed date we need to set the path accordignly and
 		// unbind old one.
 		if (changedDate) {
-		    String tempPath = swichDatePath(date, oldDate, path);
+		    String tempPath = switchDatePath(calendarEvent.getDate(),
+			    oldDate, path);
 		    if (tempPath != null) {
 			path = tempPath + "/" + event.getId();
 			logIt("Switch from " + oldPath + " TO " + path);
@@ -682,16 +552,8 @@ public class CalendarServiceBean implements CalendarService {
 	    throw new CalendarServiceException(
 		    "Unable to update the event at path " + path, e);
 	}
-
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.qualipso.factory.collaboration.calendar.CalendarService#updateRecurrence
-     * (java.lang.String, java.lang.String, java.lang.String, long)
-     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public String[] updateRecurrence(String path, String date,
@@ -734,21 +596,24 @@ public class CalendarServiceBean implements CalendarService {
 	    // create new ones based on the given event(path)values
 	    if (changedDate && !changedRec && event.getTimes() == 1) {
 		logIt("No need to update the series. Proceed with simple update");
-
-		String newPath = updateEvent(path, event.getName(), event
-			.getLocation(), date, event.getStartTime(), event
-			.getEndTime(), event.getContactName(), event
-			.getContactEmail(), event.getContactPhone());
+		event.setDate(date);
+		String newPath = updateEvent(path, convert2CalendarEvent(event));
 		paths = new String[0];
 		paths[0] = newPath;
 	    } else if (changedRec || changedTimes) {
 		String calendarPath = getRootPath(path, event.getDate());
-
-		paths = createEvent(calendarPath, event.getName(), event
-			.getLocation(), date, event.getStartTime(), event
-			.getEndTime(), event.getContactName(), event
-			.getContactEmail(), event.getContactPhone(),
-			recurrence, times);
+		CalendarDetails calDt = new CalendarDetails();
+		calDt.setName(event.getName());
+		calDt.setLocation(event.getLocation());
+		calDt.setDate(date);
+		calDt.setStartTime(event.getStartTime());
+		calDt.setEndTime(event.getEndTime());
+		calDt.setContactName(event.getContactName());
+		calDt.setContactEmail(event.getContactEmail());
+		calDt.setContactPhone(event.getContactPhone());
+		calDt.setRecurrence(recurrence);
+		calDt.setTimes(times);
+		paths = createEvent(calendarPath, calDt);
 		if (event.getOccurencePaths() != null) {
 		    for (int i = 0; i < event.getOccurencePaths().length; i++) {
 			deleteEvent(event.getOccurencePaths()[i]);
@@ -768,62 +633,219 @@ public class CalendarServiceBean implements CalendarService {
 	}
 
     }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @seeorg.qualipso.factory.collaboration.calendar.CalendarService#
-     * atttachDocumentToEvent(java.lang.String, java.lang.String)
-     */
+    
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void atttachDocumentToEvent(String path, String[] documentPaths)
-	    throws CalendarServiceException {
-	logIt("attach document at " + path);
+    public String updateEventExtra(String path, CalendarEvent calendarEvent,
+	    CalendarExtra extraDetails) throws CalendarServiceException {
+	String updatedPath = path;
+	logIt("updateEventExtra(...) called");
+	logIt("params : path=" + path);
 	try {
-	    // Get event
-	    CalendarItem event = readEvent(path);
-	    if (event != null && documentPaths != null
-		    && documentPaths.length > 0) {
-		// Security check
-		String caller = membership
-			.getProfilePathForConnectedIdentifier();
-		if (caller == null) {
-		    throw new CalendarServiceException(
-			    "Could not get connected profile");
+	    // Security check
+	    String caller = membership.getProfilePathForConnectedIdentifier();
+	    if (caller == null) {
+		throw new CalendarServiceException(
+			"Could not get connected profile");
+	    }
+	    logIt("caller: " + caller);
+	    pep.checkSecurity(caller, path, "update");
+	    // Check supplied values
+	    CollaborationUtils
+		    .checkCreateEventValues(calendarEvent.getName(),
+			    calendarEvent.getLocation(), calendarEvent
+				    .getDate(), calendarEvent.getStartTime(),
+			    calendarEvent.getEndTime(), calendarEvent
+				    .getContactName(), calendarEvent
+				    .getContactEmail(), calendarEvent
+				    .getContactPhone());
+	    // Look up given path and check resource type
+	    FactoryResourceIdentifier identifier = binding.lookup(path);
+	    checkResourceType(identifier, CalendarItem.RESOURCE_NAME);
+	    // Find the entity
+	    CalendarItem event = em
+		    .find(CalendarItem.class, identifier.getId());
+	    if (event == null) {
+		throw new CalendarServiceException(
+			"Unable to find a event for id " + identifier.getId());
+	    }
+	    boolean changedDate = false;
+	    String oldPath = path;
+	    String oldDate = event.getDate();
+	    if (!calendarEvent.getDate().equals(event.getDate())) {
+		changedDate = true;
+	    }
+	    //
+	    HashMap<String, String> attachments = null;
+	    AttachmentDetails[] documentsAtt = null;
+	    String forumId = null;
+	    AttachmentDetails forumAtt = null;
+	    ParticipantDetails[] partDetails = null;
+	    Group[] groups = null;
+	    if (extraDetails != null) {
+		if (extraDetails.getAttachments() != null) {
+
+		    String[] documentPaths = extraDetails.getAttachments();
+		    documentPaths = removeDuplicates(documentPaths);
+		    attachments = new HashMap<String, String>();
+		    documentsAtt = new AttachmentDetails[documentPaths.length];
+		    for (int i = 0; i < documentPaths.length; i++) {
+			if (documentPaths[i] != null
+				&& !documentPaths[i].equals("")) {
+			    Document doc = documentService
+				    .readDocumentProperties(documentPaths[i]);
+			    if (doc != null) {
+				attachments.put(doc.getId(), doc
+					.getResourceId());
+				AttachmentDetails attachment = new AttachmentDetails();
+				attachment.setId(doc.getId());
+				attachment.setName(doc.getName());
+				attachment.setPath(documentPaths[i]);
+				attachment.setResourceId(doc.getResourceId());
+				documentsAtt[i] = attachment;
+			    } else {
+				throw new CalendarServiceException(
+					"Cannot read document from given path "
+						+ documentPaths[i]);
+			    }
+			} else {
+			    throw new CalendarServiceException(
+				    "Invalid document path to attach.");
+			}
+		    }
 		}
-		logIt("caller: " + caller);
-		pep.checkSecurity(caller, path, "update");
-		// Get id(s) from provided paths
-		String[] documentIds = new String[documentPaths.length];
-		for (int i = 0; i < documentPaths.length; i++) {
-		    Document doc = documentService
-			    .readDocument(documentPaths[i]);
-		    if (doc != null) {
-			documentIds[i] = doc.getId();
+		if (extraDetails.getForum() != null) {
+		    Forum forum = forumService.readForumProperties(extraDetails
+			    .getForum());
+		    if (forum != null) {
+			forumId = forum.getId();
+			forumAtt = new AttachmentDetails();
+			forumAtt.setId(forum.getId());
+			forumAtt.setName(forum.getName());
+			forumAtt.setType("forum");
+			forumAtt.setPath(extraDetails.getForum());
+
 		    } else {
 			throw new CalendarServiceException(
-				"Cannot read document from given path "
-					+ documentPaths[i]);
+				"Cannot read forum from given path "
+					+ extraDetails.getForum());
 		    }
 		}
-		// Call the mermigWS;
-		HashMap<String, String> values = calendarWS
-			.atttachDocumentToEvent(event.getId(), event
-				.getSeriesId(),
-				CollaborationUtils.CALENDAR_MODIFY_OC,
-				documentIds);
-		if (values != null && !values.isEmpty()) {
-		    String code = (String) values.get("statusCode");
-		    String msg = (String) values.get("statusMessage");
-		    logIt("Message Code:" + code + " Message: " + msg);
-		    if (!code.equals(CollaborationUtils.SUCCESS_CODE)) {
-			throw new CalendarServiceException(
-				"Error code recieved from the WS." + " Code"
-					+ code + " Message:" + msg);
+		if (extraDetails.getProfiles() != null) {
+		    String[] profilePaths = extraDetails.getProfiles();
+		    if (profilePaths.length > 0) {
+			profilePaths = removeDuplicates(profilePaths);
+			//TODO check if it is a valid profile path
+			partDetails = new ParticipantDetails[profilePaths.length];
+			for (int i = 0; i < profilePaths.length; i++) {
+			    partDetails[i] = new ParticipantDetails();
+			    partDetails[i].setPath(path);
+			    partDetails[i].setProfile(profilePaths[i]);
+			}
+
 		    }
-		    // Now update the event to persist the attachments
-		    event.setDocumentPaths(documentPaths);
+		}
+		if (extraDetails.getGroups() != null) {
+		    String[] groupPaths = extraDetails.getGroups();
+		    if (groupPaths.length > 0) {
+			String[] newGroupPaths = removeDuplicates(groupPaths);
+			// TODO get group. get members and add them
+			if (newGroupPaths != null && newGroupPaths.length > 0) {
+			    groups = new Group[newGroupPaths.length];
+			    for (int i = 0; i < newGroupPaths.length; i++) {
+				Group gi = membership
+					.readGroup(newGroupPaths[i]);
+				if (gi != null) {
+				    groups[i] = gi;
+				} else {
+				    throw new CalendarServiceException(
+					    "Cannot read group from given path "
+						    + newGroupPaths[i]);
+				}
+			    }
+			}
+		    }
+		}
+	    }
+
+	    // Call the WebService
+	    HashMap<String, String> values = calendarWS.updateEventExtra(event
+		    .getId(), event.getSeriesId(), calendarEvent.getName(),
+		    calendarEvent.getLocation(), calendarEvent.getDate(),
+		    calendarEvent.getStartTime(), calendarEvent.getEndTime(),
+		    calendarEvent.getContactName(), calendarEvent
+			    .getContactEmail(),
+		    calendarEvent.getContactPhone(), attachments, forumId);
+	    if (values != null && !values.isEmpty()) {
+		String code = (String) values.get("statusCode");
+		String msg = (String) values.get("statusMessage");
+		logIt("Message Code:" + code + " Message: " + msg);
+		if (!code.equals(CollaborationUtils.SUCCESS_CODE)) {
+		    throw new CalendarServiceException(
+			    "Error code recieved from the WS." + " Code" + code
+				    + " Message:" + msg);
+		}
+
+		// Save the entity in the factory
+		event.setName(calendarEvent.getName());
+		event.setDate(calendarEvent.getDate());
+		// set extra details (optional)
+		if (forumAtt != null) {
+		    event.setForum(forumAtt);
+		}
+		if (documentsAtt != null) {
+		    event.setAttachments(documentsAtt);
+		}
+		if (partDetails != null) {
+		    event.setParticipants(partDetails);
+		}
+		if (groups != null) {
+		    event.setGroups(groups);
+		}
+		//
+		// If changed date we need to set the path accordignly and
+		// unbind old one.
+		if (changedDate) {
+		    String tempPath = switchDatePath(calendarEvent.getDate(),
+			    oldDate, path);
+		    if (tempPath != null) {
+			path = tempPath + "/" + event.getId();
+			logIt("Switch from " + oldPath + " TO " + path);
+		    }
+		    logIt("Path: " + path);
+		    event.setResourcePath(path);
+		    em.merge(event);
+		    updatedPath = path;
+		    // Delete previous policy and unbind old path
+		    String policyId = binding.getProperty(oldPath,
+			    FactoryResourceProperty.POLICY_ID, false);
+		    pap.deletePolicy(policyId);
+		    binding.unbind(oldPath);
+		    // Bind the event with the new path based on the new date
+		    binding.bind(event.getFactoryResourceIdentifier(), path);
+		    binding.setProperty(path,
+			    FactoryResourceProperty.CREATION_TIMESTAMP, ""
+				    + System.currentTimeMillis());
+		    binding.setProperty(path,
+			    FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, ""
+				    + System.currentTimeMillis());
+		    binding.setProperty(path, FactoryResourceProperty.AUTHOR,
+			    caller);
+		    // Create policy (owner)
+		    policyId = UUID.randomUUID().toString();
+		    pap.createPolicy(policyId, PAPServiceHelper
+			    .buildOwnerPolicy(policyId, caller, path));
+		    binding.setProperty(path, FactoryResourceProperty.OWNER,
+			    caller);
+		    binding.setProperty(path,
+			    FactoryResourceProperty.POLICY_ID, policyId);
+		    // Notify
+		    notification.throwEvent(new Event(path, caller,
+			    CalendarItem.RESOURCE_NAME, Event.buildEventType(
+				    CalendarService.SERVICE_NAME,
+				    CalendarItem.RESOURCE_NAME, "update"), ""));
+		} else {
+		    event.setResourcePath(path);
 		    em.merge(event);
 		    binding.setProperty(path,
 			    FactoryResourceProperty.LAST_UPDATE_TIMESTAMP,
@@ -832,107 +854,273 @@ public class CalendarServiceBean implements CalendarService {
 			    CalendarItem.RESOURCE_NAME, Event.buildEventType(
 				    CalendarService.SERVICE_NAME,
 				    CalendarItem.RESOURCE_NAME, "update"), ""));
-		} else {
-		    throw new CalendarServiceException(
-			    "No valid answer from the WS.Check logs.");
 		}
+		logIt(event.toString());
 	    } else {
 		throw new CalendarServiceException(
-			"Cannot read event from given path " + path);
+			"No valid answer from the WS.Check logs.");
 	    }
-
+	    return updatedPath;
 	} catch (Exception e) {
 	    // ctx.setRollbackOnly();
-	    logger.error("Unable to attach document for the event " + path, e);
+	    logger.error("Unable to update the event at path " + path, e);
 	    throw new CalendarServiceException(
-		    "Unable to attach document for the event " + path, e);
+		    "Unable to update the event at path " + path, e);
 	}
-
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @seeorg.qualipso.factory.collaboration.calendar.CalendarService#
-     * attachForumToEvent(java.lang.String, java.lang.String)
-     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void attachForumToEvent(String path, String forumPath)
-	    throws CalendarServiceException {
-	logIt("attach forum " + forumPath + " at " + path);
+    public String updateEventAdvanced(String path, CalendarEvent calendarEvent,
+	    String[] documentPaths, String forumPath, String[] profilePaths,
+	    String[] groupPaths) throws CalendarServiceException {
+	String updatedPath = path;
+	logIt("updateEventExtra(...) called");
+	logIt("params : path=" + path);
 	try {
-	    // Get event
-	    CalendarItem event = readEvent(path);
-	    if (event != null) {
-		// Security check
-		String caller = membership
-			.getProfilePathForConnectedIdentifier();
-		if (caller == null) {
-		    throw new CalendarServiceException(
-			    "Could not get connected profile");
-		}
-		logIt("caller: " + caller);
-		pep.checkSecurity(caller, path, "update");
-		Forum forum = forumService.readForum(forumPath);
-		if (forum != null) {
-		    // Call the mermigWS;
-		    HashMap<String, String> values = calendarWS
-			    .atttachForumToEvent(event.getId(), event
-				    .getSeriesId(),
-				    CollaborationUtils.CALENDAR_MODIFY_OC,
-				    forum.getId());
-		    if (values != null && !values.isEmpty()) {
-			String code = (String) values.get("statusCode");
-			String msg = (String) values.get("statusMessage");
-			logIt("Message Code:" + code + " Message: " + msg);
-			if (!code.equals(CollaborationUtils.SUCCESS_CODE)) {
+	    // Security check
+	    String caller = membership.getProfilePathForConnectedIdentifier();
+	    if (caller == null) {
+		throw new CalendarServiceException(
+			"Could not get connected profile");
+	    }
+	    logIt("caller: " + caller);
+	    pep.checkSecurity(caller, path, "update");
+	    // Check supplied values
+	    CollaborationUtils
+		    .checkCreateEventValues(calendarEvent.getName(),
+			    calendarEvent.getLocation(), calendarEvent
+				    .getDate(), calendarEvent.getStartTime(),
+			    calendarEvent.getEndTime(), calendarEvent
+				    .getContactName(), calendarEvent
+				    .getContactEmail(), calendarEvent
+				    .getContactPhone());
+	    // Look up given path and check resource type
+	    FactoryResourceIdentifier identifier = binding.lookup(path);
+	    checkResourceType(identifier, CalendarItem.RESOURCE_NAME);
+	    // Find the entity
+	    CalendarItem event = em
+		    .find(CalendarItem.class, identifier.getId());
+	    if (event == null) {
+		throw new CalendarServiceException(
+			"Unable to find a event for id " + identifier.getId());
+	    }
+	    boolean changedDate = false;
+	    String oldPath = path;
+	    String oldDate = event.getDate();
+	    if (!calendarEvent.getDate().equals(event.getDate())) {
+		changedDate = true;
+	    }
+	    //
+	    HashMap<String, String> attachments = null;
+	    AttachmentDetails[] documentsAtt = null;
+	    String forumId = null;
+	    AttachmentDetails forumAtt = null;
+	    ParticipantDetails[] partDetails = null;
+	    Group[] groups = null;
+	    if (documentPaths != null && documentPaths.length > 0) {
+
+		documentPaths = removeDuplicates(documentPaths);
+		attachments = new HashMap<String, String>();
+		documentsAtt = new AttachmentDetails[documentPaths.length];
+		for (int i = 0; i < documentPaths.length; i++) {
+		    if (documentPaths[i] != null
+			    && !documentPaths[i].equals("")) {
+			Document doc = documentService
+				.readDocumentProperties(documentPaths[i]);
+			if (doc != null) {
+			    attachments.put(doc.getId(), doc.getResourceId());
+			    AttachmentDetails attachment = new AttachmentDetails();
+			    attachment.setId(doc.getId());
+			    attachment.setName(doc.getName());
+			    attachment.setPath(documentPaths[i]);
+			    attachment.setResourceId(doc.getResourceId());
+			    documentsAtt[i] = attachment;
+			} else {
 			    throw new CalendarServiceException(
-				    "Error code recieved from the WS."
-					    + " Code" + code + " Message:"
-					    + msg);
+				    "Cannot read document from given path "
+					    + documentPaths[i]);
 			}
-			// Now update the event to persist the attachments
-			event.setForum(forumPath);
-			em.merge(event);
-			binding.setProperty(path,
-				FactoryResourceProperty.LAST_UPDATE_TIMESTAMP,
-				System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller,
-				CalendarItem.RESOURCE_NAME, Event
-					.buildEventType(
-						CalendarService.SERVICE_NAME,
-						CalendarItem.RESOURCE_NAME,
-						"update"), ""));
 		    } else {
 			throw new CalendarServiceException(
-				"No valid answer from the WS.Check logs.");
+				"Invalid document path to attach.");
 		    }
+		}
+	    }
+	    if (forumPath != null && !forumPath.equals("")) {
+		Forum forum = forumService.readForumProperties(forumPath);
+		if (forum != null) {
+		    forumId = forum.getId();
+		    forumAtt = new AttachmentDetails();
+		    forumAtt.setId(forum.getId());
+		    forumAtt.setName(forum.getName());
+		    forumAtt.setType("forum");
+		    forumAtt.setPath(forumPath);
+
 		} else {
 		    throw new CalendarServiceException(
 			    "Cannot read forum from given path " + forumPath);
 		}
+	    }
+	    if (profilePaths != null && profilePaths.length > 0) {
+		profilePaths = removeDuplicates(profilePaths);
+		// TODO check if it is a valid profile path
+		partDetails = new ParticipantDetails[profilePaths.length];
+		for (int i = 0; i < profilePaths.length; i++) {
+		    partDetails[i] = new ParticipantDetails();
+		    partDetails[i].setPath(path);
+		    partDetails[i].setProfile(profilePaths[i]);
+		}
+	    }
+	    if (groupPaths != null && groupPaths.length > 0) {
+		String[] newGroupPaths = removeDuplicates(groupPaths);
+		// TODO get group. get members and add them
+		if (newGroupPaths != null && newGroupPaths.length > 0) {
+		    groups = new Group[newGroupPaths.length];
+		    for (int i = 0; i < newGroupPaths.length; i++) {
+			Group gi = membership.readGroup(newGroupPaths[i]);
+			if (gi != null) {
+			    groups[i] = gi;
+			} else {
+			    throw new CalendarServiceException(
+				    "Cannot read group from given path "
+					    + newGroupPaths[i]);
+			}
+		    }
+		}
+	    }
+	    // Call the WebService
+	    HashMap<String, String> values = calendarWS.updateEventExtra(event
+		    .getId(), event.getSeriesId(), calendarEvent.getName(),
+		    calendarEvent.getLocation(), calendarEvent.getDate(),
+		    calendarEvent.getStartTime(), calendarEvent.getEndTime(),
+		    calendarEvent.getContactName(), calendarEvent
+			    .getContactEmail(),
+		    calendarEvent.getContactPhone(), attachments, forumId);
+	    if (values != null && !values.isEmpty()) {
+		String code = (String) values.get("statusCode");
+		String msg = (String) values.get("statusMessage");
+		logIt("Message Code:" + code + " Message: " + msg);
+		if (!code.equals(CollaborationUtils.SUCCESS_CODE)) {
+		    throw new CalendarServiceException(
+			    "Error code recieved from the WS." + " Code" + code
+				    + " Message:" + msg);
+		}
+
+		// Save the entity in the factory
+		event.setName(calendarEvent.getName());
+		event.setDate(calendarEvent.getDate());
+		// set extra details (optional)
+		if (forumAtt != null) {
+		    event.setForum(forumAtt);
+		}
+		if (documentsAtt != null) {
+		    event.setAttachments(documentsAtt);
+		}
+		if (partDetails != null) {
+		    event.setParticipants(partDetails);
+		}
+		if (groups != null) {
+		    event.setGroups(groups);
+		}
+		//
+		// If changed date we need to set the path accordignly and
+		// unbind old one.
+		if (changedDate) {
+		    String tempPath = switchDatePath(calendarEvent.getDate(),
+			    oldDate, path);
+		    if (tempPath != null) {
+			path = tempPath + "/" + event.getId();
+			logIt("Switch from " + oldPath + " TO " + path);
+		    }
+		    logIt("Path: " + path);
+		    event.setResourcePath(path);
+		    em.merge(event);
+		    updatedPath = path;
+		    // Delete previous policy and unbind old path
+		    String policyId = binding.getProperty(oldPath,
+			    FactoryResourceProperty.POLICY_ID, false);
+		    pap.deletePolicy(policyId);
+		    binding.unbind(oldPath);
+		    // Bind the event with the new path based on the new date
+		    binding.bind(event.getFactoryResourceIdentifier(), path);
+		    binding.setProperty(path,
+			    FactoryResourceProperty.CREATION_TIMESTAMP, ""
+				    + System.currentTimeMillis());
+		    binding.setProperty(path,
+			    FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, ""
+				    + System.currentTimeMillis());
+		    binding.setProperty(path, FactoryResourceProperty.AUTHOR,
+			    caller);
+		    // Create policy (owner)
+		    policyId = UUID.randomUUID().toString();
+		    pap.createPolicy(policyId, PAPServiceHelper
+			    .buildOwnerPolicy(policyId, caller, path));
+		    binding.setProperty(path, FactoryResourceProperty.OWNER,
+			    caller);
+		    binding.setProperty(path,
+			    FactoryResourceProperty.POLICY_ID, policyId);
+		    // Notify
+		    notification.throwEvent(new Event(path, caller,
+			    CalendarItem.RESOURCE_NAME, Event.buildEventType(
+				    CalendarService.SERVICE_NAME,
+				    CalendarItem.RESOURCE_NAME, "update"), ""));
+		} else {
+		    event.setResourcePath(path);
+		    em.merge(event);
+		    binding.setProperty(path,
+			    FactoryResourceProperty.LAST_UPDATE_TIMESTAMP,
+			    System.currentTimeMillis() + "");
+		    notification.throwEvent(new Event(path, caller,
+			    CalendarItem.RESOURCE_NAME, Event.buildEventType(
+				    CalendarService.SERVICE_NAME,
+				    CalendarItem.RESOURCE_NAME, "update"), ""));
+		}
+		logIt(event.toString());
 	    } else {
 		throw new CalendarServiceException(
-			"Cannot read event from given path " + path);
+			"No valid answer from the WS.Check logs.");
 	    }
-
+	    return updatedPath;
 	} catch (Exception e) {
 	    // ctx.setRollbackOnly();
-	    logger.error("Unable to attach document for the event " + path, e);
+	    logger.error("Unable to update the event at path " + path, e);
 	    throw new CalendarServiceException(
-		    "Unable to attach document for the event " + path, e);
+		    "Unable to update the event at path " + path, e);
 	}
-
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.qualipso.factory.collaboration.calendar.CalendarService#deleteEvent
-     * (java.lang.String)
-     */
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public String updateEventWithAttachments(String path,
+	    CalendarEvent calendarEvent, String[] documentPaths,
+	    String forumPath)
+	    throws CalendarServiceException {
+	String updatedPath = path;
+	logIt("updateEventWithAttachments(...) called");
+	logIt("params : path=" + path);
+	try {
+	    updatedPath = updateEvent(path, calendarEvent);
+	    if (documentPaths != null && documentPaths.length > 0) {
+		atttachDocumentToEvent(path, documentPaths);
+	    }
+	    if (forumPath != null && !forumPath.equals("")) {
+		attachForumToEvent(path, forumPath);
+	    }
+//	    if (profilePaths != null && profilePaths.length > 0) {
+//		addEventParticipants(path, profilePaths);
+//	    }
+	    return updatedPath;
+	} catch (Exception e) {
+	    // ctx.setRollbackOnly();
+	    logger.error("Unable to update event (with attachmetns) at path "
+		    + path, e);
+	    throw new CalendarServiceException(
+		    "Unable to update event (with attachmetns) at path " + path,
+		    e);
+	}
+    }
+
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void deleteEvent(String path) throws CalendarServiceException {
@@ -992,13 +1180,6 @@ public class CalendarServiceBean implements CalendarService {
 
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.qualipso.factory.collaboration.calendar.CalendarService#getCalendarItems
-     * (java.lang.String)
-     */
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public CalendarItem[] getCalendarItems(String path)
@@ -1040,13 +1221,6 @@ public class CalendarServiceBean implements CalendarService {
 	return items;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @seeorg.qualipso.factory.collaboration.calendar.CalendarService#
-     * getCalendarItemsForMonth(java.lang.String, java.lang.String,
-     * java.lang.String)
-     */
     @Override
     @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public CalendarItem[] getCalendarItemsForMonth(String path, String year,
@@ -1069,10 +1243,20 @@ public class CalendarServiceBean implements CalendarService {
 		// <path>/year/month/day/id
 		// Check that year exists.
 		String yearPath = path + "/" + year;
-		Folder yearFolder = core.readFolder(yearPath);
+		Folder yearFolder = null;
+		try {
+		    yearFolder = core.readFolder(yearPath);
+		} catch (Exception e) {
+		    logger.warn(e.getMessage(), e);
+		}
 		if (yearFolder != null) {
 		    String monthPath = yearPath + "/" + month;
-		    Folder monthFolder = core.readFolder(monthPath);
+		    Folder monthFolder = null;
+		    try {
+			monthFolder = core.readFolder(monthPath);
+		    } catch (Exception e) {
+			logger.warn(e.getMessage(), e);
+		    }
 		    if (monthFolder != null) {
 			// Retrieve month subfolders e.g. days.
 			String servicePattern = CoreService.SERVICE_NAME;
@@ -1125,18 +1309,14 @@ public class CalendarServiceBean implements CalendarService {
 	return items;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @seeorg.qualipso.factory.collaboration.calendar.CalendarService#
-     * getEventAttachments(java.lang.String)
-     */
     @Override
-    public Document[] getEventAttachments(String path)
-	    throws CalendarServiceException {
-	logIt("get attached documents " + path);
-	Document[] listDoc = null;
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public CalendarListItem[] getMonthlyCalendar(String path, String year,
+	    String month) throws CalendarServiceException {
+	CalendarListItem[] items = null;
+	logIt("get getMonthlyCalendar " + path);
 	try {
+	    // Security check
 	    String caller = membership.getProfilePathForConnectedIdentifier();
 	    if (caller == null) {
 		throw new CalendarServiceException(
@@ -1144,263 +1324,652 @@ public class CalendarServiceBean implements CalendarService {
 	    }
 	    logIt("caller: " + caller);
 	    pep.checkSecurity(caller, path, "read");
-	    // Check if given path is valid CalendarItem
+	    // look up to check if path is invalid
 	    FactoryResourceIdentifier identifier = binding.lookup(path);
-	    checkResourceType(identifier, CalendarItem.RESOURCE_NAME);
-	    // Get attachments
-	    String servicePattern = DocumentService.SERVICE_NAME;
-	    String typePattern = Document.RESOURCE_NAME;
-	    String[] docsArray = browser.listChildrenOfType(path,
-		    servicePattern, typePattern);
-	    if (docsArray != null && docsArray.length > 0) {
-		Vector<Document> docVector = new Vector<Document>();
-
-		for (int i = 0; i < docsArray.length; i++) {
-
-		    logIt("child #" + i + ". " + docsArray[i]);
-		    Document doc = documentService
-			    .readDocumentProperties(docsArray[i]);
-		    if (doc != null) {
-			docVector.add(doc);
-		    }
+	    if (identifier != null) {
+		// We save calendar times in a folder structure like
+		// <path>/year/month/day/id
+		// Check that year exists.
+		String yearPath = path + "/" + year;
+		Folder yearFolder = null;
+		try {
+		    yearFolder = core.readFolder(yearPath);
+		} catch (Exception e) {
+		    logger.warn(e.getMessage(), e);
 		}
-		listDoc = docVector.toArray(new Document[docVector.size()]);
+		if (yearFolder != null) {
+		    String monthPath = yearPath + "/" + month;
+		    Folder monthFolder = null;
+		    try {
+			monthFolder = core.readFolder(monthPath);
+		    } catch (Exception e) {
+			logger.warn(e.getMessage(), e);
+		    }
+		    if (monthFolder != null) {
+			// Retrieve month subfolders e.g. days.
+			String servicePattern = CoreService.SERVICE_NAME;
+			String typePattern = Folder.RESOURCE_NAME;
+			String[] itemsArray = browser.listChildrenOfType(
+				monthPath, servicePattern, typePattern);
+			if (itemsArray != null && itemsArray.length > 0) {
+			    Vector<CalendarListItem> cItemVector = new Vector<CalendarListItem>();
+			    for (int i = 0; i < itemsArray.length; i++) {
+				logIt("get events of day #" + i + " "
+					+ itemsArray[i]);
+				servicePattern = CalendarService.SERVICE_NAME;
+				typePattern = CalendarItem.RESOURCE_NAME;
+				String[] eventsArray = browser
+					.listChildrenOfType(itemsArray[i],
+						servicePattern, typePattern);
+				if (eventsArray != null
+					&& eventsArray.length > 0) {
+				    for (int j = 0; j < eventsArray.length; j++) {
+					logIt("Found " + eventsArray[j]);
+					// cItemVector.add(readEvent(eventsArray[j]));
+					// No need to call the readEvent, since
+					// we need only name and path
+					identifier = binding
+						.lookup(eventsArray[j]);
+					checkResourceType(identifier,
+						CalendarItem.RESOURCE_NAME);
+					// Find the entity
+					CalendarItem event = em.find(
+						CalendarItem.class, identifier
+							.getId());
+					if (event == null) {
+					    throw new CalendarServiceException(
+						    "unable to find a event for id "
+							    + identifier
+								    .getId());
+					}
+					logIt("Found entity with id"
+						+ event.getId() + " Series id "
+						+ event.getSeriesId());
+					CalendarListItem item = new CalendarListItem(
+						eventsArray[j],
+						event.getName(), event
+							.getDate());
+					cItemVector.add(item);
+				    }
+				}
+			    }
+			    if (cItemVector != null && cItemVector.size() > 0) {
+				items = cItemVector
+					.toArray(new CalendarListItem[cItemVector
+						.size()]);
+			    }
+			} else {
+			    logIt("No events found for given " + monthPath);
+			}
+		    } else {
+			logIt("No events found for given " + monthPath);
+		    }
+		} else {
+		    logIt("No events found for given " + yearPath);
+		}
+	    } else {
+		throw new CalendarServiceException("Invalid path " + path);
 	    }
 	} catch (Exception e) {
 	    // ctx.setRollbackOnly();
-	    logger.error(
-		    "Unable to retrieve attached documents for the event at path "
-			    + path, e);
+	    logger.error("Unable to retrieve the month's events at path "
+		    + path, e);
 	    throw new CalendarServiceException(
-		    "Unable to retrieve documents for the event at path "
-			    + path, e);
+		    "Unable to retrieve the month's  events at path " + path, e);
 	}
-	return listDoc;
+	return items;
     }
 
-    /**
-     * Gets the entity manager.
-     * 
-     * @return the entity manager
-     */
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public CalendarListItem[] getMonthlyCalendarForUser(String year,
+	    String month) throws CalendarServiceException {
+	CalendarListItem[] listItems = null;
+	logIt("get calendar for connected user for " + year + "/" + month);
+	try {
+	    // Security check
+	    String caller = membership.getProfilePathForConnectedIdentifier();
+	    if (caller == null) {
+		throw new CalendarServiceException(
+			"Could not get connected profile");
+	    }
+	    logIt("caller: " + caller);
+	    //
+	    int givenYear = Integer.parseInt(year);
+	    int givenMonth = Integer.parseInt(month);
+	    String[] eventPaths = getUserParticipations();
+	    if (eventPaths != null && eventPaths.length > 0) {
+		Vector<CalendarListItem> cItemVector = new Vector<CalendarListItem>();
+		for (int i = 0; i < eventPaths.length; i++) {
+		    // No need to call the readEvent, since
+		    // we only need name,path and date
+		    FactoryResourceIdentifier identifier = binding
+			    .lookup(eventPaths[i]);
+		    checkResourceType(identifier, CalendarItem.RESOURCE_NAME);
+		    // Find the entity
+		    CalendarItem event = em.find(CalendarItem.class, identifier
+			    .getId());
+		    if (event == null) {
+			throw new CalendarServiceException(
+				"unable to find a event for id "
+					+ identifier.getId());
+		    }
+		    int[] dArray = parseDate(event.getDate());
+		    int eYear = dArray[0];
+		    int eMonth = dArray[1] + 1;
+		    if (eYear == givenYear && eMonth == givenMonth) {
+			CalendarListItem item = new CalendarListItem(
+				eventPaths[i], event.getName(), event.getDate());
+			cItemVector.add(item);
+		    }
+		}
+		if (cItemVector != null && cItemVector.size() > 0) {
+		    listItems = cItemVector
+			    .toArray(new CalendarListItem[cItemVector.size()]);
+		}
+	    }
+
+	} catch (Exception e) {
+	    // ctx.setRollbackOnly();
+	    logger.error("Unable to retrieve the month's events", e);
+	    throw new CalendarServiceException(
+		    "Unable to retrieve the month's  events", e);
+	}
+	return listItems;
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void atttachDocumentToEvent(String path, String[] documentPaths)
+	    throws CalendarServiceException {
+	logIt("attach document at " + path);
+	try {
+	    // Get event
+	    CalendarItem event = readEvent(path);
+	    if (event != null && documentPaths != null
+		    && documentPaths.length > 0) {
+		// Security check
+		String caller = membership
+			.getProfilePathForConnectedIdentifier();
+		if (caller == null) {
+		    throw new CalendarServiceException(
+			    "Could not get connected profile");
+		}
+		logIt("caller: " + caller);
+		pep.checkSecurity(caller, path, "update");
+		// Get id(s) of documents binded with given paths
+		HashMap<String, String> attachments = new HashMap<String, String>();
+		AttachmentDetails[] attdetArray = new AttachmentDetails[documentPaths.length];
+		for (int i = 0; i < documentPaths.length; i++) {
+		    if (documentPaths[i] != null
+			    && !documentPaths[i].equals("")) {
+			Document doc = documentService
+				.readDocumentProperties(documentPaths[i]);
+			if (doc != null) {
+			    attachments.put(doc.getId(), doc.getResourceId());
+			    AttachmentDetails attachment = new AttachmentDetails();
+			    attachment.setId(doc.getId());
+			    attachment.setName(doc.getName());
+			    attachment.setPath(documentPaths[i]);
+			    attachment.setResourceId(doc.getResourceId());
+			    attdetArray[i] = attachment;
+			} else {
+			    throw new CalendarServiceException(
+				    "Cannot read document from given path "
+					    + documentPaths[i]);
+			}
+		    } else {
+			throw new CalendarServiceException(
+				"Invalid document path to attach.");
+		    }
+		}
+		// Call the mermigWS;
+		HashMap<String, String> values = calendarWS
+			.atttachDocumentToEvent(event.getId(), event
+				.getSeriesId(),
+				CollaborationUtils.CALENDAR_MODIFY_OC,
+				attachments);
+		if (values != null && !values.isEmpty()) {
+		    String code = (String) values.get("statusCode");
+		    String msg = (String) values.get("statusMessage");
+		    logIt("Message Code:" + code + " Message: " + msg);
+		    if (!code.equals(CollaborationUtils.SUCCESS_CODE)) {
+			throw new CalendarServiceException(
+				"Error code recieved from the WS." + " Code"
+					+ code + " Message:" + msg);
+		    }
+		    // Now update the event to persist the attachments
+		    event.setAttachments(attdetArray);
+		    em.merge(event);
+		    binding.setProperty(path,
+			    FactoryResourceProperty.LAST_UPDATE_TIMESTAMP,
+			    System.currentTimeMillis() + "");
+		    notification.throwEvent(new Event(path, caller,
+			    CalendarItem.RESOURCE_NAME, Event.buildEventType(
+				    CalendarService.SERVICE_NAME,
+				    CalendarItem.RESOURCE_NAME, "update"), ""));
+		} else {
+		    throw new CalendarServiceException(
+			    "No valid answer from the WS.Check logs.");
+		}
+	    } else {
+		throw new CalendarServiceException(
+			"Cannot read event from given path " + path);
+	    }
+
+	} catch (Exception e) {
+	    // ctx.setRollbackOnly();
+	    logger.error("Unable to attach document for the event " + path, e);
+	    throw new CalendarServiceException(
+		    "Unable to attach document for the event " + path, e);
+	}
+
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void attachForumToEvent(String path, String forumPath)
+	    throws CalendarServiceException {
+	logIt("attach forum " + forumPath + " at " + path);
+	try {
+	    // Get event
+	    CalendarItem event = readEvent(path);
+	    if (event != null) {
+		// Security check
+		String caller = membership
+			.getProfilePathForConnectedIdentifier();
+		if (caller == null) {
+		    throw new CalendarServiceException(
+			    "Could not get connected profile");
+		}
+		logIt("caller: " + caller);
+		pep.checkSecurity(caller, path, "update");
+		Forum forum = forumService.readForumProperties(forumPath);
+		if (forum != null) {
+		    // Call the mermigWS;
+		    HashMap<String, String> values = calendarWS
+			    .atttachForumToEvent(event.getId(), event
+				    .getSeriesId(),
+				    CollaborationUtils.CALENDAR_MODIFY_OC,
+				    forum.getId());
+		    if (values != null && !values.isEmpty()) {
+			String code = (String) values.get("statusCode");
+			String msg = (String) values.get("statusMessage");
+			logIt("Message Code:" + code + " Message: " + msg);
+			if (!code.equals(CollaborationUtils.SUCCESS_CODE)) {
+			    throw new CalendarServiceException(
+				    "Error code recieved from the WS."
+					    + " Code" + code + " Message:"
+					    + msg);
+			}
+			// Now update the event to persist the attachments
+			AttachmentDetails forumAtt = new AttachmentDetails();
+			forumAtt.setId(forum.getId());
+			forumAtt.setName(forum.getName());
+			forumAtt.setType("forum");
+			forumAtt.setPath(forumPath);
+			event.setForum(forumAtt);
+			em.merge(event);
+			binding.setProperty(path,
+				FactoryResourceProperty.LAST_UPDATE_TIMESTAMP,
+				System.currentTimeMillis() + "");
+			notification.throwEvent(new Event(path, caller,
+				CalendarItem.RESOURCE_NAME, Event
+					.buildEventType(
+						CalendarService.SERVICE_NAME,
+						CalendarItem.RESOURCE_NAME,
+						"update"), ""));
+		    } else {
+			throw new CalendarServiceException(
+				"No valid answer from the WS.Check logs.");
+		    }
+		} else {
+		    throw new CalendarServiceException(
+			    "Cannot read forum from given path " + forumPath);
+		}
+	    } else {
+		throw new CalendarServiceException(
+			"Cannot read event from given path " + path);
+	    }
+
+	} catch (Exception e) {
+	    // ctx.setRollbackOnly();
+	    logger.error("Unable to attach document for the event " + path, e);
+	    throw new CalendarServiceException(
+		    "Unable to attach document for the event " + path, e);
+	}
+
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void addEventParticipants(String path, String[] profilePaths)
+	    throws CalendarServiceException {
+	logIt("Add participants to event " + path);
+	try {
+	    if (path != null && profilePaths != null && profilePaths.length > 0) {
+		// Security check
+		String caller = membership
+			.getProfilePathForConnectedIdentifier();
+		if (caller == null) {
+		    throw new CalendarServiceException(
+			    "Could not get connected profile");
+		}
+		logIt("caller: " + caller);
+		pep.checkSecurity(caller, path, "update");
+		// Look up given path and check resource type
+		FactoryResourceIdentifier identifier = binding.lookup(path);
+		checkResourceType(identifier, CalendarItem.RESOURCE_NAME);
+		// Find the entity
+		CalendarItem event = em.find(CalendarItem.class, identifier
+			.getId());
+		if (event == null) {
+		    throw new CalendarServiceException(
+			    "Unable to find a event for id "
+				    + identifier.getId());
+		}
+		// TODO check if profile paths are valid
+		ParticipantDetails[] partDetails = new ParticipantDetails[profilePaths.length];
+		for (int i = 0; i < profilePaths.length; i++) {
+		    partDetails[i] = new ParticipantDetails();
+		    partDetails[i].setPath(path);
+		    partDetails[i].setProfile(profilePaths[i]);
+		}
+		event.setParticipants(partDetails);
+		em.merge(event);
+		binding.setProperty(path,
+			FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System
+				.currentTimeMillis()
+				+ "");
+		notification.throwEvent(new Event(path, caller,
+			CalendarItem.RESOURCE_NAME, Event.buildEventType(
+				CalendarService.SERVICE_NAME,
+				CalendarItem.RESOURCE_NAME, "update"), ""));
+		logIt(event.toString());
+	    } else {
+		throw new CalendarServiceException(
+			"Invalid input.Please give valid event path and list of profile paths");
+	    }
+
+	} catch (Exception e) {
+	    // ctx.setRollbackOnly();
+	    logger
+		    .error("Unable to add participant(s) to the event " + path,
+			    e);
+	    throw new CalendarServiceException(
+		    "Unable to add participant(s) to the event " + path, e);
+	}
+    }
+
+    @SuppressWarnings("unchecked")
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void handleInvitation(String path, String decision)
+	    throws CalendarServiceException {
+	logIt("Handle invitation to event " + path);
+	try {
+	    if (path != null && decision != null) {
+		// Security check
+		String caller = membership
+			.getProfilePathForConnectedIdentifier();
+		if (caller == null) {
+		    throw new CalendarServiceException(
+			    "Could not get connected profile");
+		}
+		logIt("caller: " + caller);
+		pep.checkSecurity(caller, path, "update");
+		// Look up given path and check resource type
+		FactoryResourceIdentifier identifier = binding.lookup(path);
+		checkResourceType(identifier, CalendarItem.RESOURCE_NAME);
+		// Find the entity
+		CalendarItem event = em.find(CalendarItem.class, identifier
+			.getId());
+		if (event == null) {
+		    throw new CalendarServiceException(
+			    "Unable to find a event for id "
+				    + identifier.getId());
+		}
+		ParticipantDetails[] partDetails = event.getParticipants();
+		String confirmedParticipants = event.getConfirmedParticipants();
+		if (partDetails != null) {
+
+		    boolean participantFound = false;
+		    for (int i = 0; i < partDetails.length; i++) {
+			if (partDetails[i].getProfile().equals(caller)) {
+			    partDetails[i].setDecision(decision);
+			    participantFound = true;
+			    break;
+			}
+		    }
+		    if (participantFound) {
+			if (decision.toLowerCase().equals("accept")) {
+			    //
+			    confirmedParticipants = handleCSVString(caller,
+				    confirmedParticipants);
+			    event
+				    .setConfirmedParticipants(confirmedParticipants);
+			    // create link to event under his profile.
+			    // we assume that /profiles/xxx/calendar exists.
+			    String userCalendarPath = PathHelper
+				    .normalize(caller + "/calendar");
+			    // String datePath = createDatePath(event.getDate(),
+			    // userCalendarPath);
+			    // String linkPath = PathHelper.normalize(datePath+
+			    // "/" + event.getId());
+			    String linkPath = PathHelper
+				    .normalize(userCalendarPath + "/"
+					    + event.getId());
+			    core.createLink(linkPath, path);
+			    logIt("Created link " + linkPath);
+			}
+			event.setParticipants(partDetails);
+			em.merge(event);
+			binding.setProperty(path,
+				FactoryResourceProperty.LAST_UPDATE_TIMESTAMP,
+				System.currentTimeMillis() + "");
+			notification.throwEvent(new Event(path, caller,
+				CalendarItem.RESOURCE_NAME, Event
+					.buildEventType(
+						CalendarService.SERVICE_NAME,
+						CalendarItem.RESOURCE_NAME,
+						"update"), ""));
+		    } else {
+			throw new CalendarServiceException("Given profile "
+				+ caller
+				+ " is not in the list of particiapnts of "
+				+ path);
+		    }
+		}
+		logIt(event.toString());
+	    } else {
+		throw new CalendarServiceException(
+			"Invalid input.Please give valid event path and list of profile paths");
+	    }
+
+	} catch (Exception e) {
+	    // ctx.setRollbackOnly();
+	    logger.error("Unable handle invitation for " + path, e);
+	    throw new CalendarServiceException(
+		    "Unable to handle invitation for " + path, e);
+	}
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public ParticipantDetails[] getEventParticipants(String path)
+	    throws CalendarServiceException {
+	ParticipantDetails[] participants = null;
+	try {
+	    // Security check
+	    String caller = membership.getProfilePathForConnectedIdentifier();
+	    if (caller == null) {
+		throw new CalendarServiceException(
+			"Could not get connected profile");
+	    }
+	    logIt("caller: " + caller);
+	    pep.checkSecurity(caller, path, "update");
+	    // Look up given path and check resource type
+	    FactoryResourceIdentifier identifier = binding.lookup(path);
+	    checkResourceType(identifier, CalendarItem.RESOURCE_NAME);
+	    // Find the entity
+	    CalendarItem event = em
+		    .find(CalendarItem.class, identifier.getId());
+	    if (event == null) {
+		throw new CalendarServiceException(
+			"Unable to find a event for id " + identifier.getId());
+	    }
+	    participants = event.getParticipants();
+	} catch (Exception e) {
+	    logger
+		    .error("Unable to add participant(s) to the event " + path,
+			    e);
+	    throw new CalendarServiceException(
+		    "Unable to add participant(s) to the event " + path, e);
+	}
+	return participants;
+    }
+
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+    public String[] getUserParticipations() throws CalendarServiceException {
+	logIt("Get user confirmed participations to events.");
+	String[] eventPaths = null;
+	try {
+	    String caller = membership.getProfilePathForConnectedIdentifier();
+	    if (caller == null) {
+		throw new CalendarServiceException(
+			"Could not get connected profile");
+	    }
+	    logIt("caller: " + caller);
+	    // We assume that his confirmed events are Link entitites under
+	    // profile/calendar
+	    Folder calFold = null;
+	    String calPath = PathHelper.normalize(caller + "/calendar");
+	    try {
+		calFold = core.readFolder(calPath);
+	    } catch (Exception e) {
+		logger.warn("No calendar folder under " + caller);
+	    }
+	    if (calFold != null) {
+		String servicePattern = CoreService.SERVICE_NAME;
+		String typePattern = Link.RESOURCE_NAME;
+		String[] itemsArray = browser.listChildrenOfType(calPath,
+			servicePattern, typePattern);
+		if (itemsArray != null && itemsArray.length > 0) {
+		    logIt("Number of links found:" + itemsArray.length);
+		    eventPaths = new String[itemsArray.length];
+		    for (int i = 0; i < itemsArray.length; i++) {
+			Link link = core.readLink(itemsArray[i]);
+			eventPaths[i] = link.getLink();
+		    }
+		} else {
+		    logger.warn("No linked events under " + calPath);
+		}
+	    }
+	} catch (Exception e) {
+	    logger.error(
+		    "Unable to retrieve participation info of connected user.",
+		    e);
+	    throw new CalendarServiceException(
+		    "Unable to retrieve participation info of  of connected user.",
+		    e);
+	}
+	return eventPaths;
+    }
+
     public EntityManager getEntityManager() {
 	return this.em;
     }
 
-    /**
-     * Sets the entity manager.
-     * 
-     * @param em
-     *            the new entity manager
-     */
     @PersistenceContext(unitName = "CalendarServiceBean")
     public void setEntityManager(EntityManager em) {
 	this.em = em;
     }
 
-    /**
-     * Gets the session context.
-     * 
-     * @return the session context
-     */
     public SessionContext getSessionContext() {
 	return this.ctx;
     }
 
-    /**
-     * Sets the session context.
-     * 
-     * @param ctx
-     *            the new session context
-     */
     @Resource
     public void setSessionContext(SessionContext ctx) {
 	this.ctx = ctx;
     }
 
-    // @EJB(name = "BindingService")
-    /**
-     * Sets the binding service.
-     * 
-     * @param binding
-     *            the new binding service
-     */
     @EJB
     public void setBindingService(BindingService binding) {
 	this.binding = binding;
     }
 
-    /**
-     * Gets the binding service.
-     * 
-     * @return the binding service
-     */
     public BindingService getBindingService() {
 	return this.binding;
     }
 
-    /**
-     * Gets the pEP service.
-     * 
-     * @return the pEP service
-     */
     public PEPService getPEPService() {
 	return this.pep;
     }
 
-    // @EJB(name = "PEPService")
-    /**
-     * Sets the pEP service.
-     * 
-     * @param pep
-     *            the new pEP service
-     */
     @EJB
     public void setPEPService(PEPService pep) {
 	this.pep = pep;
     }
 
-    /**
-     * Gets the pAP service.
-     * 
-     * @return the pAP service
-     */
     public PAPService getPAPService() {
 	return this.pap;
     }
 
-    // @EJB(name = "PAPService")
-    /**
-     * Sets the pAP service.
-     * 
-     * @param pap
-     *            the new pAP service
-     */
     @EJB
     public void setPAPService(PAPService pap) {
 	this.pap = pap;
     }
 
-    /**
-     * Gets the notification service.
-     * 
-     * @return the notification service
-     */
     public NotificationService getNotificationService() {
 	return this.notification;
     }
 
-    // @EJB(name = "NotificationService")
-    /**
-     * Sets the notification service.
-     * 
-     * @param notification
-     *            the new notification service
-     */
     @EJB
     public void setNotificationService(NotificationService notification) {
 	this.notification = notification;
     }
 
-    /**
-     * Gets the membership service.
-     * 
-     * @return the membership service
-     */
     public MembershipService getMembershipService() {
 	return this.membership;
     }
 
-    // @EJB(name = "MembershipService")
-    /**
-     * Sets the membership service.
-     * 
-     * @param membership
-     *            the new membership service
-     */
     @EJB
     public void setMembershipService(MembershipService membership) {
 	this.membership = membership;
     }
 
-    /**
-     * Gets the browser.
-     * 
-     * @return the browser
-     */
     public BrowserService getBrowser() {
 	return browser;
     }
 
-    // @EJB(name = "BrowserService")
-    /**
-     * Sets the browser.
-     * 
-     * @param browser
-     *            the new browser
-     */
     @EJB
     public void setBrowser(BrowserService browser) {
 	this.browser = browser;
     }
 
-    /**
-     * Gets the core.
-     * 
-     * @return the core
-     */
     public CoreService getCore() {
 	return core;
     }
 
-    // @EJB(name = "CoreService")
-    /**
-     * Sets the core.
-     * 
-     * @param core
-     *            the new core
-     */
     @EJB
     public void setCore(CoreService core) {
 	this.core = core;
     }
 
-    /**
-     * Gets the calendar ws.
-     * 
-     * @return the calendar ws
-     */
     public CalendarWService getCalendarWS() {
 	return calendarWS;
     }
 
-    /**
-     * Sets the calendar ws.
-     * 
-     * @param calendarWS
-     *            the new calendar ws
-     */
     @EJB(name = "CalendarWService")
     public void setCalendarWS(CalendarWService calendarWS) {
 	this.calendarWS = calendarWS;
     }
 
-    /**
-     * Gets the document service.
-     * 
-     * @return the document service
-     */
     public DocumentService getDocumentService() {
 	return documentService;
     }
 
-    // @EJB(name = "DocumentService")
-    /**
-     * Sets the document service.
-     * 
-     * @param documentService
-     *            the new document service
-     */
     @EJB
     public void setDocumentService(DocumentService documentService) {
 	this.documentService = documentService;
@@ -1415,17 +1984,6 @@ public class CalendarServiceBean implements CalendarService {
 	this.forumService = forumService;
     }
 
-    /**
-     * Check resource type.
-     * 
-     * @param identifier
-     *            the identifier
-     * @param resourceType
-     *            the resource type
-     * 
-     * @throws MembershipServiceException
-     *             the membership service exception
-     */
     private void checkResourceType(FactoryResourceIdentifier identifier,
 	    String resourceType) throws MembershipServiceException {
 
@@ -1441,31 +1999,16 @@ public class CalendarServiceBean implements CalendarService {
 	}
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.qualipso.factory.FactoryService#getResourceTypeList()
-     */
     @Override
     public String[] getResourceTypeList() {
 	return RESOURCE_TYPE_LIST;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.qualipso.factory.FactoryService#getServiceName()
-     */
     @Override
     public String getServiceName() {
 	return SERVICE_NAME;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.qualipso.factory.FactoryService#findResource(java.lang.String)
-     */
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public FactoryResource findResource(String path) throws FactoryException {
@@ -1494,31 +2037,12 @@ public class CalendarServiceBean implements CalendarService {
 	}
     }
 
-    /**
-     * Log it.
-     * 
-     * @param message
-     *            the message
-     */
     private void logIt(String message) {
 	if (logger.isInfoEnabled()) {
 	    logger.info(message);
 	}
     }
 
-    /**
-     * Gets the next day.
-     * 
-     * @param date
-     *            the date
-     * @param index
-     *            the index
-     * 
-     * @return the next day
-     * 
-     * @throws CalendarServiceException
-     *             the calendar service exception
-     */
     private String getNextDay(String date, int index)
 	    throws CalendarServiceException {
 	String newDate = date;
@@ -1539,52 +2063,36 @@ public class CalendarServiceBean implements CalendarService {
 	return newDate;
     }
 
-    /**
-     * Save folder path.
-     * 
-     * @param path
-     *            the path
-     * @param name
-     *            the name
-     * @param description
-     *            the description
-     * 
-     * @throws CalendarServiceException
-     *             the calendar service exception
-     */
     private void saveFolderPath(String path, String name, String description)
 	    throws CalendarServiceException {
-
 	try {
 	    core.readFolder(path);
 	    logIt("Path " + path + " allready exitst");
-	} catch (CoreServiceException e) {
+	  
+	} catch (AccessDeniedException e) {
+	    throw new CalendarServiceException(e.getMessage(),e);
+	} catch (InvalidPathException e) {
+	    throw new CalendarServiceException(e.getMessage(),e);
+	} catch (PathNotFoundException ex) {
 	    try {
 		core.createFolder(path, name, description);
 		logIt("Crated Path " + path + " succesfully");
-	    } catch (CoreServiceException e2) {
+	    } catch (CoreServiceException e) {
 		throw new CalendarServiceException(
 			"Unable to create date path." + path);
+	    } catch (AccessDeniedException e) {
+		throw new CalendarServiceException(e.getMessage(),e);
+	    } catch (InvalidPathException e) {
+		throw new CalendarServiceException(e.getMessage(),e);
+	    } catch (PathAlreadyBoundException e) {
+		throw new CalendarServiceException(e.getMessage(),e);
 	    }
+	} catch (CoreServiceException e) {
+	    throw new CalendarServiceException(e.getMessage(),e);
 	}
 
     }
 
-    /**
-     * Creates the oc paths.
-     * 
-     * @param occurences
-     *            the occurences
-     * @param date
-     *            the date
-     * @param calendarPath
-     *            the calendar path
-     * 
-     * @return the string[]
-     * 
-     * @throws CalendarServiceException
-     *             the calendar service exception
-     */
     private String[] createOcPaths(HashMap<String, String> occurences,
 	    String date, String calendarPath) throws CalendarServiceException {
 	String[] occurencePaths = new String[occurences.size()];
@@ -1607,19 +2115,6 @@ public class CalendarServiceBean implements CalendarService {
 	return occurencePaths;
     }
 
-    /**
-     * Creates the date path.
-     * 
-     * @param date
-     *            the date
-     * @param calendarPath
-     *            the calendar path
-     * 
-     * @return the string
-     * 
-     * @throws CalendarServiceException
-     *             the calendar service exception
-     */
     private String createDatePath(String date, String calendarPath)
 	    throws CalendarServiceException {
 	String fdatePath = null;
@@ -1644,19 +2139,6 @@ public class CalendarServiceBean implements CalendarService {
 	return fdatePath;
     }
 
-    /**
-     * Gets the root path.
-     * 
-     * @param path
-     *            the path
-     * @param date
-     *            the date
-     * 
-     * @return the root path
-     * 
-     * @throws CalendarServiceException
-     *             the calendar service exception
-     */
     private String getRootPath(String path, String date)
 	    throws CalendarServiceException {
 	int[] dArray = parseDate(date);
@@ -1671,22 +2153,7 @@ public class CalendarServiceBean implements CalendarService {
 	return parentPath;
     }
 
-    /**
-     * Swich date path.
-     * 
-     * @param date
-     *            the date
-     * @param oldDate
-     *            the old date
-     * @param eventPath
-     *            the event path
-     * 
-     * @return the string
-     * 
-     * @throws CalendarServiceException
-     *             the calendar service exception
-     */
-    private String swichDatePath(String date, String oldDate, String eventPath)
+    private String switchDatePath(String date, String oldDate, String eventPath)
 	    throws CalendarServiceException {
 	String fdatePath = null;
 
@@ -1714,17 +2181,6 @@ public class CalendarServiceBean implements CalendarService {
 	return fdatePath;
     }
 
-    /**
-     * Parses the date.
-     * 
-     * @param date
-     *            the date
-     * 
-     * @return the int[]
-     * 
-     * @throws CalendarServiceException
-     *             the calendar service exception
-     */
     private int[] parseDate(String date) throws CalendarServiceException {
 	int[] dArray = new int[3];
 	try {
@@ -1757,14 +2213,6 @@ public class CalendarServiceBean implements CalendarService {
 	return dArray;
     }
 
-    /**
-     * Convert2 dto.
-     * 
-     * @param cDetails
-     *            the c details
-     * 
-     * @return the calendar dto
-     */
     private CalendarDTO convert2DTO(CalendarDetails cDetails) {
 	CalendarDTO dto = null;
 	if (cDetails != null) {
@@ -1783,6 +2231,53 @@ public class CalendarServiceBean implements CalendarService {
 	    dto.setTimes(cDetails.getTimes());
 	}
 	return dto;
+    }
+
+    private boolean isMemberOf(String part, String list) {
+	if (list.indexOf(part) != -1) {
+	    return true;
+	}
+	return false;
+    }
+
+    private String handleCSVString(String value, String csvString)
+	    throws Exception {
+	String toReturn = null;
+	if (csvString == null || csvString.equals("")) {
+	    toReturn = value;
+	} else {
+	    if (!isMemberOf(value, csvString)) {
+		toReturn = (csvString + "," + value);
+	    }
+	}
+	return toReturn;
+    }
+
+    private String[] removeDuplicates(String[] valuesArray) {
+	// make sure we don't have duplicated values
+	Vector<String> vs = new Vector<String>();
+	for (int i = 0; i < valuesArray.length; i++) {
+	    if (i == 0) {
+		vs.add(valuesArray[i]);
+	    } else if (!vs.contains(valuesArray[i])) {
+		vs.add(valuesArray[i]);
+	    }
+	}
+	if (vs != null && vs.size() > 0) {
+	    valuesArray = vs.toArray(new String[vs.size()]);
+	}
+	return valuesArray;
+    }
+
+    private CalendarEvent convert2CalendarEvent(CalendarItem cItem) {
+	CalendarEvent ce = null;
+	if (cItem != null) {
+	    ce = new CalendarEvent(cItem.getName(), cItem.getLocation(), cItem
+		    .getDate(), cItem.getStartTime(), cItem.getEndTime(), cItem
+		    .getContactName(), cItem.getContactEmail(), cItem
+		    .getContactPhone());
+	}
+	return ce;
     }
 
 }

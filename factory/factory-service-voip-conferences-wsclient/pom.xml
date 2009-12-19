@@ -4,13 +4,13 @@
 	<parent>
 		<artifactId>factory</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.4-SNAPSHOT</version>
+		<version>0.5-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-voip-conferences-wsclient</artifactId>
 	<name>Qualipso Factory VoIP Tools - WebService Client</name>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.4.2-SNAPSHOT</version>
 	<packaging>ejb</packaging>
 	 <organization>
     <name>Poznan Supercomputing and Networking Center</name>
@@ -27,12 +27,13 @@
       <timezone>+1</timezone>
     </developer>
   </developers>
-  
+
   <properties>
-    <ws.core.uri>http://localhost:3000/factory-core</ws.core.uri>
-    <ws.root.uri>http://localhost:3000/factory-service</ws.root.uri>
+    <ws.core.uri>http://localhost:8380/factory-core</ws.core.uri>
+    <ws.root.uri>http://localhost:8380/factory-service</ws.root.uri>
+    <ws.voip.uri>http://localhost:8380/factory-service</ws.voip.uri>
   </properties>
-  
+
 	<build>
 		<plugins>
 			<plugin>
@@ -46,7 +47,8 @@
 						</manifest>
 					</archive>
 				</configuration>
-			</plugin>			
+			</plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>jaxws-maven-plugin</artifactId>
@@ -58,7 +60,8 @@
             <configuration>
               <wsdlUrls>
                 <wsdlUrl>${ws.core.uri}/bootstrap?wsdl</wsdlUrl>
-                <wsdlUrl>${ws.root.uri}-voip/voipconference?wsdl</wsdlUrl>
+                <wsdlUrl>${ws.root.uri}-collaboration/calendar?wsdl</wsdlUrl>
+                <wsdlUrl>${ws.voip.uri}-voip/voipconference?wsdl</wsdlUrl>
               </wsdlUrls>
               <sourceDestDir>${basedir}/src/main/java</sourceDestDir>
               <packageName>org.qualipso.factory.voipservice.client.ws</packageName>
@@ -66,10 +69,10 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>      
+      </plugin>
 		</plugins>
 	</build>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>commons-logging</groupId>

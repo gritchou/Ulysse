@@ -21,6 +21,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *     &lt;extension base="{http://org.qualipso.factory.ws/service/bootstrap}factoryResource">
  *       &lt;sequence>
  *         &lt;element name="email" type="{http://www.w3.org/2001/XMLSchema}string"/>
+ *         &lt;element name="groups-list" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *       &lt;/sequence>
  *       &lt;attribute name="fullname" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="account-status" use="required" type="{http://www.w3.org/2001/XMLSchema}int" />
@@ -37,7 +38,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "profile", namespace = "http://org.qualipso.factory.ws/resource/profile", propOrder = {
-    "email"
+    "email",
+    "groupsList"
 })
 public class Profile
     extends FactoryResource
@@ -45,6 +47,8 @@ public class Profile
 
     @XmlElement(required = true)
     protected String email;
+    @XmlElement(name = "groups-list", required = true)
+    protected String groupsList;
     @XmlAttribute(required = true)
     protected String fullname;
     @XmlAttribute(name = "account-status", required = true)
@@ -81,6 +85,30 @@ public class Profile
      */
     public void setEmail(String value) {
         this.email = value;
+    }
+
+    /**
+     * Gets the value of the groupsList property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getGroupsList() {
+        return groupsList;
+    }
+
+    /**
+     * Sets the value of the groupsList property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setGroupsList(String value) {
+        this.groupsList = value;
     }
 
     /**

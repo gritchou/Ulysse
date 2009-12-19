@@ -12,11 +12,13 @@
  * Jérôme Blanchard / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
  *
  */
 package org.qualipso.factory.client.test.sb;
 
 import org.junit.runner.RunWith;
+
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
@@ -27,12 +29,7 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses(value =  {
-    MembershipServiceSBTest.class, 
-    BrowserServiceSBTest.class,
-    EventQueueServiceSBTest.class,
-    NotificationServiceSBTest.class,
-    IndexingServiceSBTest.class}
+    MembershipServiceSBTest.class, BrowserServiceSBTest.class, EventQueueServiceSBTest.class, NotificationServiceSBTest.class, IndexingServiceSBTest.class}
 )
 public class AllSBTests {
-	
 }

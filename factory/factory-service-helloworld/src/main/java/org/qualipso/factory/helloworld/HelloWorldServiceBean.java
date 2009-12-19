@@ -17,7 +17,6 @@ import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.membership.MembershipService;
-import org.qualipso.factory.membership.MembershipServiceException;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
@@ -51,11 +50,7 @@ public class HelloWorldServiceBean implements HelloWorldService {
 	public String sayHelloWorld() throws HelloWorldServiceException {
 		logger.info("readName(...) called");
 		
-		try {
-			return membership.getProfilePathForConnectedIdentifier() + " says : Hello World !!";
-		} catch (MembershipServiceException e) {
-			throw new HelloWorldServiceException(e);
-		}
+		return membership.getProfilePathForConnectedIdentifier() + " says : Hello World !!";
 	}
 
 	@Override

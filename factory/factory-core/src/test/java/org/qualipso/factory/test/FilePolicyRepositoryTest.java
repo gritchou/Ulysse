@@ -1,46 +1,66 @@
+/*
+ *
+ * Qualipso Factory
+ * Copyright (C) 2006-2010 INRIA
+ * http://www.inria.fr - molli@loria.fr
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of LGPL. See licenses details in LGPL.txt
+ *
+ * Initial authors :
+ *
+ * Jérôme Blanchard / INRIA
+ * Pascal Molli / Nancy Université
+ * Gérald Oster / Nancy Université
+ * Christophe Bouthier / INRIA
+ * 
+ */
 package org.qualipso.factory.test;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.junit.After;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import org.qualipso.factory.security.repository.FilePolicyRepository;
+import org.qualipso.factory.security.repository.PolicyRepository;
+import org.qualipso.factory.security.repository.PolicyRepositoryException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.qualipso.factory.security.repository.FilePolicyRepository;
-import org.qualipso.factory.security.repository.PolicyRepository;
-import org.qualipso.factory.security.repository.PolicyRepositoryException;
 
 /**
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 28 august 2009
  */
-public class FilePolicyRepositoryTest  {
-	
-	private static Log logger = LogFactory.getLog(FilePolicyRepositoryTest.class);
-	private PolicyRepository repository; 
+public class FilePolicyRepositoryTest {
+    private static Log logger = LogFactory.getLog(FilePolicyRepositoryTest.class);
+    private PolicyRepository repository;
 
-	public FilePolicyRepositoryTest() {
-		repository = new FilePolicyRepository(new File("target/data/policy-repository"));
-	}
+    public FilePolicyRepositoryTest() {
+        repository = new FilePolicyRepository(new File("target/data/policy-repository"));
+    }
 
-	@Before
-	public void setUp() throws Exception {
-		repository.init();
-	}
-	
-	@After
-	public void tearDown() {
-		File file = ((FilePolicyRepository) repository).getRepositoryFolder();
+    @Before
+    public void setUp() throws Exception {
+        repository.init();
+    }
+
+    @After
+    public void tearDown() {
+        File file = ((FilePolicyRepository) repository).getRepositoryFolder();
 
         if (file.exists() && file.isDirectory()) {
             File[] files = file.listFiles();
@@ -51,19 +71,19 @@ public class FilePolicyRepositoryTest  {
         }
 
         file.delete();
-	}
-	
-	@Test
-	public void testGetPolicyError() {
-		try {
-			repository.getPolicy("unexistingPolicyID");
-			fail("this policy should not exists");
-		} catch (PolicyRepositoryException pre) {
-			//
-		}
     }
 
-	@Test
+    @Test
+    public void testGetPolicyError() {
+        try {
+            repository.getPolicy("unexistingPolicyID");
+            fail("this policy should not exists");
+        } catch (PolicyRepositoryException pre) {
+            //
+        }
+    }
+
+    @Test
     public void testAddPolicy() {
         try {
             InputStream is = ClassLoader.getSystemResourceAsStream("policies/policy-12.xml");
@@ -75,11 +95,11 @@ public class FilePolicyRepositoryTest  {
                 baos.write(buffer, 0, nbRead);
             }
 
-            String id = UUID.randomUUID().toString(); 
+            String id = UUID.randomUUID().toString();
             repository.addPolicy(id, baos.toByteArray());
 
             try {
-            	repository.getPolicy(id);
+                repository.getPolicy(id);
             } catch (PolicyRepositoryException pse) {
                 fail("unable to get the created policy : " + pse.getMessage());
             }
@@ -88,7 +108,7 @@ public class FilePolicyRepositoryTest  {
         }
     }
 
-	@Test
+    @Test
     public void testUpdatePolicy() {
         try {
             InputStream is = ClassLoader.getSystemResourceAsStream("policies/policy-12.xml");
@@ -100,7 +120,7 @@ public class FilePolicyRepositoryTest  {
                 baos.write(buffer, 0, nbRead);
             }
 
-            String id = UUID.randomUUID().toString(); 
+            String id = UUID.randomUUID().toString();
             repository.addPolicy(id, baos.toByteArray());
 
             is = ClassLoader.getSystemResourceAsStream("policies/policy-13.xml");
@@ -125,7 +145,7 @@ public class FilePolicyRepositoryTest  {
         }
     }
 
-	@Test
+    @Test
     public void testDeletePolicy() {
         try {
             InputStream is = ClassLoader.getSystemResourceAsStream("policies/policy-12.xml");
@@ -137,11 +157,11 @@ public class FilePolicyRepositoryTest  {
                 baos.write(buffer, 0, nbRead);
             }
 
-            String id = UUID.randomUUID().toString(); 
+            String id = UUID.randomUUID().toString();
             repository.addPolicy(id, baos.toByteArray());
 
             try {
-            	repository.getPolicy(id);
+                repository.getPolicy(id);
             } catch (PolicyRepositoryException pse) {
                 fail("unable to get the created policy : " + pse.getMessage());
             }
@@ -149,7 +169,7 @@ public class FilePolicyRepositoryTest  {
             repository.deletePolicy(id);
 
             try {
-            	repository.getPolicy(id);
+                repository.getPolicy(id);
                 fail("policy should not exists after deletion.");
             } catch (PolicyRepositoryException pse) {
                 //
@@ -159,7 +179,7 @@ public class FilePolicyRepositoryTest  {
         }
     }
 
-	@Test
+    @Test
     public void testListPolicies() {
         try {
             InputStream is = ClassLoader.getSystemResourceAsStream("policies/policy-12.xml");
@@ -171,7 +191,7 @@ public class FilePolicyRepositoryTest  {
                 baos.write(buffer, 0, nbRead);
             }
 
-            String id1 = UUID.randomUUID().toString(); 
+            String id1 = UUID.randomUUID().toString();
             repository.addPolicy(id1, baos.toByteArray());
 
             is = ClassLoader.getSystemResourceAsStream("policies/policy-13.xml");
@@ -183,7 +203,7 @@ public class FilePolicyRepositoryTest  {
                 baos.write(buffer, 0, nbRead);
             }
 
-            String id2 = UUID.randomUUID().toString(); 
+            String id2 = UUID.randomUUID().toString();
             repository.addPolicy(id2, baos.toByteArray());
 
             is = ClassLoader.getSystemResourceAsStream("policies/policy-14.xml");
@@ -195,7 +215,7 @@ public class FilePolicyRepositoryTest  {
                 baos.write(buffer, 0, nbRead);
             }
 
-            String id3 = UUID.randomUUID().toString(); 
+            String id3 = UUID.randomUUID().toString();
             repository.addPolicy(id3, baos.toByteArray());
 
             List<String> policies = repository.listPolicies();
@@ -208,9 +228,9 @@ public class FilePolicyRepositoryTest  {
             fail(e.getMessage());
         }
     }
-	
-	@Test
-	public void testGetPolicies() {
+
+    @Test
+    public void testGetPolicies() {
         try {
             InputStream is = ClassLoader.getSystemResourceAsStream("policies/policy-12.xml");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -221,7 +241,7 @@ public class FilePolicyRepositoryTest  {
                 baos.write(buffer, 0, nbRead);
             }
 
-            String id1 = UUID.randomUUID().toString(); 
+            String id1 = UUID.randomUUID().toString();
             repository.addPolicy(id1, baos.toByteArray());
 
             is = ClassLoader.getSystemResourceAsStream("policies/policy-13.xml");
@@ -233,7 +253,7 @@ public class FilePolicyRepositoryTest  {
                 baos.write(buffer, 0, nbRead);
             }
 
-            String id2 = UUID.randomUUID().toString(); 
+            String id2 = UUID.randomUUID().toString();
             repository.addPolicy(id2, baos.toByteArray());
 
             is = ClassLoader.getSystemResourceAsStream("policies/policy-14.xml");
@@ -245,7 +265,7 @@ public class FilePolicyRepositoryTest  {
                 baos.write(buffer, 0, nbRead);
             }
 
-            String id3 = UUID.randomUUID().toString(); 
+            String id3 = UUID.randomUUID().toString();
             repository.addPolicy(id3, baos.toByteArray());
 
             Map<String, byte[]> policies = repository.getPolicies(null);
@@ -261,5 +281,4 @@ public class FilePolicyRepositoryTest  {
             fail(e.getMessage());
         }
     }
-	
 }

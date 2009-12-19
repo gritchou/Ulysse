@@ -1,6 +1,8 @@
 package org.qualipso.factory.voipservice.conference;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -13,6 +15,7 @@ import org.openmeetings.app.data.conference.Roommanagement;
 import org.openmeetings.app.data.user.Organisationmanagement;
 import org.openmeetings.app.hibernate.beans.domain.Organisation;
 import org.openmeetings.app.hibernate.beans.rooms.Rooms;
+import org.qualipso.factory.voipservice.VoIPConferenceServiceException;
 import org.qualipso.factory.voipservice.entity.ConferenceUser;
 import org.qualipso.factory.voipservice.entity.ExtensionsConf;
 import org.qualipso.factory.voipservice.entity.MeetMe;
@@ -21,6 +24,7 @@ import org.qualipso.factory.voipservice.entity.SipConf;
 import org.qualipso.factory.voipservice.manager.AsteriskJavaManager;
 import org.qualipso.factory.voipservice.security.AuthenticationModule;
 import org.qualipso.factory.voipservice.utils.AsteriskConferenceUtils;
+import org.qualipso.factory.voipservice.utils.AuthData;
 
 /**
  * @author <a href="mailto:janny@man.poznan.pl">Dariusz Janny</a>
@@ -38,9 +42,17 @@ public class AsteriskConferences {
 
 	/**
 	 * @param userId
+	 * @throws VoIPConferenceServiceException 
+	 * @throws SecurityException 
 	 */
-	public AsteriskConferences(String userId, String pass) {
-		AuthenticationModule.authenticate(userId, pass);
+	public AsteriskConferences(String userId, String pass, AuthData authData) {
+		try {
+		    AuthenticationModule.authenticate(userId, pass, authData);
+		} catch (SecurityException e) {
+		    e.printStackTrace();
+		} catch (VoIPConferenceServiceException e) {
+		    e.printStackTrace();
+		}
 	}
 
 	/**
@@ -228,7 +240,8 @@ public class AsteriskConferences {
 	 * @param recorded
 	 * @return
 	 */
-	public Integer createConference(String userId, String pass,String owner,short accessType,boolean permanent,String pin,String adminpin,Long startDate,Long endDate,Integer maxUsers,String name,String agenda,boolean recorded, String project) {
+	public Integer createConference(String userId, String pass, String owner, short accessType,boolean permanent,String pin,String adminpin,Long startDate,Long endDate,Integer maxUsers,String name,String agenda,boolean recorded, String project,
+		AuthData authData) {
 		if (!AuthenticationModule.isSuperUser(userId, pass)) {
 			return null;
 		}
@@ -289,10 +302,48 @@ public class AsteriskConferences {
 		Roommanagement.getInstance().updateRoomObject(r);
 		log.debug("save room");
 
+		log.debug("created conference room: " + confNumber);
+		
+		if (!permanent) {
+		    try {
+			
+			String calendarPath = "/projects/" + project + "/calendar/voip/" + confNumber;
+			
+	    	    	org.qualipso.factory.voipservice.client.ws.CalendarDetails details = new org.qualipso.factory.voipservice.client.ws.CalendarDetails();
+	    	    	details.setName(name);
+	    	    	details.setLocation("voip call conference");
+	    	    	
+	    	    	details.setContactName(owner);
+	    	    	Query query = em.createQuery("FROM SipConf sc WHERE sc.username = :username");
+			query.setParameter("username", owner);
+			SipConf sipConf = (SipConf)query.getSingleResult();
+			details.setContactEmail(sipConf.getEmail());
+	    	    	details.setContactPhone("sip:" + owner);
+	    	    	
+	    	    	SimpleDateFormat sf1 = new SimpleDateFormat("yyyy-MM-dd");
+	    	    	SimpleDateFormat sf2 = new SimpleDateFormat("HH:mm:ss");
+	    	    	details.setDate(sf1.format((new Date(startDate * 1000))));
+	    	    	details.setStartTime(sf2.format((new Date(startDate* 1000))));
+	    	    	details.setEndTime(sf2.format((new Date(endDate* 1000))));
+	    	    	
+	    	    	log.info("### start=" + sf1.format((new Date(startDate* 1000))));
+	    	    	log.info("### start time=" + sf2.format((new Date(startDate* 1000))));
+	    	    	log.info("### end time=" + sf2.format((new Date(endDate* 1000))));
+	    	
+	    	    	org.qualipso.factory.voipservice.client.ws.Calendar_Service  calendar = new org.qualipso.factory.voipservice.client.ws.Calendar_Service();
+	    	    	org.qualipso.factory.voipservice.client.ws.StringArray test =  calendar.getCalendarPort().createEvent(calendarPath, details);
+	    	    	List<String> items = test.getItem();
+	    	    	for (String item: items) {
+	    	    	    System.out.println("### calendar item=" + item);
+	    	    	}
+		    } catch (Exception e) {
+			e.printStackTrace();
+		    }
+		}
+		
 		em.getTransaction().commit();
 		em.close();
-
-		log.debug("created conference room: " + confNumber);
+		
 		return confNumber;
 	}
 
@@ -384,6 +435,14 @@ public class AsteriskConferences {
 		}
 		Integer count = removeConference(em, meetMe);
 
+    	    	String calendarPath = "/projects/" + meetMe.getProject()  + "/calendar/voip/" + confNumber;
+	    	try {
+	    	    	org.qualipso.factory.voipservice.client.ws.Calendar_Service  calendar = new org.qualipso.factory.voipservice.client.ws.Calendar_Service();
+	    	    	calendar.getCalendarPort().deleteEvent(calendarPath);
+		} catch (Exception e) {
+			    e.printStackTrace();
+		}
+		
 		em.getTransaction().commit();
 		em.close();
 		return count;

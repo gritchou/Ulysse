@@ -24,9 +24,14 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
+    private final static QName _AccessDeniedException_QNAME = new QName("http://org.qualipso.factory.ws/service/git", "AccessDeniedException");
+    private final static QName _InvalidPathException_QNAME = new QName("http://org.qualipso.factory.ws/service/git", "InvalidPathException");
     private final static QName _Folder_QNAME = new QName("http://org.qualipso.factory.ws/service/git", "folder");
+    private final static QName _PathNotFoundException_QNAME = new QName("http://org.qualipso.factory.ws/service/git", "PathNotFoundException");
     private final static QName _FactoryException_QNAME = new QName("http://org.qualipso.factory.ws/service/git", "FactoryException");
+    private final static QName _PathAlreadyBoundException_QNAME = new QName("http://org.qualipso.factory.ws/service/git", "PathAlreadyBoundException");
     private final static QName _GITServiceException_QNAME = new QName("http://org.qualipso.factory.ws/service/git", "GITServiceException");
+    private final static QName _PathNotEmptyException_QNAME = new QName("http://org.qualipso.factory.ws/service/git", "PathNotEmptyException");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: org.qualipso.factory.git.client.ws
@@ -41,6 +46,14 @@ public class ObjectFactory {
      */
     public GITServiceException createGITServiceException() {
         return new GITServiceException();
+    }
+
+    /**
+     * Create an instance of {@link File }
+     * 
+     */
+    public File createFile() {
+        return new File();
     }
 
     /**
@@ -60,11 +73,67 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link Link }
+     * 
+     */
+    public Link createLink() {
+        return new Link();
+    }
+
+    /**
+     * Create an instance of {@link AccessDeniedException }
+     * 
+     */
+    public AccessDeniedException createAccessDeniedException() {
+        return new AccessDeniedException();
+    }
+
+    /**
+     * Create an instance of {@link GitRepository }
+     * 
+     */
+    public GitRepository createGitRepository() {
+        return new GitRepository();
+    }
+
+    /**
+     * Create an instance of {@link PathNotEmptyException }
+     * 
+     */
+    public PathNotEmptyException createPathNotEmptyException() {
+        return new PathNotEmptyException();
+    }
+
+    /**
+     * Create an instance of {@link PathAlreadyBoundException }
+     * 
+     */
+    public PathAlreadyBoundException createPathAlreadyBoundException() {
+        return new PathAlreadyBoundException();
+    }
+
+    /**
+     * Create an instance of {@link InvalidPathException }
+     * 
+     */
+    public InvalidPathException createInvalidPathException() {
+        return new InvalidPathException();
+    }
+
+    /**
      * Create an instance of {@link FactoryException }
      * 
      */
     public FactoryException createFactoryException() {
         return new FactoryException();
+    }
+
+    /**
+     * Create an instance of {@link PathNotFoundException }
+     * 
+     */
+    public PathNotFoundException createPathNotFoundException() {
+        return new PathNotFoundException();
     }
 
     /**
@@ -76,14 +145,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link File }
-     * 
-     */
-    public File createFile() {
-        return new File();
-    }
-
-    /**
      * Create an instance of {@link Profile }
      * 
      */
@@ -92,19 +153,21 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link GITRepository }
+     * Create an instance of {@link JAXBElement }{@code <}{@link AccessDeniedException }{@code >}}
      * 
      */
-    public GITRepository createGITRepository() {
-        return new GITRepository();
+    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/git", name = "AccessDeniedException")
+    public JAXBElement<AccessDeniedException> createAccessDeniedException(AccessDeniedException value) {
+        return new JAXBElement<AccessDeniedException>(_AccessDeniedException_QNAME, AccessDeniedException.class, null, value);
     }
 
     /**
-     * Create an instance of {@link Link }
+     * Create an instance of {@link JAXBElement }{@code <}{@link InvalidPathException }{@code >}}
      * 
      */
-    public Link createLink() {
-        return new Link();
+    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/git", name = "InvalidPathException")
+    public JAXBElement<InvalidPathException> createInvalidPathException(InvalidPathException value) {
+        return new JAXBElement<InvalidPathException>(_InvalidPathException_QNAME, InvalidPathException.class, null, value);
     }
 
     /**
@@ -117,6 +180,15 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link PathNotFoundException }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/git", name = "PathNotFoundException")
+    public JAXBElement<PathNotFoundException> createPathNotFoundException(PathNotFoundException value) {
+        return new JAXBElement<PathNotFoundException>(_PathNotFoundException_QNAME, PathNotFoundException.class, null, value);
+    }
+
+    /**
      * Create an instance of {@link JAXBElement }{@code <}{@link FactoryException }{@code >}}
      * 
      */
@@ -126,12 +198,30 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link PathAlreadyBoundException }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/git", name = "PathAlreadyBoundException")
+    public JAXBElement<PathAlreadyBoundException> createPathAlreadyBoundException(PathAlreadyBoundException value) {
+        return new JAXBElement<PathAlreadyBoundException>(_PathAlreadyBoundException_QNAME, PathAlreadyBoundException.class, null, value);
+    }
+
+    /**
      * Create an instance of {@link JAXBElement }{@code <}{@link GITServiceException }{@code >}}
      * 
      */
     @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/git", name = "GITServiceException")
     public JAXBElement<GITServiceException> createGITServiceException(GITServiceException value) {
         return new JAXBElement<GITServiceException>(_GITServiceException_QNAME, GITServiceException.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link PathNotEmptyException }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/git", name = "PathNotEmptyException")
+    public JAXBElement<PathNotEmptyException> createPathNotEmptyException(PathNotEmptyException value) {
+        return new JAXBElement<PathNotEmptyException>(_PathNotEmptyException_QNAME, PathNotEmptyException.class, null, value);
     }
 
 }

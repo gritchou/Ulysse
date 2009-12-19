@@ -8,7 +8,10 @@ import javax.jws.soap.SOAPBinding;
 
 import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.FactoryNamingConvention;
+import org.qualipso.factory.svn.entity.SVNNode;
 import org.qualipso.factory.svn.entity.SVNRepository;
+import org.qualipso.factory.svn.exception.SVNServiceException;
+import org.qualipso.factory.svn.utils.SVNConstants;
 
 
 /**
@@ -20,11 +23,12 @@ import org.qualipso.factory.svn.entity.SVNRepository;
 @SOAPBinding(style = SOAPBinding.Style.RPC)
 public interface SVNService extends FactoryService {
 
-	public static final String SERVICE_NAME = "svn";
+	public static final String SERVICE_NAME = SVNConstants.SVN_SERVICE_NAME;
 	public static final String[] RESOURCE_TYPE_LIST = new String[] {SVNRepository.RESOURCE_NAME};
 	
 	@WebMethod
-	public void createSVNRepository(String path, String name, String description) throws SVNServiceException;
+	@WebResult(name = "identifiant")
+	public String createSVNRepository(String path, String name, String description) throws SVNServiceException;
 	
 	@WebMethod
 	@WebResult(name = "svn-repository")
@@ -35,5 +39,8 @@ public interface SVNService extends FactoryService {
 	
 	@WebMethod
 	public void deleteSVNRepository(String path) throws SVNServiceException;
-		
+	
+	@WebMethod
+	@WebResult(name = "svn-node")
+	public SVNNode readNode(String path);
 }

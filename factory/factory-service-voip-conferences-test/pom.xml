@@ -4,13 +4,13 @@
 	<parent>
 		<artifactId>factory</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.4-SNAPSHOT</version>
+		<version>0.5-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-voip-conferences-test</artifactId>
 	<name>Qualipso Factory Functional Test for VoIP conferences Tools</name>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.4.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<scm>
 		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-voip-conferences-test</connection>
@@ -18,9 +18,9 @@
 	</scm>
 	
   <properties>
-<!--
+<!--  
     <jboss.home>/home/stuff/jboss/jboss</jboss.home>
- -->
+-->
   </properties>
 
 	<build>
@@ -49,29 +49,22 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.qualipso</groupId>
-			<artifactId>factory-core</artifactId>
-			<version>0.3.2-SNAPSHOT</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.qualipso</groupId>
 			<artifactId>factory-service-voip-conferences-wsclient</artifactId>
-			<version>0.0.3-SNAPSHOT</version>
+			<version>0.4.2-SNAPSHOT</version>
 			<scope>runtime</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.jboss.ws.native</groupId>
-			<artifactId>jbossws-native-client</artifactId>
-			<version>3.0.5.GA</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jboss.jbossas</groupId>
-			<artifactId>jboss-as-client</artifactId>
-			<version>5.0.1.GA</version>
-			<type>pom</type>
-			<scope>runtime</scope>
-		</dependency>
+    <dependency>
+      <groupId>org.jboss.ws.native</groupId>
+      <artifactId>jbossws-native-core</artifactId>
+      <version>3.1.2.GA</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.jbossas</groupId>
+      <artifactId>jboss-as-ejb3</artifactId>
+      <version>5.1.0.GA</version>
+      <scope>provided</scope>
+    </dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

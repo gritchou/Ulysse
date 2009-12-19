@@ -143,16 +143,16 @@ public class ProjectServiceBean implements ProjectService {
 	 * 
 	 */
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void createProject(String path, String name, String summary, String licence) throws ProjectException {
+	public void createProject(String path, String name, String summary, String licence) throws ProjectServiceException {
 		logger.debug("starting project creation");
 		try {
 
 			if (name == null || name == "")
-				throw new ProjectException("your must specify a name for your project");
+				throw new ProjectServiceException("your must specify a name for your project");
 			if (summary.length() < 10)
-				throw new ProjectException("describe in a more comprehensive manner your project");
+				throw new ProjectServiceException("describe in a more comprehensive manner your project");
 			if (summary.length() > 255)
-				throw new ProjectException("Your project description is too long. Please make it smaller than 256 bytes.");
+				throw new ProjectServiceException("Your project description is too long. Please make it smaller than 256 bytes.");
 
 			String caller = membership.getProfilePathForConnectedIdentifier();
 			// create entity object
@@ -163,7 +163,7 @@ public class ProjectServiceBean implements ProjectService {
 			project.setId(UUID.randomUUID().toString());
 			em.persist(project);
 			// service orchestration
-			pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
+			pep.checkSecurity(membership.getConnectedIdentifierSubjects(), PathHelper.getParentPath(path), "create");
 
 			binding.bind(project.getFactoryResourceIdentifier(), path);
 			binding.setProperty(path, FactoryResourceProperty.CREATION_TIMESTAMP, System.currentTimeMillis() + "");
@@ -181,7 +181,7 @@ public class ProjectServiceBean implements ProjectService {
 		} catch (Exception e) {
 
 			ctx.setRollbackOnly();
-			throw new ProjectException(e);
+			throw new ProjectServiceException(e);
 		}
 	}
 
@@ -191,19 +191,19 @@ public class ProjectServiceBean implements ProjectService {
 	 * 
 	 */
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void deleteProject(String path) throws ProjectException {
+	public void deleteProject(String path) throws ProjectServiceException {
 		try {
 
 			String caller = membership.getProfilePathForConnectedIdentifier();
 			
-			pep.checkSecurity(caller, path, "delete");
+			pep.checkSecurity(membership.getConnectedIdentifierSubjects(), path, "delete");
 
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Project.RESOURCE_NAME);
 			Project project = em.find(Project.class, identifier.getId());
 
 			if (project == null) {
-				throw new ProjectException("unable to find a project for id " + identifier.getId());
+				throw new ProjectServiceException("unable to find a project for id " + identifier.getId());
 			}
 			em.remove(project);
 			
@@ -211,11 +211,11 @@ public class ProjectServiceBean implements ProjectService {
 			pap.deletePolicy(policyId);
 			
 			binding.unbind(path);
-			notification.throwEvent(new Event(path, membership.getProfilePathForConnectedIdentifier(), ProjectService.SERVICE_NAME, Event.buildEventType(ProjectService.SERVICE_NAME, Project.RESOURCE_NAME, "delete"), ""));
+			notification.throwEvent(new Event(path, caller, ProjectService.SERVICE_NAME, Event.buildEventType(ProjectService.SERVICE_NAME, Project.RESOURCE_NAME, "delete"), ""));
 
 		} catch (Exception e) {
 			ctx.setRollbackOnly();
-			throw new ProjectException("unable to delete the project at path " + path);
+			throw new ProjectServiceException("unable to delete the project at path " + path);
 		}
 	}
 
@@ -226,17 +226,17 @@ public class ProjectServiceBean implements ProjectService {
 	 * @return a Project entity
 	 */
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	public Project getProject(String path) throws ProjectException {
+	public Project getProject(String path) throws ProjectServiceException {
 		try {
 			String caller = membership.getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "read");
+			pep.checkSecurity(membership.getConnectedIdentifierSubjects(), path, "read");
 
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Project.RESOURCE_NAME);
 
 			Project project = em.find(Project.class, identifier.getId());
 			if (project == null) {
-				throw new ProjectException("unable to find a project for id " + identifier.getId());
+				throw new ProjectServiceException("unable to find a project for id " + identifier.getId());
 			}
 
 			project.setResourcePath(path);
@@ -245,7 +245,7 @@ public class ProjectServiceBean implements ProjectService {
 			return project;
 
 		} catch (Exception e) {
-			throw new ProjectException(e);
+			throw new ProjectServiceException(e);
 		}
 	}
 
@@ -267,24 +267,24 @@ public class ProjectServiceBean implements ProjectService {
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void updateProject(String path, String name, String status, String summary, String licence) throws ProjectException {
+	public void updateProject(String path, String name, String status, String summary, String licence) throws ProjectServiceException {
 		try {
 			if (name == null || name == "")
-				throw new ProjectException("your must specify a name for your project");
+				throw new ProjectServiceException("your must specify a name for your project");
 			if (summary.length() < 10)
-				throw new ProjectException("describe in a more comprehensive manner your project");
+				throw new ProjectServiceException("describe in a more comprehensive manner your project");
 			if (summary.length() > 255)
-				throw new ProjectException("Your project description is too long. Please make it smaller than 256 bytes.");
+				throw new ProjectServiceException("Your project description is too long. Please make it smaller than 256 bytes.");
 
 			String caller = membership.getProfilePathForConnectedIdentifier();
 
-			pep.checkSecurity(caller, path, "update");
+			pep.checkSecurity(membership.getConnectedIdentifierSubjects(), path, "update");
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Project.RESOURCE_NAME);
 
 			Project project = em.find(Project.class, identifier.getId());
 			if (project == null) {
-				throw new ProjectException("unable to find a project for id " + identifier.getId());
+				throw new ProjectServiceException("unable to find a project for id " + identifier.getId());
 			}
 			project.setName(name);
 			project.setDev_status(status);
@@ -297,7 +297,7 @@ public class ProjectServiceBean implements ProjectService {
 
 		} catch (Exception e) {
 			ctx.setRollbackOnly();
-			throw new ProjectException(e);
+			throw new ProjectServiceException(e);
 
 		}
 
@@ -326,17 +326,17 @@ public class ProjectServiceBean implements ProjectService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public void updateTagsProject(String path, String[] os, String[] topics, String[] language, String[] programming_language, String[] intended_audience)
-			throws ProjectException {
+			throws ProjectServiceException {
 		try {
 			String caller = membership.getProfilePathForConnectedIdentifier();
 
-			pep.checkSecurity(caller, path, "update");
+			pep.checkSecurity(membership.getConnectedIdentifierSubjects(), path, "update");
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Project.RESOURCE_NAME);
 
 			Project project = em.find(Project.class, identifier.getId());
 			if (project == null) {
-				throw new ProjectException("unable to find a project for id " + identifier.getId());
+				throw new ProjectServiceException("unable to find a project for id " + identifier.getId());
 			}
 			project.setOs(os);
 			project.setTopics(topics);
@@ -350,7 +350,7 @@ public class ProjectServiceBean implements ProjectService {
 
 		} catch (Exception e) {
 			ctx.setRollbackOnly();
-			throw new ProjectException(e);
+			throw new ProjectServiceException(e);
 
 		}
 
@@ -358,7 +358,7 @@ public class ProjectServiceBean implements ProjectService {
 
 	@Override
 	public String[] getResourceTypeList() {
-		return RESOURCE_TYPE_LIST;
+		return ProjectService.RESOURCE_TYPE_LIST;
 	}
 
 	@Override
@@ -376,7 +376,7 @@ public class ProjectServiceBean implements ProjectService {
 				throw new CoreServiceException("Resource " + identifier + " is not managed by " + ProjectService.SERVICE_NAME);
 			}
 
-			if (identifier.getType().equals("Project")) {
+			if (identifier.getType().equals(Project.RESOURCE_NAME)) {
 				return getProject(path);
 			}
 
@@ -387,12 +387,12 @@ public class ProjectServiceBean implements ProjectService {
 		}
 	}
 
-	private void checkResourceType(FactoryResourceIdentifier identifier, String resourceType) throws ProjectException {
+	private void checkResourceType(FactoryResourceIdentifier identifier, String resourceType) throws ProjectServiceException {
 		if (!identifier.getService().equals(getServiceName())) {
-			throw new ProjectException("resource identifier " + identifier + " does not refer to service " + getServiceName());
+			throw new ProjectServiceException("resource identifier " + identifier + " does not refer to service " + getServiceName());
 		}
 		if (!identifier.getType().equals(resourceType)) {
-			throw new ProjectException("resource identifier " + identifier + " does not refer to a resource of type " + resourceType);
+			throw new ProjectServiceException("resource identifier " + identifier + " does not refer to a resource of type " + resourceType);
 		}
 	}
 }

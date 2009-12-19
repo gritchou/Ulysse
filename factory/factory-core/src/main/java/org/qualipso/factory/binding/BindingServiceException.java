@@ -12,7 +12,8 @@
  * Jérôme Blanchard / INRIA
  * Pascal Molli / Nancy Université
  * Gérald Oster / Nancy Université
- *
+ * Christophe Bouthier / INRIA
+ * 
  */
 package org.qualipso.factory.binding;
 
@@ -20,18 +21,16 @@ import org.qualipso.factory.FactoryException;
 
 
 /**
- * Binding Service exceptions.<br/>
- * All binding service exceptions should extend this one.
- * 
- *  * @author Jerome Blanchard (jayblanc@gmail.com)
+ * Binding Service exceptions.
+ *
+ * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 18 June 2009
  */
 @SuppressWarnings("serial")
 public class BindingServiceException extends FactoryException {
-	
     /**
      * Class constructor specifying message and root cause.
-     * 
+     *
      * @param message
      * @param rootCause
      */
@@ -41,7 +40,7 @@ public class BindingServiceException extends FactoryException {
 
     /**
      * Class constructor specifying message.
-     * 
+     *
      * @param message
      */
     public BindingServiceException(String message) {
@@ -50,7 +49,7 @@ public class BindingServiceException extends FactoryException {
 
     /**
      * Class constructor specifying root cause
-     * 
+     *
      * @param rootCause
      */
     public BindingServiceException(Exception rootCause) {

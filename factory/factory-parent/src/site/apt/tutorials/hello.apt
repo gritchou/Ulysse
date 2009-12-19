@@ -1,0 +1,383 @@
+ ------
+Next Generation Forge Documentation
+ ------
+Jérôme Blanchard, Pascal Molli, Gérald Oster
+ ------
+June 2009
+ ------
+
+Factory Tutorials - Hello Service
+   
+   * {{{#Introduction}Introduction}}
+   
+   * {{{#Prerequisites}Prerequisites}}
+   
+   * {{{#CreateResource}Create the resource 'Name'}}
+   
+   * {{{#CreateServiceInterface}Create the service interface}}
+   
+   * {{{#ImplementServiceInterface}Implement your service interface}}
+   
+   * {{{#UnitTest}Write unit tests}}
+   
+   * {{{#FunctionalTest}Write functional tests}}
+   
+* Introduction
+
+  We are going to create a little bit more complex service which is able to manage a resource. This service will be a kind 
+  of greeting service. This service will also permit to manager a resource of type "Name". This resource will store a name, 
+  and a simple call to the sayHello(String path) method will greets the name contains in the resource.
+  
+  The Name resource is a simple Bean implementing the FactoryResource interface and contains only one property : value
+  
+* Prerequisites
+
+   * A working development environment
+
+   * Some knowledge about factory internal components
+   
+   * Some basic knowledge about factory service creation
+
+* Create the resource 'Name'
+
+  Creating a resource is as simple as creating a java bean. Just add some specific annotations for local storage if you don't want to 
+  call an external service and XML related annotations to be able to serialize your bean for Web Service calls.
+  
+  Create a bean which extends FactoryResource interface,
+  Add @Entity annotation to use a JPA persistence manager for storage (not mandatory if you use an external service)
+  Add @XmlType annotation to specify XML serialization properties of your Resource
+  
+-----------------------------------
+@Entity
+@XmlType(name = "Name", namespace = "http://org.qualipso.factory.ws/entity", propOrder =  {
+    "value"}
+)
+public class Name implements FactoryResource {
+-----------------------------------  
+
+  Implements FactoryResource methods and use @Transient annotation to avoid storage of those properties if you choose a local JPA storage.
+  
+-----------------------------------
+@XmlAttribute(name = "path", required = true)
+@Transient
+@Override
+public String getResourcePath() {
+	return path;
+}
+	
+public void setResourcePath(String path) {
+	this.path = path;
+}
+-----------------------------------
+
+  In this example, the resourcePath property is declared as an XML Attribute. 
+  If you choose a local JPA storage you must annotate your ID property with the @Id annotation.
+  
+  Some inherited FactoryResource properties methods are annotated as @XmlTransiant because we don't want to see this information in the XML representation
+  of this resource.
+  
+  A specific method very important is the getFactoryResourceIdentifier() you need to implement. This identifier must return all the information to be able
+  to recover the resource using your service. More than the service name, and the resource type, it may contain a kind of unique identifier to get back your
+  real entity from your storage whenever this storage is local or in a distant service. In our case, this identifier is build using the persistence ID field : 
+  
+-----------------------------------
+@Override
+@XmlTransient
+public FactoryResourceIdentifier getFactoryResourceIdentifier() {
+	return new FactoryResourceIdentifier("HelloService", "Name", getId());
+}
+-----------------------------------
+
+  Another needed method is the getResourceName() which should return a friendly name for the resource. In our case we just return the value of this 'Name' entity.  
+  
+* Create the service interface
+
+  Now that your resource(s) are defined and annotated correctly you should define the service interface in the same manner than for the HelloWorld Service.
+  But, in this case, the interface should contains at least methods to perform CRUD actions on the resource 'Name'.
+  The interface could look like this :
+  
+-----------------------------------
+@Remote
+@WebService(name = "HelloService", targetNamespace = "http://org.qualipso.factory.ws/service")
+@SOAPBinding(style = SOAPBinding.Style.RPC)
+public interface HelloService extends FactoryService {
+	
+	@WebMethod
+	public void createName(String path, String name) throws HelloServiceException;
+	
+	@WebMethod
+	@WebResult(name = "name")
+	public Name readName(String path) throws HelloServiceException;
+	
+	@WebMethod
+	public void updateName(String path, String name) throws HelloServiceException;
+	
+	@WebMethod
+	public void deleteName(String path) throws HelloServiceException;
+	
+	@WebMethod
+	@WebResult(name = "message")
+	public String sayHello(String path) throws HelloServiceException;
+}
+-----------------------------------  
+
+  As you can see, the readName method return an object of type Name. Because of @Xml annotations we put on the bean, 
+  the WSDL XSD file for this type will be generated as we mentioned. You could find more informations reading JAX-WS 
+  documentation.
+  
+* Implement your service interface
+
+  In the same way we implement the HelloWorld interface, we're going to implement this one using the same annotations. In this case we need a little bit more
+  partners service to be able to check security for CRUD actions on resources, create new security rules for newly created Name resources, propagate events to 
+  inform factory of action performed on this service, manage resource indexation, etc...
+  
+  First thing is to implement FactoryService methods and to return correct resource type list. in our case the service manage only one resource and will return 
+  a 1 length String array containing the name of our resource : 'Name'.
+  
+  Because of local storage, we are using the JPA PersistenceManager which is managed by our container and injected at runtime. 
+  
+  Each service method will also call specific factory component to check everything needed. For example the createName() action is going to : 
+  
+  * check if the caller has the permission to create a resource in the parent path 
+  
+  * create the real resource and persist it
+  
+  * bind the new identifier of this resource  
+  
+  * set some resource properties like author, creation date, etc...
+  
+  * create a new owner security policy for this resource
+  
+  * set some other resource properties like the policy id and the owner
+  
+  * finally, throw an event with resource creation informations : 
+  
+----------------------------------- 
+@Override
+@TransactionAttribute(TransactionAttributeType.REQUIRED)
+public void createName(String path, String value) throws HelloServiceException {
+	logger.info("createName(...) called");
+	logger.debug("params : path=" + path + ", value=" + value);
+	
+	try {
+		//Checking if the connected user has the permission to create a resource giving pep : 
+		//  - the profile path of the connected user (caller)
+		//  - the parent of the path (we check the 'create' permission on the parent of the given path)
+		//  - the name of the permission to check ('create')
+		String caller = membership.getConnectedProfilePath();
+		pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
+		
+		//STARTING SPECIFIC EXTERNAL SERVICE RESOURCE CREATION OR METHOD CALL
+		Name name = new Name();
+		name.setId(UUID.randomUUID().toString());
+		name.setValue(value);
+		em.persist(name);
+		//END OF EXTERNAL INVOCATION
+		
+		//Binding the external resource in the naming using the generated resource ID : 
+		binding.bind(name.getFactoryResourceIdentifier(), path);
+		
+		//Need to set some properties on the node : 
+		binding.setProperty(path, FactoryResourceProperty.CREATION_TIMESTAMP, "" + System.currentTimeMillis());
+		binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, "" + System.currentTimeMillis());
+		binding.setProperty(path, FactoryResourceProperty.AUTHOR, caller);
+		
+		//Need to create a new security policy for this resource : 
+		//Giving the caller the Owner permission (aka all permissions)
+		String policyId = UUID.randomUUID().toString();
+		pap.createPolicy(policyId, PAPServiceHelper.buildOwnerPolicy(policyId, caller, path));
+		
+		//Setting security properties on the node : 
+		binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
+		binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
+		
+		//Using the notification service to throw an event : 
+		notification.throwEvent(new Event(path, caller, "Name", "hello.name.create", ""));
+	} catch ( Exception e ) {
+		ctx.setRollbackOnly();
+		logger.error("unable to create the name at path " + path, e);
+		throw new HelloServiceException("unable to create the name at path " + path, e);
+	}
+}
+-----------------------------------  
+
+  As you can see there is a specific annotation @TransactionAttribute which allows you to isolate all local component calls into a transaction and 
+  to be able to rollback in case of error during the method. If your service is external, you must take into consideration those transactional aspects.
+  
+  By the way, if your method content doesn't need any isolation (only reading), you should adopt a more lightweight transaction mode like SUPPORTS.
+  
+  Others methods for CRUD operations are visible in the provided service implementation and should looks like the create one. Have a look at the whole 
+  class to have a better idea of what is needed.
+  
+  The specific sayHello method : 
+  
+  * check a special security permission called say-hello 
+  
+  * perform a lookup in the binding to recover the ResourceIdentifier
+  
+  * check if this identifier is a real 'Name' type resource identifier managed by our service
+  
+  * load the entity in the persistence storage
+  
+  * build the greeting message
+  
+  * notify the factory
+  
+-----------------------------------
+@Override
+@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+public String sayHello(String path) throws HelloServiceException {
+	logger.info("sayHello(...) called");
+	logger.debug("params : path=" + path);
+	
+	try {
+		//Checking if the connected user has the permission to say-hello the resource giving pep : 
+		String caller = membership.getConnectedProfilePath();
+		pep.checkSecurity(caller, path, "say-hello");
+		
+		//Performing a lookup in the naming to recover the Resource Identifier 
+		FactoryResourceIdentifier identifier = binding.lookup(path);
+		
+		//Checking if this resource identifier is really a resource managed by this service (a Hello resource)
+		checkResourceType(identifier, "Name");
+	
+		//STARTING SPECIFIC EXTERNAL SERVICE RESOURCE LOADING OR METHOD CALLS
+		Name name = em.find(Name.class, identifier.getId());
+		if ( name == null ) {
+			throw new HelloServiceException("unable to find a name for id " + identifier.getId());
+		}
+		//END OF EXTERNAL SERVICE INVOCATION
+		
+		//Building hello message : 
+		String message = "Hello dear " + name.getValue() + " !!";
+			//Using the notification service to throw an event : 
+		notification.throwEvent(new Event(path, caller, "Name", "hello.name.sayhello", ""));
+		
+		return message;
+	} catch ( Exception e ) {
+		ctx.setRollbackOnly();
+		logger.error("unable to say hello to the name at path " + path, e);
+		throw new HelloServiceException("unable to say hello to the name at path " + path, e);
+	}
+}
+---------------------------------------
+
+  As you can see, other factory components have a specific role, please read the javadoc associated with each of those components
+  to have a better view of they're functionalities. 
+  
+* Write unit tests
+
+  Writing unit test is the same than for the HelloWorld service but because of more partners service usage, mocking is bigger and 
+  expectations are more complex. The expectation scenario for the create method of a name in the service look like this : 
+  
+---------------------------------------
+public void testCreateAndReadName() {
+	logger.debug("testing createName(...)");
+        
+	final Sequence sequence1 = mockery.sequence("sequence1");
+	final Vector<Object> params1 = new Vector<Object>();
+	final Vector<Object> params2 = new Vector<Object>();
+        
+	try {
+		mockery.checking(new Expectations() {
+			{
+			//All calls to partners services are mocked and expectations are defined to ensure correct calls.
+			//This call sequence expectation define what partners methods are called while creating a Name resource in the Hello service :
+			//in this case, we assume that the caller is identified as jayblanc so it's profile path is /profiles/jayblanc
+			//note that because of binding mock service, the binding is not really called so we have to store the resource id to be able to get it back we looking up in the binding. 
+			oneOf(membership).getConnectedProfilePath(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
+			oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/names")), with(equal("create"))); inSequence(sequence1);
+			oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(equal("/names/sheldon"))); will(saveParams(params1));  inSequence(sequence1);
+			oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
+			oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
+			oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.AUTHOR)), with(equal("/profiles/jayblanc"))); inSequence(sequence1);
+			oneOf(pap).createPolicy(with(any(String.class)), with(containsString("/names/sheldon"))); inSequence(sequence1);
+			oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.OWNER)), with(equal("/profiles/jayblanc"))); inSequence(sequence1);
+			oneOf(binding).setProperty(with(equal("/names/sheldon")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class))); inSequence(sequence1);
+			oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("hello.name.create"))); inSequence(sequence1);
+					
+			//Second time for second name : 
+			oneOf(membership).getConnectedProfilePath(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
+			oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/names")), with(equal("create"))); inSequence(sequence1);
+			oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(equal("/names/howard"))); will(saveParams(params2)); inSequence(sequence1);
+			oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
+			oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
+			oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.AUTHOR)), with(equal("/profiles/jayblanc"))); inSequence(sequence1);
+			oneOf(pap).createPolicy(with(any(String.class)), with(containsString("/names/howard"))); inSequence(sequence1);
+			oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.OWNER)), with(equal("/profiles/jayblanc"))); inSequence(sequence1);
+			oneOf(binding).setProperty(with(equal("/names/howard")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class))); inSequence(sequence1);
+			oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("hello.name.create"))); inSequence(sequence1);
+			}
+		});
+			
+		HelloService service = getBeanToTest();
+		service.createName("/names/sheldon", "Sheldon Cooper");
+		service.createName("/names/howard", "Howard Wolowitz");
+            
+		mockery.checking(new Expectations() {
+			{
+			//Reading the first name : 
+			oneOf(membership).getConnectedProfilePath(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
+			oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/names/sheldon")), with(equal("read"))); inSequence(sequence1);
+			oneOf(binding).lookup(with(equal("/names/sheldon"))); will(returnValue(params1.get(0))); inSequence(sequence1);
+			oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("hello.name.read"))); inSequence(sequence1);
+					
+			//Reading the second name : 
+			oneOf(membership).getConnectedProfilePath(); will(returnValue("/profiles/jayblanc")); inSequence(sequence1);
+			oneOf(pep).checkSecurity(with(equal("/profiles/jayblanc")), with(equal("/names/howard")), with(equal("read"))); inSequence(sequence1);
+			oneOf(binding).lookup(with(equal("/names/howard"))); will(returnValue(params2.get(0))); inSequence(sequence1);
+			oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("hello.name.read"))); inSequence(sequence1);
+			}
+		});
+        
+		assertTrue(service.readName("/names/sheldon").getValue().equals("Sheldon Cooper"));
+		assertTrue(service.readName("/names/howard").getValue().equals("Howard Wolowitz"));
+            
+		mockery.assertIsSatisfied();
+            
+	} catch (Exception e) {
+		logger.error(e.getMessage(), e);
+		fail(e.getMessage());
+    }
+}
+---------------------------------------
+
+  As you can see expectations are more complex and you should take as example those test which include expectations for all partners calls.
+   
+* Write functional tests
+
+  Writing a functional test is the same than for HelloWorld Service, just calling more methods and testing more sophisticated assertions...
+  
+  In our test we are creating two Name resource and call the sayHello methods respectively on those two resource : 
+  
+---------------------------------------
+@Test
+public void testHello() {
+    try {
+        HelloService_Service service = new HelloService_Service();
+        HelloService port = service.getHelloService();
+
+        ((StubExt) port).setConfigName("Standard WSSecurity Client");
+
+        Map<String, Object> reqContext = ((BindingProvider) port).getRequestContext();
+        reqContext.put(BindingProvider.USERNAME_PROPERTY, "kermit");
+        reqContext.put(BindingProvider.PASSWORD_PROPERTY, "thefrog");
+          
+        port.createName("/sheldon", "Sheldon Cooper");
+        port.createName("/howard", "Howard Wolowitz");
+            
+        String message = port.sayHello("/sheldon");
+        
+        logger.debug("message : " + message);
+        
+        message = port.sayHello("/howard");
+        
+        logger.debug("message : " + message);
+    } catch (Exception e) {
+        e.printStackTrace();
+        fail(e.getMessage());
+    }
+}
+---------------------------------------
+
+   

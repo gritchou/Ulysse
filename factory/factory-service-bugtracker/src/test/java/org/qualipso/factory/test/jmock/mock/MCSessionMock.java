@@ -183,7 +183,14 @@ public class MCSessionMock implements IMCSession {
 		return true;
 	}
 
-
+	@Override
+	public String[] getCategories(long arg0) throws MCException {
+		String[] results = new String[2];
+		results[0] = "AZ";
+		results[1] = "RT";
+		return results;
+	}
+	
 	//******* NOT MOCK ********
 
 	@Override
@@ -196,10 +203,6 @@ public class MCSessionMock implements IMCSession {
 		throw new MCException("Mock Not Implemented");
 	}
 	
-	@Override
-	public String[] getCategories(long arg0) throws MCException {
-		throw new MCException("Mock Not Implemented");
-	}
 	
 	@Override
 	public long addIssueAttachment(long arg0, String arg1, String arg2,
