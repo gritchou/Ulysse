@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-	<!-- 
+<!-- 
 Author Jerome Blanchard (jayblanc@gmail.com)
 Date 20 May 2009
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<parent>
 		<artifactId>factory-parent</artifactId>
 		<groupId>org.qualipso</groupId>
@@ -20,8 +19,8 @@ Date 20 May 2009
 	<scm>
 		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/tags/factory-core-test-0.3.3</connection>
 		<developerConnection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/tags/factory-core-test-0.3.3</developerConnection>
-		<url>https://gforge.inria.fr/plugins/scmsvn/viewcvs.php/?root=qualipso/tags/factory-core-test-0.3.2?root=qualipso/tags/factory-core-test-0.3.3?root=qualipso/tags/factory-core-test-0.3.2?root=qualipso/tags/factory-0.4?root=qualipso/factory-core-test</url>
-	</scm>
+	  <url>https://gforge.inria.fr/plugins/scmsvn/viewcvs.php/?root=qualipso/tags/factory-core-test-0.3.2?root=qualipso/tags/factory-core-test-0.3.3?root=qualipso/tags/factory-core-test-0.3.2?root=qualipso/tags/factory-0.4?root=qualipso/factory-core-test</url>
+  </scm>
 	<build>
 		<plugins>
 			<plugin>
