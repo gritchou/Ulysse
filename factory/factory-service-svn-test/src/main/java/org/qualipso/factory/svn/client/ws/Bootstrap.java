@@ -38,9 +38,9 @@ public interface Bootstrap {
      * @return
      *     returns org.qualipso.factory.svn.client.ws.FactoryResource
      * @throws InvalidPathException_Exception
-     * @throws PathNotFoundException_Exception
-     * @throws AccessDeniedException_Exception
      * @throws FactoryException_Exception
+     * @throws AccessDeniedException_Exception
+     * @throws PathNotFoundException_Exception
      */
     @WebMethod
     @WebResult(partName = "return")

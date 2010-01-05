@@ -10,7 +10,7 @@ import javax.xml.ws.WebFault;
  * Generated source version: 2.1
  * 
  */
-@WebFault(name = "FactoryException", targetNamespace = "http://org.qualipso.factory.ws/service/workflow")
+@WebFault(name = "FactoryException", targetNamespace = "http://org.qualipso.factory.ws/service/svn")
 public class FactoryException_Exception
     extends Exception
 {

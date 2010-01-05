@@ -475,6 +475,36 @@ public class FilterUtilsTest extends TestCase {
     	assertEquals("idRepo", FilterUtils.extractIdRepositoryFromUrl("svn+ssh//localhost:3333/idRepo/repo2"));
     }
     
+    /**
+     * test extractSVNCheckPath
+     */
+    public void testExtractSVNCheckPath() {
+    	List<String> resultExpected;
+    	List<String> result = new ArrayList<String>();
+    	
+    	String request = "( check-path ( 1:/ ( 1 ) ) ) ";
+    	resultExpected = new ArrayList<String>();
+    	FilterUtils.extractSVNCheckPath(request, 0, result);
+    	assertEquals(resultExpected, result);
+    	
+    	
+    	request = "( check-path ( 7:/subdir ( 1 ) ) ) ";
+    	resultExpected.add("subdir");
+    	FilterUtils.extractSVNCheckPath(request, 0, result);
+    	assertEquals(resultExpected, result);
+    	
+    	
+    	request = "( check-path ( 14:/testfile1.txt ( 1 ) ) ) ";
+    	resultExpected.add("testfile1.txt");
+    	FilterUtils.extractSVNCheckPath(request, 0, result);
+    	assertEquals(resultExpected, result);
+    	
+    	request = "( check-path ( 29:/subdir/subdir2/testfile3.txt ( ) ) ) ";
+    	resultExpected.add("subdir/subdir2/testfile3.txt");
+    	FilterUtils.extractSVNCheckPath(request, 0, result);
+    	assertEquals(resultExpected, result);
+    	
+    }
     
     /**
      * Assert equals requestComponent of the map

@@ -8,10 +8,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.UUID;
 
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -44,7 +44,6 @@ import org.ow2.bonita.facade.exception.UndeletableInstanceException;
 import org.ow2.bonita.facade.exception.UndeletablePackageException;
 import org.ow2.bonita.facade.exception.VariableNotFoundException;
 import org.ow2.bonita.facade.runtime.ActivityInstance;
-import org.ow2.bonita.facade.runtime.ActivityState;
 import org.ow2.bonita.facade.runtime.ProcessInstance;
 import org.ow2.bonita.facade.runtime.TaskInstance;
 import org.ow2.bonita.facade.runtime.var.Enumeration;
@@ -60,14 +59,21 @@ import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
+import org.qualipso.factory.binding.InvalidPathException;
+import org.qualipso.factory.binding.PathAlreadyBoundException;
+import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.membership.MembershipService;
+import org.qualipso.factory.notification.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
+import org.qualipso.factory.security.pap.PAPServiceHelper;
+import org.qualipso.factory.security.pep.AccessDeniedException;
 import org.qualipso.factory.security.pep.PEPService;
-import org.qualipso.factory.workflow.bonita.hook.ProcessNVUtil;
 import org.qualipso.factory.workflow.entity.Bonita;
+import org.qualipso.factory.workflow.hook.ProcessNVUtil;
 
 import sun.security.acl.PrincipalImpl;
 
@@ -79,7 +85,6 @@ import sun.security.acl.PrincipalImpl;
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
 public class BonitaServiceBean implements BonitaService {
-	private static final String SERVICE_NAME = BonitaService.SERVICE_NAME;
 	private static final String[] RESOURCE_TYPE_LIST = new String[] { "Bonita" };
 	private static Log logger = LogFactory.getLog(BonitaServiceBean.class);
 
@@ -148,12 +153,6 @@ public class BonitaServiceBean implements BonitaService {
 		}
 	}
 
-	public String getUserConnected() {
-		System.out
-				.println("User: " + loginContext.getSubject().getPrincipals());
-		return loginContext.getSubject().getPrincipals().toString();
-	}
-
 	public boolean loginBonita(String login, String password) {
 //		String jaasLoginProp = "java.security.auth.login.config";
 //		String envProp = GlobalEnvironmentFactory.DEFAULT_ENVIRONMENT;
@@ -181,7 +180,7 @@ public class BonitaServiceBean implements BonitaService {
 //		}
 		try {
 			System.out.println("Creating login context...");
-			Principal principal = new PrincipalImpl(membership.getProfilePathForConnectedIdentifier());
+			Principal principal = new PrincipalImpl( membership.getProfilePathForConnectedIdentifier() );
 			Set<Principal> principalsSet = new HashSet();
 			principalsSet.add(principal);
 			System.out.println("Login = " + membership.getProfilePathForConnectedIdentifier());
@@ -303,7 +302,7 @@ public class BonitaServiceBean implements BonitaService {
 //		}
 //	}
 
-	public ProcessInstanceUUID instantiateProjectWorkflow() {
+	public ProcessInstanceUUID instantiateProjectWorkflow(String path) throws AccessDeniedException, PathAlreadyBoundException, InvalidPathException, BonitaServiceException {
 		ProcessDefinition process = null;
 
 		initBonita();
@@ -329,15 +328,48 @@ public class BonitaServiceBean implements BonitaService {
 					process.getUUID());
 			// System.out.println("ici on a la definition de l'instance
 			// crée!!!!!!!!!!!"+instanceUUID);
+			// service orchestration
+			Bonita bonita = new Bonita();
+			bonita.setInstanceUUID(instanceUUID.toString());
+			bonita.setId(instanceUUID.toString());
+
+			pep.checkSecurity(membership.getConnectedIdentifierSubjects(), PathHelper.getParentPath(path), "create");
+			String caller = membership.getProfilePathForConnectedIdentifier();
+			binding.bind(bonita.getFactoryResourceIdentifier(), path);
+			binding.setProperty(path, FactoryResourceProperty.CREATION_TIMESTAMP, System.currentTimeMillis() + "");
+			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
+			binding.setProperty(path, FactoryResourceProperty.AUTHOR, caller);
+
+			// create default policy
+			String policyId = UUID.randomUUID().toString();
+			pap.createPolicy(policyId, PAPServiceHelper.buildOwnerPolicy(policyId, caller, path));
+			binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
+			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
+
+			notification.throwEvent(new Event(path, caller, BonitaService.SERVICE_NAME, Event.buildEventType(BonitaService.SERVICE_NAME, Bonita.RESOURCE_NAME, "create"), ""));
+
 			System.out.println("Done Instance[" + instanceUUID + "]");
 			return instanceUUID;
-		} catch (BonitaException e) {
-			e.printStackTrace();
-		}
+		} catch (AccessDeniedException e2) {
+			ctx.setRollbackOnly();
+			throw e2;
+		} catch (InvalidPathException e3) {
+			ctx.setRollbackOnly();
+			throw e3;
+		} catch (PathAlreadyBoundException e4) {
+			ctx.setRollbackOnly();
+			throw e4;
+		} catch (BonitaException e5) {
+			e5.printStackTrace();
+		} catch (Exception e) {
+			ctx.setRollbackOnly();
+			throw new BonitaServiceException("unable to instanciate the workflow at path: " + path, e);
+
+		}		
 		return null;
 	}
 
-	public void instantiateAndPerform(String path, String name, String summary, String licence) {
+	public void instantiateAndPerform(String path, String name, String summary, String licence) throws AccessDeniedException, PathAlreadyBoundException, InvalidPathException, BonitaServiceException {
 		ProcessDefinition process = null;
 
 		initBonita();
@@ -888,8 +920,18 @@ public class BonitaServiceBean implements BonitaService {
 		return null;
 	}
 
-	public Bonita[] getTasksReadyForProfile(String profile) {
+	public Bonita[] getTasksReadyForProfile(String profile) throws AccessDeniedException, PathAlreadyBoundException, InvalidPathException, BonitaServiceException {
 		initBonita();
+		//Temporary implementation to avoid several call from gadget
+		try {
+			deployProjectWorkflow();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		//default path for the moment
+		instantiateProjectWorkflow(profile + "/workflow");
+		//endTemporary implementation
+
 		Set<ProcessInstance> processInstances = new HashSet<ProcessInstance>();
 		HashSet<Bonita> bonitas = new HashSet<Bonita>();
 		processInstances = AccessorUtil.getQueryRuntimeAPI().getProcessInstances();
@@ -908,6 +950,7 @@ public class BonitaServiceBean implements BonitaService {
 						.iterator();
 				while (it1.hasNext()) {
 					bonita.setInstanceUUID(processInstance.getUUID().toString());
+					bonita.setId(processInstance.getUUID().toString());
 					ActivityInstance<TaskInstance> taskInstance = (ActivityInstance<TaskInstance>) it1
 							.next();
 					bonita.setTask(taskInstance.getActivityId().toString());
@@ -934,16 +977,6 @@ public class BonitaServiceBean implements BonitaService {
 
 	public void performTaskCreateProject(String path, String name, String summary, String licence,
 			Bonita bonita) {
-		//Temporary implementation to avoid several call from gadget
-		try {
-			deployProjectWorkflow();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		instantiateProjectWorkflow();
-		Bonita[] bonitas = getTasksReadyForProfile(membership.getProfilePathForConnectedIdentifier());
-		bonita = bonitas[0];
-		//endTemporary implementation
 		
 		initBonita();
 		TaskUUID taskUUID;
@@ -1021,11 +1054,11 @@ public class BonitaServiceBean implements BonitaService {
 		try {
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 
-			if (!identifier.getService().equals(SERVICE_NAME)) {
+			if (!identifier.getService().equals(BonitaService.SERVICE_NAME)) {
 				throw new CoreServiceException("Resource " + identifier + " is not managed by " + SERVICE_NAME);
 			}
 
-			if (identifier.getType().equals("Bonita")) {
+			if (identifier.getType().equals(Bonita.RESOURCE_NAME)) {
 				return getTasksReadyForProfile(membership.getProfilePathForConnectedIdentifier())[0];
 			}
 

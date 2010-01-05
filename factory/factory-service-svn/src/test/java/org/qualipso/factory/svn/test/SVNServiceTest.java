@@ -46,6 +46,18 @@ public class SVNServiceTest extends BaseSessionBeanFixture<SVNServiceBean> {
 	private NotificationService notification;
 	private SSHService ssh;
 	
+	/**
+	 * User path for test
+	 */
+	private static String USER_PATH = "/profiles/usertest";
+	
+	/**
+	 * SUBJECTS
+	 */
+	private static final String [] SUBJECTS = new String[]{
+		USER_PATH
+	};
+	
     public SVNServiceTest() {
     	super(SVNServiceBean.class, usedBeans);
     }
@@ -76,14 +88,15 @@ public class SVNServiceTest extends BaseSessionBeanFixture<SVNServiceBean> {
         try {
 			mockery.checking(new Expectations() {
 				{
-					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/oster")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/oster")), with(equal("/")), with(equal("create"))); inSequence(sequence1);
+					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal("/")), with(equal("create"))); inSequence(sequence1);
 					oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(equal("/repo1"))); will(saveParams(params1));  inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
-					oneOf(binding).setProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.AUTHOR)), with(equal("/profiles/oster"))); inSequence(sequence1);
+					oneOf(binding).setProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.AUTHOR)), with(equal(USER_PATH))); inSequence(sequence1);
 					oneOf(pap).createPolicy(with(any(String.class)), with(containsString("/repo1"))); inSequence(sequence1);
-					oneOf(binding).setProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.OWNER)), with(equal("/profiles/oster"))); inSequence(sequence1);
+					oneOf(binding).setProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.OWNER)), with(equal(USER_PATH))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("svn.svn-repository.create"))); inSequence(sequence1);
 				}
@@ -94,8 +107,9 @@ public class SVNServiceTest extends BaseSessionBeanFixture<SVNServiceBean> {
             
             mockery.checking(new Expectations() {
 				{
-					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/oster")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/oster")), with(equal("/repo1")), with(equal("read"))); inSequence(sequence1);
+					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal("/repo1")), with(equal("read"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/repo1"))); will(returnValue(params1.get(0))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("svn.svn-repository.read"))); inSequence(sequence1);
 				}
@@ -105,8 +119,9 @@ public class SVNServiceTest extends BaseSessionBeanFixture<SVNServiceBean> {
             
             mockery.checking(new Expectations() {
 				{
-					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/oster")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/oster")), with(equal("/repo1")), with(equal("update"))); inSequence(sequence1);
+					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal("/repo1")), with(equal("update"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/repo1"))); will(returnValue(params1.get(0))); inSequence(sequence1);
 					oneOf(binding).setProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("svn.svn-repository.update"))); inSequence(sequence1);
@@ -117,8 +132,9 @@ public class SVNServiceTest extends BaseSessionBeanFixture<SVNServiceBean> {
             
             mockery.checking(new Expectations() {
 				{
-					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/oster")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/oster")), with(equal("/repo1")), with(equal("read"))); inSequence(sequence1);
+					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal("/repo1")), with(equal("read"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/repo1"))); will(returnValue(params1.get(0))); inSequence(sequence1);
 					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("svn.svn-repository.read"))); inSequence(sequence1);
 				}
@@ -130,11 +146,12 @@ public class SVNServiceTest extends BaseSessionBeanFixture<SVNServiceBean> {
             
             mockery.checking(new Expectations() {
 				{
-					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue("/profiles/oster")); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/oster")), with(equal("/repo1")), with(equal("delete"))); inSequence(sequence1);
+					oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(USER_PATH)); inSequence(sequence1);
+					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal("/repo1")), with(equal("delete"))); inSequence(sequence1);
 					oneOf(binding).lookup(with(equal("/repo1"))); will(returnValue(params1.get(0))); inSequence(sequence1);
 					oneOf(binding).list(with(equal("/repo1")));will(returnValue(null)); inSequence(sequence1);
-					oneOf(pep).checkSecurity(with(equal("/profiles/oster")), with(equal("/repo1")), with(equal("delete"))); inSequence(sequence1);
+					oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal("/repo1")), with(equal("delete"))); inSequence(sequence1);
 					oneOf(binding).getProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); will(returnValue("aFakePolicyID"));  inSequence(sequence1);
 					oneOf(pap).deletePolicy("aFakePolicyID"); inSequence(sequence1);
 					oneOf(binding).unbind(with(equal("/repo1"))); inSequence(sequence1);

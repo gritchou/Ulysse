@@ -12,6 +12,7 @@
  */
 package org.qualipso.factory.bugtracker;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -40,7 +41,10 @@ import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
+import org.qualipso.factory.binding.BindingServiceException;
+import org.qualipso.factory.binding.InvalidPathException;
 import org.qualipso.factory.binding.PathHelper;
+import org.qualipso.factory.binding.PathNotFoundException;
 import org.qualipso.factory.bugtracker.core.BugTrackerManager;
 import org.qualipso.factory.bugtracker.core.IBugTrackerManager;
 import org.qualipso.factory.bugtracker.core.IssueComplexe;
@@ -260,8 +264,12 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			
 			bugs = constructIssueDtoArray(subjects, projectPath, issueExternals);
 			
+			Event.buildEventType(BugTrackerService.SERVICE_NAME,
+					Issue.RESOURCE_NAME, "read");
+					
 			// Using the notification service to throw an event :
-			notification.throwEvent(new Event(projectPath, caller, "Issue", "project.allIssues", projectPath));
+			notification.throwEvent(new Event(projectPath, caller, Issue.RESOURCE_NAME, Event.buildEventType(BugTrackerService.SERVICE_NAME,
+					Issue.RESOURCE_NAME, "read"), ""));
 			return bugs;
 		} 
 		catch (FactoryException fe) {
@@ -312,7 +320,8 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			bugs = constructIssueDtoArray(subjects, projectPath, issueExternals);
 			
 			// Using the notification service to throw an event :
-			notification.throwEvent(new Event(projectPath, caller, "Issue", "project.modifiedIssues", projectPath));
+			notification.throwEvent(new Event(projectPath, caller, Issue.RESOURCE_NAME, Event.buildEventType(BugTrackerService.SERVICE_NAME,
+					Issue.RESOURCE_NAME, "read"), ""));
 			return bugs;
 		} 
 		catch (FactoryException fe) {
@@ -364,7 +373,8 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			bugs = constructIssueDtoArray(subjects, projectPath, issueExternals);
 			
 			// Using the notification service to throw an event :
-			notification.throwEvent(new Event(projectPath, caller, "Issue", "project.newIssues", projectPath));
+			notification.throwEvent(new Event(projectPath, caller, Issue.RESOURCE_NAME, Event.buildEventType(BugTrackerService.SERVICE_NAME,
+					Issue.RESOURCE_NAME, "read"), ""));
 			return bugs;
 		} 
 		catch (FactoryException fe) {
@@ -422,7 +432,8 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			
 			
 			// Using the notification service to throw an event :
-			notification.throwEvent(new Event(path, caller, "Issue", "issue.read", path));
+			notification.throwEvent(new Event(path, caller, Issue.RESOURCE_NAME, Event.buildEventType(BugTrackerService.SERVICE_NAME,
+					Issue.RESOURCE_NAME, "read"), ""));
 			
 			return bug;
 		} 
@@ -513,7 +524,8 @@ public class BugTrackerServiceBean implements BugTrackerService {
 //			
 			
 			//Using the notification service to throw an event : 
-			notification.throwEvent(new Event(pathIssue, caller, "Issue", "issue.create", idIssue));
+			notification.throwEvent(new Event(pathIssue, caller, Issue.RESOURCE_NAME, Event.buildEventType(BugTrackerService.SERVICE_NAME,
+					Issue.RESOURCE_NAME, "create"), ""));
 			
 			return idIssue;
 		} 
@@ -565,7 +577,8 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
 			
 			//Using the notification service to throw an event : 
-			notification.throwEvent(new Event(path, caller, "Issue", "issue.update", path));
+			notification.throwEvent(new Event(path, caller, Issue.RESOURCE_NAME, Event.buildEventType(BugTrackerService.SERVICE_NAME,
+					Issue.RESOURCE_NAME, "update"), ""));
 		} 
 		catch (FactoryException fe) {
 			ctx.setRollbackOnly();
@@ -625,7 +638,8 @@ public class BugTrackerServiceBean implements BugTrackerService {
 			binding.unbind(path);
 			
 			//Using the notification service to throw an event : 
-			notification.throwEvent(new Event(path, caller, "Issue", "issue.delete", path));
+			notification.throwEvent(new Event(path, caller, Issue.RESOURCE_NAME, Event.buildEventType(BugTrackerService.SERVICE_NAME,
+					Issue.RESOURCE_NAME, "delete"), ""));
 		} 
 		catch (FactoryException fe) {
 			ctx.setRollbackOnly();
@@ -704,29 +718,34 @@ public class BugTrackerServiceBean implements BugTrackerService {
 	 * @param path of the issue
 	 * @param subjects for checkSecurity
 	 * @return an Issue (Factory)
+	 * @throws PathNotFoundException 
+	 * @throws InvalidPathException 
+	 * @throws BindingServiceException 
+	 * @throws MembershipServiceException 
 	 * @throws Exception if an error occurred
 	 */
-	private Issue getIssueInternal(String path, String[] subjects) throws Exception {
+	private Issue getIssueInternal(String path, String[] subjects) throws FactoryException {
 		if (StringUtils.isEmpty(path)) {
 			throw new BugTrackerServiceException("getIssue: arg path cannot be null");
 		}
-			//Search the issue
-			// Performing a lookup in the naming to recover the Resource
-			// Identifier
-			FactoryResourceIdentifier identifier = binding.lookup(path);
-			checkResourceTypeIssue(identifier);
+		Issue issueInternal = null;
+		//Search the issue
+		// Performing a lookup in the naming to recover the Resource
+		// Identifier
+		FactoryResourceIdentifier identifier = binding.lookup(path);
+		checkResourceTypeIssue(identifier);
+		
+		// Checking if the connected user has the permission to getIssue
+		// the resource giving pep :
+		pep.checkSecurity(subjects, path, "read");
+		
+		String id = Utils.getIdIssue(path);
+		//STARTING INTERNAL INVOCATION
+		issueInternal = em.find(Issue.class, id);
+		issueInternal.setResourcePath(path);
+		//END OF INTERNAL INVOCATION
 			
-			// Checking if the connected user has the permission to getIssue
-			// the resource giving pep :
-			pep.checkSecurity(subjects, path, "read");
-			
-			String id = Utils.getIdIssue(path);
-			//STARTING INTERNAL INVOCATION
-			final Issue issueInternal = em.find(Issue.class, id);
-			issueInternal.setResourcePath(path);
-			//END OF INTERNAL INVOCATION
-			
-			return issueInternal;
+		return issueInternal;
 	}
 	
 	/**
@@ -737,25 +756,28 @@ public class BugTrackerServiceBean implements BugTrackerService {
 	 * @return IssueDto[]
 	 * @throws Exception if an error occurred
 	 */
-	private IssueDto[] constructIssueDtoArray(String[] subjects, String projectPath, List<IssueExternal> issueExternals) throws Exception {
-		IssueDto[] bugs = new IssueDto[0];
+	private IssueDto[] constructIssueDtoArray(String[] subjects, String projectPath, List<IssueExternal> issueExternals) {
+		List<IssueDto> bugsList = new ArrayList<IssueDto>();
 		if (issueExternals != null && !issueExternals.isEmpty()) {
-			bugs = new IssueDto[issueExternals.size()];
-			for (int i = 0; i < issueExternals.size(); i++) {
-				final IssueExternal issueExternal = issueExternals.get(i);
+			for (IssueExternal issueExternal : issueExternals) {
 				//STARTING INTERNAL INVOCATION
-				final String issuePath = Utils.generatePathIssueFactory(projectPath, issueExternal.getId());
-				final Issue issueInternal = getIssueInternal(issuePath, subjects);
-				if (issueInternal == null) {
-					throw new BugTrackerServiceException(
-							"Issue doesn't exist in factory with id " + issueExternal.getId());
+				try {
+					final String issuePath = Utils.generatePathIssueFactory(projectPath, issueExternal.getId());
+					final Issue issueInternal = getIssueInternal(issuePath, subjects);
+					if (issueInternal != null) {
+						final IssueDto dto = convert(issueExternal, issueInternal, projectPath);
+						bugsList.add(dto);
+					}
+				}
+				catch (FactoryException e){
+					logger.warn("Error on issue " + issueExternal.getId(), e);
 				}
 				//END OF INTERNAL INVOCATION
-				final IssueDto dto = convert(issueExternal, issueInternal, projectPath);
-				bugs[i] = dto;
+				
 				
 			}
 		}
+		final IssueDto[] bugs = bugsList.toArray(new IssueDto[bugsList.size()]);
 		return bugs;
 	}
 	
@@ -769,8 +791,12 @@ public class BugTrackerServiceBean implements BugTrackerService {
 		logger.debug("params : path=" + path);
 		try {
 			String[] subjects = membership.getConnectedIdentifierSubjects();
-			
-			return getIssueInternal(path, subjects);
+			final Issue issueInternal = getIssueInternal(path, subjects);
+			if (issueInternal == null) {
+				throw new BugTrackerServiceException(
+						"Issue doesn't exist in factory with id " + path);
+			}
+			return issueInternal;
 
 		} catch (Exception e) {
 			throw new CoreServiceException("unable to find the resource at path " + path, e);

@@ -1,18 +1,23 @@
 package org.qualipso.factory.jabuti;
 
-import java.rmi.RemoteException;
+import java.io.File;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Properties;
 
 import javax.activation.DataHandler;
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 import javax.jws.soap.SOAPBinding.Style;
+import javax.mail.util.ByteArrayDataSource;
 
-import org.apache.axis2.AxisFault;
-import org.apache.axis2.Constants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jboss.ejb3.annotation.SecurityDomain;
@@ -21,35 +26,30 @@ import org.jboss.wsf.spi.annotation.WebContext;
 import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
-import org.qualipso.factory.core.CoreService;
-import org.qualipso.factory.core.CoreServiceException;
-import org.qualipso.factory.core.entity.File;
-import org.qualipso.factory.core.entity.FileData;
-import org.qualipso.factory.jabuti.service.InvalidFileFaultException2;
-import org.qualipso.factory.jabuti.service.InvalidNameFaultException5;
-import org.qualipso.factory.jabuti.service.InvalidProjectIdFaultException0;
-import org.qualipso.factory.jabuti.service.JaBUTiService1_0Stub;
-import org.qualipso.factory.jabuti.service.JaBUTiService1_0Stub.CleanProject;
-import org.qualipso.factory.jabuti.service.JaBUTiService1_0Stub.CleanProjectResponse;
-import org.qualipso.factory.jabuti.service.JaBUTiService1_0Stub.CreateProject;
-import org.qualipso.factory.jabuti.service.JaBUTiService1_0Stub.CreateProjectResponse;
-import org.qualipso.factory.jabuti.service.JaBUTiService1_0Stub.DeleteProject;
-import org.qualipso.factory.jabuti.service.JaBUTiService1_0Stub.DeleteProjectResponse;
-import org.qualipso.factory.jabuti.service.JaBUTiService1_0Stub.UpdateProject;
-import org.qualipso.factory.jabuti.service.JaBUTiService1_0Stub.UpdateProjectResponse;
-import org.qualipso.factory.membership.MembershipService;
-import org.qualipso.factory.membership.MembershipServiceException;
+import org.qualipso.factory.jabuti.ws.FileValidation;
+import org.qualipso.factory.jabuti.ws.VerifingData;
+import org.qualipso.factory.jabuti.ws.WsProject;
+
+
 
 /**
  * @author Rafael Messias Martins
  * @date Sometime in 2009
  */
-@Stateless(name = "Jabuti", 
-		mappedName = FactoryNamingConvention.SERVICE_PREFIX + "JabutiService")
-@WebService(endpointInterface = "org.qualipso.factory.jabuti.JabutiService", 
-		targetNamespace = "http://org.qualipso.factory.ws/service/jabuti", 
-		serviceName = "JabutiService", portName = "JabutiServicePort")
-@WebContext(contextRoot = "/factory-service-jabuti", urlPattern = "/jabuti")
+@Stateless(
+		name = JabutiService.SERVICE_NAME, 
+		mappedName = FactoryNamingConvention.SERVICE_PREFIX + 
+			JabutiService.SERVICE_NAME)
+@WebService(
+		endpointInterface = "org.qualipso.factory.jabuti.JabutiService", 
+		targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + 
+			JabutiService.SERVICE_NAME, 
+		serviceName = JabutiService.SERVICE_NAME)
+@WebContext(
+		contextRoot = FactoryNamingConvention.WEB_SERVICE_ROOT_MODULE_CONTEXT +
+			"-" + JabutiService.SERVICE_NAME, 
+		urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + 
+			JabutiService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
@@ -57,214 +57,473 @@ public class JabutiServiceBean implements JabutiService {
 
 	private static Log logger = LogFactory.getLog(JabutiServiceBean.class);
 
-	private JaBUTiService1_0Stub stub;
-
+//	private MembershipService membership;
+//	private CoreService core;
+	
+	private Properties props;
+	
 	public JabutiServiceBean() {
-		// ??
+		// The init code cannot be here because the services are not bound yet.
 	}
+	
+	private void init() throws JabutiServiceException {
+		// initialization code
+		
+		props = new Properties();
+//		props.setProperty("JABUTI_PERSISTENCE_HOME", "/jabuti/files");
+		props.setProperty("JABUTI_PERSISTENCE_HOME", "jabuti");
+//		props.setProperty("JABUTI_TEMP_HOME", "/jabuti/temp");
+		props.setProperty("db.url", "jdbc:hsqldb:file:db/jabutidb;shutdown=true");
+		props.setProperty("db.user", "SA");
+		props.setProperty("db.password", "");
+		
+		// Database Test
+		try {
+			String url = props.getProperty("db.url");
+	        String user = props.getProperty("db.user");
+	        String pass = props.getProperty("db.password");
+			
+        	Class.forName("org.hsqldb.jdbcDriver");
+            Connection CONN = DriverManager.getConnection(url, user, pass);            
+            Statement st = CONN.createStatement();
+            
+            try {
+            	// check if the table 'project' exists
+            	ResultSet rs = st.executeQuery("SELECT * FROM project");
+            	rs.close();
+            }
+            catch (SQLException e) {
+            	// if not, create it
+            	st.executeUpdate("DROP TABLE project IF EXISTS");            
+            	st.executeUpdate("CREATE TABLE project ( " +
+            			" id varchar(50) NOT NULL," +
+            			" name varchar(200) NOT NULL," +
+            			" testsuite varchar(500) default NULL," +
+            			" selectedclasses LONGVARCHAR," +
+            			" ignoredclasses LONGVARCHAR," +
+            			" state integer default NULL," +
+            			" PRIMARY KEY (id))"); 
+            }                   
+            st.close();
+            CONN.close();
+        } 
+        catch (SQLException e) {
+        	logger.error("Error during database connection: " + e);
+        	e.printStackTrace();
+        	throw new JabutiServiceException(e);
+        }
+        catch (ClassNotFoundException e) {
+        	logger.error("Error on class-loading of database driver: " + e);
+        	e.printStackTrace();
+        	throw new JabutiServiceException(e);
+        }
+        
+        // Persistence Test
+        
+        String dir = props.getProperty("JABUTI_PERSISTENCE_HOME");
+        
+        // For the original only:
+        if (dir.startsWith("/")) {
+        	dir = dir.substring(1, dir.length());
+        }
+        
+        if(!dir.endsWith("/"))
+			dir += "/";
+		
+		File directory = new File(dir);
+		if(!directory.isDirectory()) {
+			logger.info("Persistence directory does not exist. Trying to create it...");
+			directory.mkdir();
+			if(directory.exists() && directory.isDirectory()) {
+				logger.info("Persistence directory created succesfully!");
+			}
+			else {
+				logger.info("Couldn't create Persistence directory!");
+			}
+		}
 
-	private void connect() throws AxisFault {
-		stub = new JaBUTiService1_0Stub(
-		"http://www.labes.icmc.usp.br:9991/jabutiprojectSvn/services/JaBUTiService1_0");
-		stub._getServiceClient().getOptions().setProperty(
-				Constants.Configuration.ENABLE_MTOM, Constants.VALUE_TRUE);
-		stub._getServiceClient().getOptions().setTimeOutInMilliSeconds(4000000);
+		try {
+			File file = new File(dir + "test.txt");
+			PrintWriter pw = new PrintWriter(file);
+			pw.write("testing...");
+			pw.close();
+
+			file.delete();
+
+			System.out.println("Persistence directory: OK");
+		}
+		catch(Exception e) {	        		        	
+			logger.error("Error: Persistence directory - no permission " +
+					"to read/write" + e);
+			e.printStackTrace();
+			throw new JabutiServiceException(e);			
+		}
+        
+        // Factory Resource version:
+//        String dir1 = "jabuti";
+//        String path1 = "/" + dir1;
+//        String dir2 = "files";
+//        String path2 = path1 + "/" + dir2;
+//        String dir3 = "temp";
+//        String path3 = path1 + "/" + dir3;
+        
+//        Folder folder;
+//        try {        	
+//        	// check if the data/temp folder exists
+//        	folder = core.readFolder(path2);
+//        	folder = core.readFolder(path3);
+//        }		
+//        catch (PathNotFoundException e) {
+//        	// if not, create it
+//        	try {
+//        		core.createFolder(path1, dir1, "Base path for JaBUTi data.");
+//        		core.createFolder(path2, dir2, "Folder for JaBUTi testing projects.");
+//        		core.createFolder(path3, dir3, "Temporary folder for JaBUTi.");
+//        	}
+//        	catch (FactoryException e2) {
+//        		logger.error("Problem creating JaBUTi data/temp folder: " + e2);
+//        		e2.printStackTrace();
+//        		throw new JabutiServiceException(e2);
+//        	}
+//        }
+//        catch (FactoryException e) {
+//        	logger.error("Problem reading JaBUTi data/temp folder: " + e);
+//        	e.printStackTrace();
+//        	throw new JabutiServiceException(e);
+//        }
+	}
+		
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public String createProject(String IdUserName, String projectName,
+			byte[] projectFile) 
+	throws JabutiServiceException {
+		logger.debug("createProject(...) called");
+		
+		init();
+		
+		// MyDataHandler not really necessary...
+		MyDataHandler projectFileHandler = new MyDataHandler(
+				new ByteArrayDataSource(projectFile, 
+						"application/java-archive"));
+		
+		//save the attached file in a temporary directory 
+//		File f = saveTempFile(projectFileHandler);
+		File f = VerifingData.saveTempFile(projectFileHandler);
+
+		FileValidation fv = new FileValidation();
+		if(fv.validateFile(f)) {
+			try {
+				WsProject control = new WsProject(props);
+				String ret[] = control.create(projectName, f);
+				return ret[0];
+			}
+			catch (Exception e) {
+				logger.error(e);
+				e.printStackTrace();
+				throw new JabutiServiceException(e);
+			}
+		}
+		else {
+			InvalidFileFault e = new InvalidFileFault(fv.getMessage());
+			logger.error(e);
+			e.printStackTrace();
+			throw new JabutiServiceException(e);
+		}
+			
 	}
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	public JabutiProject createProject(String projectName, File projectFile) 
-	throws InvalidFileFault, InvalidNameFault {
-		try {
-			connect();
-
-			CreateProject input = new CreateProject();
-
-			//input.setProjectName("Vending");			
-			input.setProjectName(projectName);			
-
-			//input.setIdUserName("user");
-			// TODO: Fix this to get only the profile name, not the whole path.
-			String userName = membership.getProfilePathForConnectedIdentifier();
-			input.setIdUserName(userName);
-
-			//File file = new File("/home/andre/ifiles/doctoral/install/eclipseworkspace/sort.jar");
-			//File file = new File(projectFile);
-
-			// Uploading/Resource creation is up to the user and must be done previously.
-
-			FileData projectData = core.getFileData(projectFile.getResourcePath());
-			DataHandler datahandler = projectData.getData();
-			input.setProjectFile(datahandler);
-
-			CreateProjectResponse output;			
-			output = stub.createProject(input);
-			
-			String projId = output.get_return();
-			
-			JabutiProject jp = new JabutiProject(projId, projectName);
-			
-			//System.out.println("project id: " + projId);
-
-			return jp;
-
-		} catch (AxisFault e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (RemoteException e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (InvalidNameFaultException5 e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (InvalidFileFaultException2 e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (MembershipServiceException e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (CoreServiceException e) {			
-			e.printStackTrace();
-			//return e.toString();
-		}
+	public String updateProject(String IdUserName, String projectId, byte[] projectFile) 
+	throws InvalidProjectIdFault, InvalidFileFault, JabutiServiceException
+	{
 		
-		return null;
-	}
-
-	public String updateProject(JabutiProject project) 
-	throws InvalidProjectIdFault, InvalidFileFault {
-		try {
-			connect();
-
-			UpdateProject input = new UpdateProject();
-
-			input.setProjectId(project.getProjectId());
-			
-			// TODO: Fix this to get only the profile name, not the whole path.
-			String userName = membership.getProfilePathForConnectedIdentifier();
-			input.setIdUserName(userName);
-			
-			FileData projectData = core.getFileData(project.getResourcePath());
-			DataHandler datahandler = projectData.getData();
-			input.setProjectFile(datahandler);
-
-			UpdateProjectResponse output;
-			String message = "";
-			output = stub.updateProject(input);
-			message = output.get_return();
-
-			return message;
-
-		} catch (AxisFault e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (RemoteException e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (InvalidFileFaultException2 e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (InvalidProjectIdFaultException0 e) {			
-			e.printStackTrace();
-			//return e.toString(); 
-		}
-		catch (MembershipServiceException e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (CoreServiceException e) {			
-			e.printStackTrace();
-			//return e.toString();
-		}
+		init();
 		
-		return null;
-	}
-	
-	public String cleanProject(JabutiProject project) 
-	throws InvalidProjectIdFault {
-		try {
-			connect();
-
-			CleanProject input = new CleanProject();
-
-			input.setProjectId(project.getProjectId());
-			
-			// TODO: Fix this to get only the profile name, not the whole path.
-			String userName = membership.getProfilePathForConnectedIdentifier();
-			input.setIdUserName(userName);
-			
-			CleanProjectResponse output;
-			String message = "";
-			output = stub.cleanProject(input);
-			message = output.get_return();
-
-			return message;
-
-		} catch (AxisFault e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (RemoteException e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (InvalidProjectIdFaultException0 e) {			
-			e.printStackTrace();
-			//return e.toString(); 
-		}
-		catch (MembershipServiceException e) {			
-			e.printStackTrace();
-			//return e.toString();
-		}
+		DataHandler projectFileHandler = new DataHandler(
+				new ByteArrayDataSource(projectFile, "application/java-archive"));
 		
-		return null;
-	}
-	
-	public String deleteProject(JabutiProject project) 
-	throws InvalidProjectIdFault {
-		try {
-			connect();
+		VerifingData verifingdata = new VerifingData();
+		if(verifingdata.existProject(projectId, props))
+		{
+			File f = VerifingData.saveTempFile(projectFileHandler);
+			FileValidation fv = new FileValidation();
+			if(fv.validateFile(f)) {
+				WsProject control = new WsProject(props);
+				control.update(projectId, f);
 
-			DeleteProject input = new DeleteProject();
-
-			input.setProjectId(project.getProjectId());
-			
-			// TODO: Fix this to get only the profile name, not the whole path.
-			String userName = membership.getProfilePathForConnectedIdentifier();
-			input.setIdUserName(userName);
-			
-			DeleteProjectResponse output;
-			String message = "";
-			output = stub.deleteProject(input);
-			message = output.get_return();
-			
-			core.deleteFile(project.getResourcePath());
-
-			return message;
-
-		} catch (AxisFault e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (RemoteException e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (InvalidProjectIdFaultException0 e) {			
-			e.printStackTrace();
-			//return e.toString(); 
+				return "project updated.";
+			}
+			else
+				throw new InvalidFileFault(fv.getMessage());
 		}
-		catch (MembershipServiceException e) {			
-			e.printStackTrace();
-			//return e.toString();
-		} catch (CoreServiceException e) {			
-			e.printStackTrace();
-			//return e.toString();
-		}
-		
-		return null;
+		else
+			throw new InvalidProjectIdFault("The project does not exist.");
 	}
-
-	// ------------------------ Métodos exigidos pela interface FactoryService
 
 	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public String deleteProject(String IdUserName, String projectId) 
+	throws InvalidProjectIdFault, JabutiServiceException
+	{
+		init();
+		VerifingData verifingdata = new VerifingData();
+		if(verifingdata.existProject(projectId, props)) {
+			WsProject control = new WsProject(props);
+			control.delete(projectId);
+			return "The project was removed.";			
+		}
+		else 
+			throw new InvalidProjectIdFault("The project does not exist.");
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public String cleanProject(String IdUserName, String projectId) 
+	throws InvalidProjectIdFault, JabutiServiceException
+	{
+		init();
+		VerifingData verifingdata = new VerifingData();
+		if(verifingdata.existProject(projectId, props)) {
+			WsProject control = new WsProject(props);
+			control.clean(projectId);
+			return "The project was cleaned.";			
+		}
+		else 
+			throw new InvalidProjectIdFault("The project does not exist.");
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public String ignoreClasses(String IdUserName, String projectId, String[] classes) 
+	throws InvalidProjectIdFault, ClassNotFoundFault, InvalidExpressionFault, JabutiServiceException
+	{
+		init();
+		VerifingData verifingdata = new VerifingData();
+		if(verifingdata.existProject(projectId, props)) {
+			WsProject control = new WsProject(props);
+			control.ignoreClasses(projectId, classes);
+			return "the ignored classes were recorded.";
+		}
+		else 
+			throw new InvalidProjectIdFault("The project does not exist.");
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public String selectClassesToInstrument(String IdUserName, String projectId, String[] classes) 
+	throws InvalidProjectIdFault, ClassNotFoundFault, InvalidExpressionFault, JabutiServiceException
+	{
+		init();
+		VerifingData verifingdata = new VerifingData();
+		if(verifingdata.existProject(projectId, props)) {
+			WsProject control = new WsProject(props);
+			control.selectClassesToInstrument(projectId, classes);
+
+			return "The classes were instrumented.";			
+		}
+		else 
+			throw new InvalidProjectIdFault("The project does not exist.");
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public RequiredElementsDetails[] getAllRequiredElements(String IdUserName, String projectId) 
+	throws InvalidProjectIdFault, OperationSequenceFault, JabutiServiceException
+	{
+		init();
+		VerifingData verifingdata = new VerifingData();
+		if(verifingdata.existProject(projectId, props)) {
+			if(verifingdata.isProjectInstrumented(projectId)) {
+				WsProject control = new WsProject(props);
+				return control.getAllRequiredElements(projectId);
+			}
+			else
+				throw new OperationSequenceFault("The project's classes are not instrumented.");
+		}
+		else 
+			throw new InvalidProjectIdFault("The project does not exist.");
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public Method[] getRequiredElementsByCriterion(String IdUserName, String projectId, String criterion) 
+	throws InvalidProjectIdFault, OperationSequenceFault, InvalidCriterionFault, JabutiServiceException
+	{
+		init();
+		WsProject control = new WsProject(props);
+		return control.getRequiredElementsByCriterion(projectId, criterion);
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public String addTestCases(String IdUserName, String projectId, String testSuiteClass, byte[] testCaseFile) 
+	throws InvalidFileFault, InvalidProjectIdFault, ClassNotFoundFault, OperationSequenceFault, JabutiServiceException
+	{
+		init();
+		DataHandler testCaseFileHandler = new DataHandler(
+				new ByteArrayDataSource(testCaseFile, "application/java-archive"));
+		
+		VerifingData verifingdata = new VerifingData();
+		if(verifingdata.existProject(projectId, props))
+		{
+			File f = VerifingData.saveTempFile(testCaseFileHandler);
+			FileValidation fv = new FileValidation();
+			if(fv.validateFile(f)) {
+				if(verifingdata.isThereClassInFile(testSuiteClass, f)) {
+					WsProject control = new WsProject(props);
+					control.addTestCases(projectId, testSuiteClass, f);
+					return "Test Case file was added.";
+				}
+				else
+					throw new ClassNotFoundFault("Class " + testSuiteClass + " was not found in testcase file.");
+			}
+			else
+				throw new InvalidFileFault(fv.getMessage());
+		}
+		else
+			throw new InvalidProjectIdFault("The project does not exist.");	
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public InstrumentedProjectDetails getInstrumentedProject(String IdUserName, String projectId) 
+	throws InvalidProjectIdFault, OperationSequenceFault, JabutiServiceException
+	{
+		init();
+		VerifingData verifingdata = new VerifingData();
+		if(verifingdata.existProject(projectId, props)) {
+			if(verifingdata.isProjectInstrumented(projectId)) {
+				WsProject control = new WsProject(props);
+				return control.getInstrumentedProject(projectId);
+			}
+			else
+				throw new OperationSequenceFault("The project's classes are not instrumented.");	
+			//test cases are not added
+			//to do
+		}
+		else 
+			throw new InvalidProjectIdFault("The project does not exist.");
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public String sendTraceFile(String IdUserName, String projectId, byte[] traceFile) 
+	throws InvalidProjectIdFault, OperationSequenceFault, InvalidFileFault, JabutiServiceException
+	{
+		init();
+		DataHandler traceFileHandler = new DataHandler(
+				new ByteArrayDataSource(traceFile, "application/java-archive"));
+		
+		VerifingData verifingdata = new VerifingData();
+		if(verifingdata.existProject(projectId, props)) {
+			if(verifingdata.isProjectInstrumented(projectId)) {
+				WsProject control = new WsProject(props);
+
+				File f = VerifingData.saveTempFile(traceFileHandler);
+				control.sendTraceFile(projectId, f);
+
+				return "ok";
+			}
+			else
+				throw new OperationSequenceFault("The project's classes are not instrumented.");	
+			//test cases are not added
+			//to do
+		}
+		else 
+			throw new InvalidProjectIdFault("The project does not exist.");
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public CoverageCriterionDetails[] getCoverageByCriteria(String IdUserName, String projectId) 
+	throws InvalidProjectIdFault, OperationSequenceFault, JabutiServiceException
+	{
+		init();
+		WsProject control = new WsProject(props);
+		return control.getCoverageByCriteria(projectId);
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public CoverageDetails[] getCoverageByClasses(String IdUserName, String projectId) 
+	throws InvalidProjectIdFault, OperationSequenceFault, JabutiServiceException
+	{
+		init();
+		WsProject control = new WsProject(props);
+		return control.getCoverageByClasses(projectId);
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public CoverageDetails[] getCoverageByMethods(String IdUserName, String projectId) 
+	throws InvalidProjectIdFault, OperationSequenceFault, JabutiServiceException
+	{
+		init();
+		WsProject control = new WsProject(props);
+		return control.getCoverageByMethods(projectId);
+	}
+
+	@Override
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public MethodDetails[] getAllCoveredAndUncoveredRequiredElements(String IdUserName, String projectId) 
+	throws InvalidProjectIdFault, OperationSequenceFault, JabutiServiceException
+	{
+		init();
+		WsProject control = new WsProject(props);
+		return control.getAllCoveredAndUncoveredRequiredElements(projectId);
+	}
+
+//	public File saveTempFile(DataHandler dataHandler) 
+//	throws JabutiServiceException {
+//		logger.debug("saveTempFile(...) called");
+//		File f = null;
+//	    try {
+//	    	String filename = "tmp-" + String.valueOf(System.nanoTime());
+//	    	String path = props.getProperty("JABUTI_TEMP_HOME") + "/" + filename;
+//	    	String type = "application/java-archive";
+//	    	String desc = "";
+//	    	FileData data = new FileData(dataHandler);
+//	    	logger.debug("checkpoint 1");
+//	    	core.createFile(path, filename, type, desc, data);
+//	    	logger.debug("checkpoint 2");
+//	    	f = core.readFile(path);
+//	    	logger.debug("checkpoint 3");
+//	    }
+//	    catch (FactoryException e) {
+//	    	logger.error("Error creating JaBUTi temp file: " + e);
+//			e.printStackTrace();
+//			throw new JabutiServiceException(e);
+//		}
+//		return f;
+//	}
+	
+	// --------------------- Membership, Core
+
+//	@EJB
+//	public void setMembershipService(MembershipService membership) {
+//		this.membership = membership;
+//	}
+//
+//	public MembershipService getMembershipService() {
+//		return this.membership;
+//	}
+
+//	@EJB
+//	public void setCoreService(CoreService core) {
+//		this.core = core;
+//	}
+//
+//	public CoreService getCoreService() {
+//		return this.core;
+//	}
+	
+	// --------------------- FactoryService methods
+	
+	@Override
 	public String[] getResourceTypeList() {
-		return new String[0];
+		return RESOURCE_TYPE_LIST;
 	}
 
 	@Override
@@ -278,31 +537,8 @@ public class JabutiServiceBean implements JabutiService {
 		logger.info("findResource(...) called");
 		logger.debug("params : path=" + path);
 
-		throw new FactoryException("No Resource are managed by Jabuti Service");
-	}
-
-	// --------------------- Membership, Core
-
-	private MembershipService membership;
-
-	@EJB
-	public void setMembershipService(MembershipService membership) {
-		this.membership = membership;
-	}
-
-	public MembershipService getMembershipService() {
-		return this.membership;
-	}
-
-	private CoreService core;
-
-	@EJB
-	public void setCoreService(CoreService core) {
-		this.core = core;
-	}
-
-	public CoreService getCoreService() {
-		return this.core;
+		throw new FactoryException("No resources are managed by Jabuti Service");
 	}
 
 }
+

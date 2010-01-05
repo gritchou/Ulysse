@@ -3,13 +3,14 @@
 <project default="" basedir=".">
 
 	<target name="bar_creation">
+		<delete file="./src/main/resources/qualipsoworkflow.bar"></delete>
 		<jar destfile="./src/main/resources/qualipsoworkflow.bar">
 			<fileset dir="target/classes" includes="org/qualipso/factory/workflow/**/**" excludes="**/*.xpdl">
 			</fileset>
-			<fileset dir="src/main/resources" includes="ProjectCreation.xpdl">
+			<fileset dir="src/main/resources" includes="**/**">
 			</fileset>
-			<fileset dir="src/test/resources" includes="**/**">
-			</fileset>
+			<!--fileset dir="src/test/resources" includes="META-INF/**">
+			</fileset-->
 		</jar>	
 	</target>	
 </project>

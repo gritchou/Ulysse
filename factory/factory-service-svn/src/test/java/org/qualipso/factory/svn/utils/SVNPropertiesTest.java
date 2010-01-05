@@ -27,7 +27,7 @@ public class SVNPropertiesTest extends TestCase {
 	public void testResourceAccess() {
 		assertEquals("/usr/bin/svnserve", SVNProperties.getInstance().getCmdSvnServe());
 		
-		assertEquals("data/svn-repositories", SVNProperties.getInstance().getRootDirRepositories());
+		assertEquals("target/data/svn-repositories", SVNProperties.getInstance().getRootDirRepositories());
 		
 		assertEquals(2, SVNProperties.getInstance().getDepthCheckRights());
 		

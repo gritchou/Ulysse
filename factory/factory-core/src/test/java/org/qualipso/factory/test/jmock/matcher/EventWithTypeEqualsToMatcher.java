@@ -21,7 +21,7 @@ import org.hamcrest.Description;
 import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.notification.Event;
 
 public class EventWithTypeEqualsToMatcher extends TypeSafeMatcher<Event> {
     private String type;

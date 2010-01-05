@@ -64,7 +64,7 @@ public class UploadPackSSHCommand extends SSHCommand {
 				
 				String path = getArg(0).replaceAll("'", "");
 				Context ctx = new InitialContext();
-				GITServiceLocal service = (GITServiceLocal) ctx.lookup(FactoryNamingConvention.getLocalJNDINameForService(GITService.SERVICE_NAME));
+				GITServiceLocal service = (GITServiceLocal) ctx.lookup(FactoryNamingConvention.getJNDINameForLocalService(GITService.SERVICE_NAME));
 				service.pullFromGITRepository(path, in, out, err);
 				
 				logger.info("Completing Upload Pack");

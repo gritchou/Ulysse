@@ -19,7 +19,11 @@ package org.qualipso.factory.indexing;
 
 /**
  * <p>
- * Class which implements IndexableContentI
+ * Class which allows to have fields of the document Indexable. So that they
+ * may be represented like a list of hits on the document A field is a section
+ * of a Document. Values may be free text, provided as a String or they may be
+ * atomic keywords. Such keywords may be used to represent dates, urls, etc.
+ * Fields will be storing in the index.
  * </p>
  * 
  * @author Benjamin DREUX
@@ -29,7 +33,7 @@ package org.qualipso.factory.indexing;
  * @see IndexableContentI
  */
 @SuppressWarnings("serial")
-public class IndexableContent implements IndexableContentI {
+public class IndexableContent {
     private StringBuffer sb;
 
     /**
@@ -46,25 +50,23 @@ public class IndexableContent implements IndexableContentI {
     }
 
     /**
-     * @see IndexableContentI#addContentPart(String)
-     */
-    /**
-     * Adding content part
+     * <p>
+     * Add a new element keyword in the object IndexableContent
+     * </p>
      * 
-     * @param the
-     *            content
+     * @param content represent a keyword in the document
+     * @throws IndexingServiceException
      */
     public void addContentPart(String content) throws IndexingServiceException {
-        sb.append(content);
+        sb.append(content + " ");
     }
 
     /**
-     * @see IndexableContentI#toString()
-     */
-    /*
-     * (non-Javadoc)
+     * <p>
+     * Allows to represent the list of keyword's hits on the document.
+     * <p>
      * 
-     * @see java.lang.Object#toString()
+     * @return a list of String
      */
     @Override
     public String toString() {

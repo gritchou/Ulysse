@@ -24,9 +24,12 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
+    private final static QName _PathNotFoundException_QNAME = new QName("http://org.qualipso.factory.ws/service/bootstrap", "PathNotFoundException");
     private final static QName _FactoryException_QNAME = new QName("http://org.qualipso.factory.ws/service/bootstrap", "FactoryException");
+    private final static QName _InvalidPathException_QNAME = new QName("http://org.qualipso.factory.ws/service/bootstrap", "InvalidPathException");
     private final static QName _Folder_QNAME = new QName("http://org.qualipso.factory.ws/service/bootstrap", "folder");
     private final static QName _BootstrapServiceException_QNAME = new QName("http://org.qualipso.factory.ws/service/bootstrap", "BootstrapServiceException");
+    private final static QName _AccessDeniedException_QNAME = new QName("http://org.qualipso.factory.ws/service/bootstrap", "AccessDeniedException");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: org.qualipso.factory.bugtracker.client.ws
@@ -36,35 +39,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Link }
+     * Create an instance of {@link File }
      * 
      */
-    public Link createLink() {
-        return new Link();
-    }
-
-    /**
-     * Create an instance of {@link FactoryException }
-     * 
-     */
-    public FactoryException createFactoryException() {
-        return new FactoryException();
-    }
-
-    /**
-     * Create an instance of {@link StringArray }
-     * 
-     */
-    public StringArray createStringArray() {
-        return new StringArray();
-    }
-
-    /**
-     * Create an instance of {@link Group }
-     * 
-     */
-    public Group createGroup() {
-        return new Group();
+    public File createFile() {
+        return new File();
     }
 
     /**
@@ -76,11 +55,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link File }
+     * Create an instance of {@link PathNotFoundException }
      * 
      */
-    public File createFile() {
-        return new File();
+    public PathNotFoundException createPathNotFoundException() {
+        return new PathNotFoundException();
     }
 
     /**
@@ -100,12 +79,78 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link StringArray }
+     * 
+     */
+    public StringArray createStringArray() {
+        return new StringArray();
+    }
+
+    /**
+     * Create an instance of {@link FactoryException }
+     * 
+     */
+    public FactoryException createFactoryException() {
+        return new FactoryException();
+    }
+
+    /**
+     * Create an instance of {@link Group }
+     * 
+     */
+    public Group createGroup() {
+        return new Group();
+    }
+
+    /**
+     * Create an instance of {@link Link }
+     * 
+     */
+    public Link createLink() {
+        return new Link();
+    }
+
+    /**
+     * Create an instance of {@link AccessDeniedException }
+     * 
+     */
+    public AccessDeniedException createAccessDeniedException() {
+        return new AccessDeniedException();
+    }
+
+    /**
+     * Create an instance of {@link InvalidPathException }
+     * 
+     */
+    public InvalidPathException createInvalidPathException() {
+        return new InvalidPathException();
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link PathNotFoundException }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/bootstrap", name = "PathNotFoundException")
+    public JAXBElement<PathNotFoundException> createPathNotFoundException(PathNotFoundException value) {
+        return new JAXBElement<PathNotFoundException>(_PathNotFoundException_QNAME, PathNotFoundException.class, null, value);
+    }
+
+    /**
      * Create an instance of {@link JAXBElement }{@code <}{@link FactoryException }{@code >}}
      * 
      */
     @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/bootstrap", name = "FactoryException")
     public JAXBElement<FactoryException> createFactoryException(FactoryException value) {
         return new JAXBElement<FactoryException>(_FactoryException_QNAME, FactoryException.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link InvalidPathException }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/bootstrap", name = "InvalidPathException")
+    public JAXBElement<InvalidPathException> createInvalidPathException(InvalidPathException value) {
+        return new JAXBElement<InvalidPathException>(_InvalidPathException_QNAME, InvalidPathException.class, null, value);
     }
 
     /**
@@ -124,6 +169,15 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/bootstrap", name = "BootstrapServiceException")
     public JAXBElement<BootstrapServiceException> createBootstrapServiceException(BootstrapServiceException value) {
         return new JAXBElement<BootstrapServiceException>(_BootstrapServiceException_QNAME, BootstrapServiceException.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link AccessDeniedException }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://org.qualipso.factory.ws/service/bootstrap", name = "AccessDeniedException")
+    public JAXBElement<AccessDeniedException> createAccessDeniedException(AccessDeniedException value) {
+        return new JAXBElement<AccessDeniedException>(_AccessDeniedException_QNAME, AccessDeniedException.class, null, value);
     }
 
 }

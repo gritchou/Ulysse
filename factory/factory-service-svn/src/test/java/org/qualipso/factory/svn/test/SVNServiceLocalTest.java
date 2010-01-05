@@ -67,6 +67,13 @@ public class SVNServiceLocalTest extends BaseSessionBeanFixture<SVNServiceBean> 
 	private static String PATH_PROFILE = "/profiles/usertest";
 	
 	/**
+	 * SUBJECTS
+	 */
+	private static final String [] SUBJECTS = new String[]{
+		PATH_PROFILE
+	};
+	
+	/**
 	 * Id of the test repository
 	 */
 	private String idRepository;
@@ -137,7 +144,8 @@ public class SVNServiceLocalTest extends BaseSessionBeanFixture<SVNServiceBean> 
 		mockery.checking(new Expectations() {
 			{
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(PATH_PROFILE)); inSequence(sequence1);
-				oneOf(pep).checkSecurity(with(equal(PATH_PROFILE)), with(equal("/")), with(equal("create"))); inSequence(sequence1);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence1);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal("/")), with(equal("create"))); inSequence(sequence1);
 				oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(equal("/repo1"))); will(saveParams(params1));  inSequence(sequence1);
 				oneOf(binding).setProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 				oneOf(binding).setProperty(with(equal("/repo1")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
@@ -168,9 +176,10 @@ public class SVNServiceLocalTest extends BaseSessionBeanFixture<SVNServiceBean> 
 				String parentPath = "/repo1/" + "subdir".hashCode();
 				String resourcePath = parentPath + "/" + "subdir2".hashCode();
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(PATH_PROFILE)); inSequence(sequence1);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence1);
 				oneOf(binding).lookup(with(equal(resourcePath))); will(throwException(new PathNotFoundException(""))); inSequence(sequence1);
 				oneOf(binding).lookup(with(equal(parentPath))); will(returnValue(FactoryResourceIdentifier.deserialize(SVNService.SERVICE_NAME + "/" + "svn-resource" + "/" + "1")));
-				oneOf(pep).checkSecurity(with(equal(PATH_PROFILE)), with(equal(parentPath)), with(equal("create"))); inSequence(sequence1);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(parentPath)), with(equal("create"))); inSequence(sequence1);
 				oneOf(binding).bind(with(any(FactoryResourceIdentifier.class)), with(containsString(resourcePath))); inSequence(sequence1);
 				
 				oneOf(binding).setProperty(with(equal(resourcePath)), with(equal(FactoryResourceProperty.CREATION_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
@@ -205,8 +214,9 @@ public class SVNServiceLocalTest extends BaseSessionBeanFixture<SVNServiceBean> 
 			{
 				String resourcePath = "/repo1/" + "subdir".hashCode() + "/" + "subdir2".hashCode();
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(PATH_PROFILE)); inSequence(sequence1);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence1);
 				oneOf(binding).lookup(with(equal(resourcePath))); will(returnValue(FactoryResourceIdentifier.deserialize(SVNService.SERVICE_NAME + "/" + "svn-resource" + "/" + UUID.randomUUID()))); inSequence(sequence1);
-				oneOf(pep).checkSecurity(with(equal(PATH_PROFILE)), with(equal(resourcePath)), with(equal("update"))); inSequence(sequence1);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(resourcePath)), with(equal("update"))); inSequence(sequence1);
 				
 				oneOf(binding).setProperty(with(equal(resourcePath)), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence1);
 				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("svn.svn-resource.update"))); inSequence(sequence1);
@@ -240,30 +250,31 @@ public class SVNServiceLocalTest extends BaseSessionBeanFixture<SVNServiceBean> 
 						resourcePath + "/toto/tutu"
 				};
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(PATH_PROFILE)); inSequence(sequence1);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence1);
 				oneOf(binding).lookup(with(equal(resourcePath))); will(returnValue(FactoryResourceIdentifier.deserialize(SVNService.SERVICE_NAME + "/" + "svn-resource" + "/" + UUID.randomUUID()))); inSequence(sequence1);
-				//oneOf(pep).checkSecurity(with(equal(PATH_PROFILE)), with(equal(resourcePath)), with(equal("delete"))); inSequence(sequence1);
+				//oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(resourcePath)), with(equal("delete"))); inSequence(sequence1);
 				
 				oneOf(binding).list(with(equal(resourcePath)));will(returnValue(children)); inSequence(sequence1);
 				
 				oneOf(binding).list(with(equal(resourcePath + "/titi")));will(returnValue(null)); inSequence(sequence1);
-				oneOf(pep).checkSecurity(with(equal(PATH_PROFILE)), with(equal(resourcePath + "/titi")), with(equal("delete"))); inSequence(sequence1);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(resourcePath + "/titi")), with(equal("delete"))); inSequence(sequence1);
 				oneOf(binding).getProperty(with(equal(resourcePath + "/titi")), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); will(returnValue("policeId")); inSequence(sequence1);
 				oneOf(pap).deletePolicy("policeId"); inSequence(sequence1);
 				oneOf(binding).unbind(with(equal(resourcePath + "/titi")));
 				
 				oneOf(binding).list(with(equal(resourcePath + "/toto")));will(returnValue(children2)); inSequence(sequence1);
 				oneOf(binding).list(with(equal(resourcePath + "/toto/tutu")));will(returnValue(null)); inSequence(sequence1);
-				oneOf(pep).checkSecurity(with(equal(PATH_PROFILE)), with(equal(resourcePath + "/toto/tutu")), with(equal("delete"))); inSequence(sequence1);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(resourcePath + "/toto/tutu")), with(equal("delete"))); inSequence(sequence1);
 				oneOf(binding).getProperty(with(equal(resourcePath + "/toto/tutu")), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); will(returnValue("policeId")); inSequence(sequence1);
 				oneOf(pap).deletePolicy("policeId"); inSequence(sequence1);
 				oneOf(binding).unbind(with(equal(resourcePath + "/toto/tutu")));
 				
-				oneOf(pep).checkSecurity(with(equal(PATH_PROFILE)), with(equal(resourcePath + "/toto")), with(equal("delete"))); inSequence(sequence1);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(resourcePath + "/toto")), with(equal("delete"))); inSequence(sequence1);
 				oneOf(binding).getProperty(with(equal(resourcePath + "/toto")), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); will(returnValue("policeId")); inSequence(sequence1);
 				oneOf(pap).deletePolicy("policeId"); inSequence(sequence1);
 				oneOf(binding).unbind(with(equal(resourcePath + "/toto")));
 				
-				oneOf(pep).checkSecurity(with(equal(PATH_PROFILE)), with(equal(resourcePath)), with(equal("delete"))); inSequence(sequence1);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(resourcePath)), with(equal("delete"))); inSequence(sequence1);
 				oneOf(binding).getProperty(with(equal(resourcePath)), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); will(returnValue("policeId")); inSequence(sequence1);
 				oneOf(pap).deletePolicy("policeId"); inSequence(sequence1);
 				oneOf(binding).unbind(with(equal(resourcePath)));
@@ -292,8 +303,9 @@ public class SVNServiceLocalTest extends BaseSessionBeanFixture<SVNServiceBean> 
 			{
 				String resourcePath = "/repo1/" + "subdir".hashCode() + "/" + "subdir2".hashCode();
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(PATH_PROFILE)); inSequence(sequence1);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence1);
 				oneOf(binding).lookup(with(equal(resourcePath))); will(returnValue(FactoryResourceIdentifier.deserialize(SVNService.SERVICE_NAME + "/" + "svn-resource" + "/" + UUID.randomUUID()))); inSequence(sequence1);
-				oneOf(pep).checkSecurity(with(equal(PATH_PROFILE)), with(equal(resourcePath)), with(equal("read"))); inSequence(sequence1);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(resourcePath)), with(equal("read"))); inSequence(sequence1);
 				
 				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("svn.svn-resource.read"))); inSequence(sequence1);
 			}
@@ -319,8 +331,9 @@ public class SVNServiceLocalTest extends BaseSessionBeanFixture<SVNServiceBean> 
 			{
 				String resourcePath = "/repo1/" + "subdir".hashCode() + "/" + "subdir2".hashCode();
 				oneOf(membership).getProfilePathForConnectedIdentifier(); will(returnValue(PATH_PROFILE)); inSequence(sequence1);
+				oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence1);
 				oneOf(binding).lookup(with(equal(resourcePath))); will(returnValue(FactoryResourceIdentifier.deserialize(SVNService.SERVICE_NAME + "/" + SVNRepository.RESOURCE_NAME + "/" + UUID.randomUUID()))); inSequence(sequence1);
-				oneOf(pep).checkSecurity(with(equal(PATH_PROFILE)), with(equal(resourcePath)), with(equal("read"))); inSequence(sequence1);
+				oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(resourcePath)), with(equal("read"))); inSequence(sequence1);
 				
 				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("svn." + SVNRepository.RESOURCE_NAME + ".read"))); inSequence(sequence1);
 			}

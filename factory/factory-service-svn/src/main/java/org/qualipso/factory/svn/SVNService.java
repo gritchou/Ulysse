@@ -6,9 +6,8 @@ import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 
-import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.FactoryNamingConvention;
-import org.qualipso.factory.svn.entity.SVNNode;
+import org.qualipso.factory.FactoryService;
 import org.qualipso.factory.svn.entity.SVNRepository;
 import org.qualipso.factory.svn.exception.SVNServiceException;
 import org.qualipso.factory.svn.utils.SVNConstants;
@@ -39,8 +38,4 @@ public interface SVNService extends FactoryService {
 	
 	@WebMethod
 	public void deleteSVNRepository(String path) throws SVNServiceException;
-	
-	@WebMethod
-	@WebResult(name = "svn-node")
-	public SVNNode readNode(String path);
 }

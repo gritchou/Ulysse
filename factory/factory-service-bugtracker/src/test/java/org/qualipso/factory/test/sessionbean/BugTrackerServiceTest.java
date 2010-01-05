@@ -25,6 +25,7 @@ import org.qualipso.factory.bugtracker.exception.BugTrackerServiceException;
 import org.qualipso.factory.bugtracker.utils.Utils;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.entity.Profile;
+import org.qualipso.factory.notification.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
@@ -162,8 +163,7 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 				oneOf(binding).lookup(with(equal("/profiles/titi"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "2")));
 				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("toto", "fullname_toto"))); inSequence(sequence);
 				//oneOf(membership).readProfile(with(equal("/profiles/titi"))); will(returnValue(generateProfile("titi", "fullname_titi"))); inSequence(sequence);
-				
-				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("issue.read"))); inSequence(sequence);
+				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(BugTrackerService.SERVICE_NAME, Issue.RESOURCE_NAME, "read")))); inSequence(sequence);
 				
 		}
 		});
@@ -247,7 +247,7 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 				//oneOf(forumService).createForum(with(containsString(path + "/issue_")),  with(any(String.class))); inSequence(sequence);
 				//oneOf(documentService).createFolder(with(containsString(path + "/issue_")), with(any(String.class)), with(any(String.class))); inSequence(sequence);
 				
-				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("issue.create"))); inSequence(sequence);
+				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(BugTrackerService.SERVICE_NAME, Issue.RESOURCE_NAME, "create")))); inSequence(sequence);
 				
 		}
 		});
@@ -322,7 +322,7 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 					oneOf(binding).getProperty(with(equal(issuePath)), with(equal(FactoryResourceProperty.POLICY_ID)), with(equal(false))); will(returnValue("policyIdToDelete"));
 					oneOf(pap).deletePolicy(with(equal("policyIdToDelete"))); inSequence(sequence);
 					oneOf(binding).unbind(with(equal(issuePath))); inSequence(sequence);
-					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("issue.delete"))); inSequence(sequence);
+					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(BugTrackerService.SERVICE_NAME, Issue.RESOURCE_NAME, "delete")))); inSequence(sequence);
 					
 			}
 			});
@@ -375,7 +375,7 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 				oneOf(binding).lookup(with(equal("/profiles/titi"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "2")));
 				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("toto", "fullname_toto"))); inSequence(sequence);
 				//oneOf(membership).readProfile(with(equal("/profiles/titi"))); will(returnValue(generateProfile("titi", "fullname_titi"))); inSequence(sequence);
-				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("issue.read"))); inSequence(sequence);
+				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(BugTrackerService.SERVICE_NAME, Issue.RESOURCE_NAME, "read")))); inSequence(sequence);
 				
 		}
 		});
@@ -420,7 +420,7 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
   					oneOf(membership).getConnectedIdentifierSubjects(); will(returnValue(SUBJECTS)); inSequence(sequence);
   					oneOf(pep).checkSecurity(with(equal(SUBJECTS)), with(equal(issuePath)), with(equal("read"))); inSequence(sequence);
   					oneOf(binding).lookup(with(equal(issuePath))); will(returnValue(FactoryResourceIdentifier.deserialize(BugTrackerService.SERVICE_NAME + "/" + Issue.RESOURCE_NAME + "/" + Utils.getIdBugTracker(issuePath))));
-  					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("issue.read"))); inSequence(sequence);
+  					oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(BugTrackerService.SERVICE_NAME, Issue.RESOURCE_NAME, "read")))); inSequence(sequence);
   					
   			}
   			});
@@ -477,7 +477,7 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
 				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				
-				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.allIssues"))); inSequence(sequence);
+				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(BugTrackerService.SERVICE_NAME, Issue.RESOURCE_NAME, "read")))); inSequence(sequence);
 				
 			}
 		});
@@ -540,7 +540,7 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
 				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				
-				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.newIssues"))); inSequence(sequence);
+				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(BugTrackerService.SERVICE_NAME, Issue.RESOURCE_NAME, "read")))); inSequence(sequence);
 				
 			}
 		});
@@ -631,7 +631,7 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
 				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				
-				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.newIssues"))); inSequence(sequence);
+				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(BugTrackerService.SERVICE_NAME, Issue.RESOURCE_NAME, "read")))); inSequence(sequence);
 				
 			}
 		});
@@ -694,7 +694,7 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
 				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				
-				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.modifiedIssues"))); inSequence(sequence);
+				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(BugTrackerService.SERVICE_NAME, Issue.RESOURCE_NAME, "read")))); inSequence(sequence);
 				
 			}
 		});
@@ -783,7 +783,7 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 				oneOf(binding).lookup(with(equal("/profiles/toto"))); will(returnValue(FactoryResourceIdentifier.deserialize(MembershipService.SERVICE_NAME + "/" + Profile.RESOURCE_NAME + "/" + "1")));
 				//oneOf(membership).readProfile(with(equal("/profiles/toto"))); will(returnValue(generateProfile("tutu", "fullname_toto"))); inSequence(sequence);
 				
-				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("project.modifiedIssues"))); inSequence(sequence);
+				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(BugTrackerService.SERVICE_NAME, Issue.RESOURCE_NAME, "read")))); inSequence(sequence);
 				
 			}
 		});
@@ -857,7 +857,7 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 				
 				oneOf(binding).setProperty(with(equal("/test/issue_12")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class))); inSequence(sequence);
 			
-				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("issue.update"))); inSequence(sequence);
+				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(BugTrackerService.SERVICE_NAME, Issue.RESOURCE_NAME, "update")))); inSequence(sequence);
 				
 		}
 		});
@@ -926,7 +926,7 @@ public class BugTrackerServiceTest extends BaseSessionBeanFixture<BugTrackerServ
 				oneOf(binding).setProperty(with(containsString(path + "/issue_")), with(equal(FactoryResourceProperty.OWNER)), with(equal(USER_PATH))); inSequence(sequence);
 				oneOf(binding).setProperty(with(containsString(path + "/issue_")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class))); inSequence(sequence);
 			
-				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("issue.create"))); inSequence(sequence);
+				oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo(Event.buildEventType(BugTrackerService.SERVICE_NAME, Issue.RESOURCE_NAME, "create")))); inSequence(sequence);
 				
 		}
 		});

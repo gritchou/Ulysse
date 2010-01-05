@@ -10,7 +10,7 @@ import javax.xml.ws.WebFault;
  * Generated source version: 2.1
  * 
  */
-@WebFault(name = "InvalidPathException", targetNamespace = "http://org.qualipso.factory.ws/service/browser")
+@WebFault(name = "InvalidPathException", targetNamespace = "http://org.qualipso.factory.ws/service/membership")
 public class InvalidPathException_Exception
     extends Exception
 {

@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlType;
  * <pre>
  * &lt;complexType name="folder">
  *   &lt;complexContent>
- *     &lt;extension base="{http://org.qualipso.factory.ws/service/workflow}factoryResource">
+ *     &lt;extension base="{http://org.qualipso.factory.ws/service/svn}factoryResource">
  *       &lt;sequence>
  *         &lt;element name="name" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *         &lt;element name="description" type="{http://www.w3.org/2001/XMLSchema}string"/>

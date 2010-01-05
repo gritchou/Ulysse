@@ -1,4 +1,4 @@
-package org.qualipso.factory.workflow.bonita.mapper;
+package org.qualipso.factory.workflow.mapper;
 
 import java.util.Set;
 
@@ -7,7 +7,7 @@ import org.ow2.bonita.definition.RoleMapper;
 import org.ow2.bonita.facade.QueryAPIAccessor;
 import org.ow2.bonita.facade.runtime.var.Enumeration;
 import org.ow2.bonita.facade.uuid.ProcessInstanceUUID;
-import org.qualipso.factory.workflow.bonita.hook.ProcessNVUtil;
+import org.qualipso.factory.workflow.hook.ProcessNVUtil;
 
 public class AdminServicesMapper implements RoleMapper
 {

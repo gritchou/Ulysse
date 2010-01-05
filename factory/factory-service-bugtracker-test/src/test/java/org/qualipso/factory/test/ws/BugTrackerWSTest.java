@@ -42,7 +42,6 @@ import org.qualipso.factory.bugtracker.client.ws.Project;
 import org.qualipso.factory.bugtracker.client.ws.ProjectServiceException_Exception;
 import org.qualipso.factory.bugtracker.client.ws.Project_Service;
 import org.qualipso.factory.bugtracker.client.ws.Project_Type;
-import org.qualipso.factory.bugtracker.utils.Utils;
 
 /**
  * 
@@ -107,27 +106,27 @@ public class BugTrackerWSTest {
 			Bootstrap port = new Bootstrap_Service().getBootstrapServiceBeanPort(); 
 			((StubExt) port).setConfigName("Standard WSSecurity Client");
 			port.bootstrap();
-		} catch (BootstrapServiceException_Exception e) {
+		} catch (Exception e) {
 			logger.error("unable to bootstrap factory", e);
 		}*/
 	}
 	
 	@Before
-	public void setup() throws ProjectServiceException_Exception {
+	public void setup() throws Exception {
         //Test if project exist
         try {
-        	Project_Type project = projectService.getProject(PROJECT_PATH);
+        	Project_Type project = projectService.readProject(PROJECT_PATH);
         	logger.debug("setup - Project " + project.getName() + "  exists");
         }
-        catch (ProjectServiceException_Exception e) {
+        catch (Exception e) {
         	// Create Project
         	logger.debug("setup - Project " + PROJECT_PATH + "  doesn't exist -> creation");
         	projectService.createProject(PROJECT_PATH, PROJECT_NAME, "description projet", "license projet");
-        }
+        } 
 	}
 	
 	@After
-	public void teardown() throws ProjectServiceException_Exception, BugTrackerServiceException_Exception {
+	public void teardown() throws ProjectServiceException_Exception, Exception {
 		
 		//Delete issues
 		IssueDtoArray issues = bugTrackerService.getAllIssues(PROJECT_PATH);
@@ -140,9 +139,9 @@ public class BugTrackerWSTest {
 		//Delete project
 		Project_Type project = null;
         try {
-        	project = projectService.getProject(PROJECT_PATH);
+        	project = projectService.readProject(PROJECT_PATH);
         }
-        catch (ProjectServiceException_Exception e) {
+        catch (Exception e) {
         	logger.debug("teardown - project " + PROJECT_PATH + " doesn't exist");
         }
         
@@ -155,16 +154,17 @@ public class BugTrackerWSTest {
     @Test
     public void testCRUD() {
         try {
-            
             /*
              * Test getAllIssue no result
              */
+        	logger.debug("Test getAllIssue no result");
             IssueDtoArray issues = bugTrackerService.getAllIssues(PROJECT_PATH);
             assertTrue(issues.getItem().isEmpty());
             
             /*
              * Test getIssue no result
              */
+            logger.debug("Test getIssue no result");
             IssueDto issue = null;
             try {
             	issue = bugTrackerService.getIssue(PROJECT_PATH, "1");
@@ -177,6 +177,7 @@ public class BugTrackerWSTest {
             /*
              * Create an issue
              */
+            logger.debug("Create an issue");
             String idIssue = bugTrackerService.createIssue(PROJECT_PATH, createIssueDto("summary_test", "description_test"));
             
             assertTrue(idIssue.length() > 0);
@@ -184,12 +185,13 @@ public class BugTrackerWSTest {
             /*
              * Get An issue
              */
+            logger.debug("Get An issue");
             issue = bugTrackerService.getIssue(PROJECT_PATH, idIssue);
             
             //Check result
             assertEquals(idIssue, issue.getNum());
             assertEquals(PROJECT_PATH, issue.getProjectPath());
-            assertEquals(Utils.generatePathIssueFactory(PROJECT_PATH, idIssue), issue.getIssuePath());
+            assertEquals(generatePathIssueFactory(PROJECT_PATH, idIssue), issue.getIssuePath());
             assertEquals("summary_test", issue.getSummary());
             assertEquals("description_test", issue.getDescription());
             long dateCreation = issue.getDateLastUpdate();
@@ -208,6 +210,7 @@ public class BugTrackerWSTest {
             /*
              * Get AllIssues (1 result)
              */
+            logger.debug("Get AllIssues (1 result)");
             issues = bugTrackerService.getAllIssues(PROJECT_PATH);
             assertEquals(1, issues.getItem().size());
             issue = issues.getItem().get(0);
@@ -215,7 +218,7 @@ public class BugTrackerWSTest {
             //Check result
             assertEquals(idIssue, issue.getNum());
             assertEquals(PROJECT_PATH, issue.getProjectPath());
-            assertEquals(Utils.generatePathIssueFactory(PROJECT_PATH, idIssue), issue.getIssuePath());
+            assertEquals(generatePathIssueFactory(PROJECT_PATH, idIssue), issue.getIssuePath());
             assertEquals("summary_test", issue.getSummary());
             assertEquals("description_test", issue.getDescription());
             assertTrue(issue.getDateLastUpdate() > 0);
@@ -233,6 +236,7 @@ public class BugTrackerWSTest {
             /*
              * Update Issue
              */
+            logger.debug("Update Issue");
             issue.setDescription("description_test_modif");
             issue.setSummary("summary_test_modif");
             issue.setAssignee(PROFILE_GUEST);
@@ -244,7 +248,7 @@ public class BugTrackerWSTest {
             
             assertEquals(idIssue, issue.getNum());
             assertEquals(PROJECT_PATH, issue.getProjectPath());
-            assertEquals(Utils.generatePathIssueFactory(PROJECT_PATH, idIssue), issue.getIssuePath());
+            assertEquals(generatePathIssueFactory(PROJECT_PATH, idIssue), issue.getIssuePath());
             assertEquals("summary_test_modif", issue.getSummary());
             assertEquals("description_test_modif", issue.getDescription());
             assertTrue(issue.getDateLastUpdate() > dateCreation);
@@ -260,19 +264,21 @@ public class BugTrackerWSTest {
             assertTrue(issue.getDateLastUpdate() > 0);
             
             /*
-             * Update Issue (Assigne null)
+             * Update Issue (Assigned null)
              */
+            logger.debug("Update Issue (Assigned null)");
             issue.setAssignee(null);
             
             bugTrackerService.updateIssue(issue);
             
-          //Check result
+            //Check result
             issue = bugTrackerService.getIssue(PROJECT_PATH, idIssue);
             assertNull(issue.getAssignee());
             
             /*
              * Delete issue
              */
+            logger.debug("Delete issue");
             bugTrackerService.deleteIssue(PROJECT_PATH, idIssue);
             
             //Check result
@@ -282,6 +288,7 @@ public class BugTrackerWSTest {
             /*
              * Get AllIssues (3 result)
              */
+            logger.debug("Get AllIssues (3 results)");
             Set<String> idsIssuesExpected = new HashSet<String>();
             String idIssue1 = bugTrackerService.createIssue(PROJECT_PATH, createIssueDto("summary_test_1", "description_test_1"));
             idsIssuesExpected.add(idIssue1);
@@ -302,6 +309,7 @@ public class BugTrackerWSTest {
             /*
              * Get new Issues
              */
+            logger.debug("Get new Issues");
             IssueDto dto = bugTrackerService.getIssue(PROJECT_PATH, idIssue2);
             XMLGregorianCalendar dateCreationIssue2 = dto.getDateCreation();
             List<String> idsExpected = new ArrayList<String>();
@@ -317,6 +325,7 @@ public class BugTrackerWSTest {
             /*
              * Get Modified Issue
              */
+            logger.debug("Get Modified Issue");
             //Update Issue1
             dto = bugTrackerService.getIssue(PROJECT_PATH, idIssue1);
             bugTrackerService.updateIssue(dto);
@@ -336,8 +345,9 @@ public class BugTrackerWSTest {
             
             
             /*
-             * test getIssueAttributes
+             * getIssueAttributes
              */
+            logger.debug("getIssueAttributes");
             IssueAttributesDto attributes = bugTrackerService.getIssueAttributes();
         	
         	assertEquals(6, attributes.getPriorities().size());
@@ -365,5 +375,20 @@ public class BugTrackerWSTest {
     	dto.setAssignee(PROFILE_ROOT);
     	return dto;
     }
+    
+	/**
+	 * Method to generate an issue path in the factory
+	 * @param projectPath path of the project in the factory
+	 * @param idBugtracker id obtained by the bugtracker
+	 * @return Issue path
+	 */
+	private String generatePathIssueFactory(String projectPath, String idBugtracker) {
+		
+		StringBuffer sb = new StringBuffer(projectPath);
+		sb.append("/");
+		sb.append("issue_");
+		sb.append(idBugtracker);
+		return sb.toString();
+	}
 
 }

@@ -52,7 +52,7 @@ public abstract class AbstractServiceExecutor {
 		super();
 		try {
 			Context ctx = new InitialContext();
-			this.serviceLocal = (SVNServiceLocal) ctx.lookup(FactoryNamingConvention.getLocalJNDINameForService(SVNConstants.SVN_SERVICE_NAME));
+			this.serviceLocal = (SVNServiceLocal) ctx.lookup(FactoryNamingConvention.getJNDINameForLocalService(SVNConstants.SVN_SERVICE_NAME));
 		}
 		catch (NamingException e) {
 			logger.error("NamingException", e);

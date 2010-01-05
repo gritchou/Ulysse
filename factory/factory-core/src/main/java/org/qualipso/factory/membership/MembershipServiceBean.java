@@ -35,6 +35,7 @@ import javax.persistence.PersistenceContext;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jboss.ejb3.annotation.LocalBinding;
 import org.jboss.ejb3.annotation.SecurityDomain;
 import org.jboss.ws.annotation.EndpointConfig;
 import org.jboss.wsf.spi.annotation.WebContext;
@@ -50,10 +51,13 @@ import org.qualipso.factory.binding.PathAlreadyBoundException;
 import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.binding.PathNotEmptyException;
 import org.qualipso.factory.binding.PathNotFoundException;
+import org.qualipso.factory.indexing.IndexableContent;
+import org.qualipso.factory.indexing.IndexableService;
+import org.qualipso.factory.indexing.IndexingService;
 import org.qualipso.factory.membership.entity.Group;
 import org.qualipso.factory.membership.entity.Profile;
 import org.qualipso.factory.membership.entity.ProfileInfo;
-import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.notification.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.auth.AuthenticationService;
 import org.qualipso.factory.security.pap.PAPService;
@@ -73,19 +77,19 @@ import org.qualipso.factory.security.pep.PEPService;
  * @date 8 june 2009
  */
 @Stateless(name = MembershipService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + MembershipService.SERVICE_NAME)
-@WebService(endpointInterface = "org.qualipso.factory.membership.MembershipService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE
-		+ MembershipService.SERVICE_NAME, serviceName = MembershipService.SERVICE_NAME)
-@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX
-		+ MembershipService.SERVICE_NAME)
+@LocalBinding(jndiBinding = FactoryNamingConvention.LOCAL_SERVICE_PREFIX + MembershipService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.membership.MembershipService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + MembershipService.SERVICE_NAME, serviceName = MembershipService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + MembershipService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
-public class MembershipServiceBean implements MembershipService {
+public class MembershipServiceBean implements MembershipService, IndexableService {
 	private static Log logger = LogFactory.getLog(MembershipServiceBean.class);
 	private PEPService pep;
 	private PAPService pap;
 	private BindingService binding;
 	private NotificationService notification;
+	private IndexingService indexing;
 	private AuthenticationService authentication;
 	private SessionContext ctx;
 	private EntityManager em;
@@ -145,6 +149,15 @@ public class MembershipServiceBean implements MembershipService {
 
 	public NotificationService getNotificationService() {
 		return this.notification;
+	}
+
+	@EJB
+	public void setIndexingService(IndexingService indexing) {
+		this.indexing = indexing;
+	}
+
+	public IndexingService getIndexingService() {
+		return this.indexing;
 	}
 
 	@EJB
@@ -243,9 +256,9 @@ public class MembershipServiceBean implements MembershipService {
 			binding.setProperty(path, FactoryResourceProperty.OWNER, path);
 			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
 
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
-					"create"), ""));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "create"), ""));
 
+			indexing.index(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -261,16 +274,25 @@ public class MembershipServiceBean implements MembershipService {
 		}
 
 	}
+	
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
 	public Profile readProfile(String path) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
+		return readProfile(path, false);
+	}
+	
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	private Profile readProfile(String path, boolean bypassSecurity) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.info("readProfile(...) called");
 		logger.debug("params : path=" + path);
 
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "read");
+			
+			if (!bypassSecurity) {
+				pep.checkSecurity(getConnectedIdentifierSubjects(), path, "read");
+			}
 
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Profile.RESOURCE_NAME);
@@ -283,8 +305,7 @@ public class MembershipServiceBean implements MembershipService {
 
 			profile.setResourcePath(path);
 
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
-					"read"), ""));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "read"), ""));
 
 			return profile;
 		} catch (AccessDeniedException e) {
@@ -323,8 +344,9 @@ public class MembershipServiceBean implements MembershipService {
 			em.merge(profile);
 
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
-					"update"), ""));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "update"), ""));
+			
+			indexing.reindex(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -364,8 +386,9 @@ public class MembershipServiceBean implements MembershipService {
 			em.merge(profile);
 
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
-					"update"), ""));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "update"), ""));
+			
+			indexing.reindex(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -404,8 +427,9 @@ public class MembershipServiceBean implements MembershipService {
 			em.merge(profile);
 
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
-					"update"), ""));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "update"), ""));
+			
+			indexing.reindex(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -445,8 +469,9 @@ public class MembershipServiceBean implements MembershipService {
 			
 			binding.unbind(path);
 			
-			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
-					"delete"), ""));
+			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME, "delete"), ""));
+			
+			indexing.remove(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -490,6 +515,8 @@ public class MembershipServiceBean implements MembershipService {
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
 			notification.throwEvent(new Event(path, caller, Profile.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Profile.RESOURCE_NAME,
 					"set-info"), "name:" + name + ", value:" + value));
+			
+			indexing.reindex(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -513,8 +540,9 @@ public class MembershipServiceBean implements MembershipService {
 
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
+			
 			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "read");
-
+			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Profile.RESOURCE_NAME);
 
@@ -542,7 +570,7 @@ public class MembershipServiceBean implements MembershipService {
 			throw new MembershipServiceException("unable to get info for profile at path: " + path, e);
 		}
 	}
-
+	
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
 	public ProfileInfo[] listProfileInfos(String path) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
@@ -551,6 +579,7 @@ public class MembershipServiceBean implements MembershipService {
 
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
+			
 			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "read");
 
 			FactoryResourceIdentifier identifier = binding.lookup(path);
@@ -617,6 +646,8 @@ public class MembershipServiceBean implements MembershipService {
 
 			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME,
 					"create"), ""));
+			
+			indexing.index(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -635,12 +666,20 @@ public class MembershipServiceBean implements MembershipService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
 	public Group readGroup(String path) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
+		return readGroup(path, false);
+	}
+	
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	private Group readGroup(String path, boolean bypassSecurity) throws MembershipServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.warn("readGroup(...) called");
 		logger.debug("params : path=" + path);
 
 		try {
 			String caller = getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(getConnectedIdentifierSubjects(), path, "read");
+			
+			if (!bypassSecurity) {
+				pep.checkSecurity(getConnectedIdentifierSubjects(), path, "read");
+			}
 
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			checkResourceType(identifier, Group.RESOURCE_NAME);
@@ -694,6 +733,8 @@ public class MembershipServiceBean implements MembershipService {
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
 			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME,
 					"update"), ""));
+			
+			indexing.reindex(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -735,6 +776,8 @@ public class MembershipServiceBean implements MembershipService {
 			
 			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME,
 					"delete"), ""));
+			
+			indexing.remove(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -791,6 +834,9 @@ public class MembershipServiceBean implements MembershipService {
 			binding.setProperty(member, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
 			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME,
 					"add-member"), ""));
+			
+			indexing.reindex(path);
+			indexing.reindex(member);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -844,6 +890,9 @@ public class MembershipServiceBean implements MembershipService {
 			binding.setProperty(member, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
 			notification.throwEvent(new Event(path, caller, Group.RESOURCE_NAME, Event.buildEventType(MembershipService.SERVICE_NAME, Group.RESOURCE_NAME,
 					"remove-member"), ""));
+			
+			indexing.reindex(path);
+			indexing.reindex(member);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -1012,4 +1061,40 @@ public class MembershipServiceBean implements MembershipService {
 
 		throw new MembershipServiceException("resource " + identifier + " is not managed by service " + MembershipService.SERVICE_NAME);
 	}
+	
+	@Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public IndexableContent getIndexableContent(String path) throws FactoryException {
+        logger.info("getIndexableContent(...) called");
+        logger.debug("params : path=" + path);
+        
+        FactoryResourceIdentifier identifier = binding.lookup(path);
+        
+        if (!identifier.getService().equals(MembershipService.SERVICE_NAME)) {
+			throw new MembershipServiceException("resource " + identifier + " is not managed by service " + MembershipService.SERVICE_NAME);
+		}
+
+        IndexableContent content = new IndexableContent();
+        
+        if (identifier.getType().equals(Group.RESOURCE_NAME)) {
+			Group group = readGroup(path, true);
+			content.addContentPart(group.getName());
+			content.addContentPart(group.getDescription());
+			content.addContentPart(group.getMembersList());
+			return content;
+		}
+
+		if (identifier.getType().equals(Profile.RESOURCE_NAME)) {
+			Profile profile = readProfile(path, true);
+			content.addContentPart(profile.getFullname());
+			content.addContentPart(profile.getEmail());
+			content.addContentPart(profile.getGroupsList());
+			for ( String key : profile.getProfileInfos().keySet() ) {
+				content.addContentPart(key + ":" + profile.getProfileInfo(key));
+			}
+			return content;
+		}
+
+		throw new MembershipServiceException("resource " + identifier + " is not managed by service " + MembershipService.SERVICE_NAME);
+    }
 }

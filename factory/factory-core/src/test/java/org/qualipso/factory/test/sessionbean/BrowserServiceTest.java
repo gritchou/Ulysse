@@ -70,6 +70,66 @@ public class BrowserServiceTest extends BaseSessionBeanFixture<BrowserServiceBea
         getBeanToTest().setPEPService(pep);
         getBeanToTest().setPAPService(pap);
     }
+    
+    public void testExists() {
+        logger.debug("testing exists(...)");
+
+        final Sequence sequence1 = mockery.sequence("sequence1");
+
+        try {
+            mockery.checking(new Expectations() {
+
+                    {
+                        oneOf(membership).getProfilePathForConnectedIdentifier();
+                        will(returnValue("/profiles/jayblanc"));
+                        inSequence(sequence1);
+                        oneOf(membership).getConnectedIdentifierSubjects();
+                        will(returnValue(new String[] { "/profiles/jayblanc" }));
+                        inSequence(sequence1);
+                        oneOf(pep).checkSecurity(with(equal(new String[] { "/profiles/jayblanc" })), with(equal("/toto/titi")), with(equal("read")));
+                        inSequence(sequence1);
+                        oneOf(membership).getConnectedIdentifierSubjects();
+                        will(returnValue(new String[] { "/profiles/jayblanc" }));
+                        inSequence(sequence1);
+                        oneOf(pep).checkSecurity(with(equal(new String[] { "/profiles/jayblanc" })), with(equal("/toto")), with(equal("read")));
+                        inSequence(sequence1);
+                        oneOf(binding).lookup(with(any(String.class)));
+                        will(returnValue(new FactoryResourceIdentifier("Servcie", "Type", "ID")));
+                        inSequence(sequence1);
+                        oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("browser.resource.exists")));
+                        inSequence(sequence1);
+                        
+                        oneOf(membership).getProfilePathForConnectedIdentifier();
+                        will(returnValue("/profiles/jayblanc"));
+                        inSequence(sequence1);
+                        oneOf(membership).getConnectedIdentifierSubjects();
+                        will(returnValue(new String[] { "/profiles/jayblanc" }));
+                        inSequence(sequence1);
+                        oneOf(pep).checkSecurity(with(equal(new String[] { "/profiles/jayblanc" })), with(equal("/")), with(equal("read")));
+                        inSequence(sequence1);
+                        oneOf(membership).getConnectedIdentifierSubjects();
+                        will(returnValue(new String[] { "/profiles/jayblanc" }));
+                        inSequence(sequence1);
+                        oneOf(pep).checkSecurity(with(equal(new String[] { "/profiles/jayblanc" })), with(equal("/")), with(equal("read")));
+                        inSequence(sequence1);
+                        oneOf(binding).lookup(with(any(String.class)));
+                        will(returnValue(new FactoryResourceIdentifier("Servcie", "Type", "ID")));
+                        inSequence(sequence1);
+                        oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("browser.resource.exists")));
+                        inSequence(sequence1);
+                    }
+                });
+
+            BrowserService service = getBeanToTest();
+            assertTrue(service.exists("/toto/titi"));
+            assertTrue(service.exists("/"));
+            mockery.assertIsSatisfied();
+            
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            fail(e.getMessage());
+        }
+    }
 
     public void testHasChildren() {
         logger.debug("testing hasChildren(...)");
@@ -98,6 +158,8 @@ public class BrowserServiceTest extends BaseSessionBeanFixture<BrowserServiceBea
 
             BrowserService service = getBeanToTest();
             assertTrue(service.hasChildren("/"));
+            mockery.assertIsSatisfied();
+            
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             fail(e.getMessage());
@@ -131,6 +193,8 @@ public class BrowserServiceTest extends BaseSessionBeanFixture<BrowserServiceBea
 
             BrowserService service = getBeanToTest();
             assertTrue(service.listChildren("/").length == 3);
+            mockery.assertIsSatisfied();
+            
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             fail(e.getMessage());
@@ -219,6 +283,8 @@ public class BrowserServiceTest extends BaseSessionBeanFixture<BrowserServiceBea
             assertTrue(service.listChildrenOfType("/", "ForumService", ".*").length == 1);
             assertTrue(service.listChildrenOfType("/", "CoreService", ".*").length == 3);
             assertTrue(service.listChildrenOfType("/", "CoreService", "Folder").length == 2);
+            mockery.assertIsSatisfied();
+            
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             fail(e.getMessage());

@@ -1,4 +1,4 @@
-package org.qualipso.factory.workflow.bonita.hook;
+package org.qualipso.factory.workflow.hook;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

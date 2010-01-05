@@ -161,7 +161,7 @@ public class ProjectServiceTest extends BaseSessionBeanFixture<ProjectServiceBea
 				}
 			});
 			
-			Project project = getBeanToTest().getProject("/projects/test");
+			Project project = getBeanToTest().readProject("/projects/test");
 			assertTrue(project.getResourcePath().equals("/projects/test"));
 			assertTrue(project.getName().equals("projectTest"));
 			assertTrue(project.getSummary().equals("this is a test"));
@@ -242,7 +242,7 @@ public class ProjectServiceTest extends BaseSessionBeanFixture<ProjectServiceBea
 				}
 			});
 			
-			Project project = getBeanToTest().getProject("/projects/test");
+			Project project = getBeanToTest().readProject("/projects/test");
 			assertTrue(project.getResourcePath().equals("/projects/test"));
 			assertTrue(project.getName().equals("projectTestUpdate"));
 			assertTrue(project.getSummary().equals("this is a test update"));
@@ -329,7 +329,7 @@ public class ProjectServiceTest extends BaseSessionBeanFixture<ProjectServiceBea
 				}
 			});
 			
-			Project project = getBeanToTest().getProject("/projects/test");
+			Project project = getBeanToTest().readProject("/projects/test");
 			assertTrue(project.getResourcePath().equals("/projects/test"));
 			assertTrue(project.getName().equals("projectTest"));
 			assertTrue(project.getSummary().equals("this is a test"));

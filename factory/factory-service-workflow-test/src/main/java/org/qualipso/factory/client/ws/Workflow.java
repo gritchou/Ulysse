@@ -43,9 +43,9 @@ public interface Workflow {
      * @param arg0
      * @return
      *     returns org.qualipso.factory.client.ws.FactoryResource
-     * @throws PathNotFoundException_Exception
      * @throws FactoryException_Exception
      * @throws InvalidPathException_Exception
+     * @throws PathNotFoundException_Exception
      * @throws AccessDeniedException_Exception
      */
     @WebMethod
@@ -79,30 +79,36 @@ public interface Workflow {
      * @param arg0
      * @return
      *     returns org.qualipso.factory.client.ws.BonitaArray
+     * @throws BonitaServiceException_Exception
+     * @throws PathAlreadyBoundException_Exception
+     * @throws InvalidPathException_Exception
+     * @throws AccessDeniedException_Exception
      */
     @WebMethod
     @WebResult(partName = "return")
     public BonitaArray getTasksReadyForProfile(
         @WebParam(name = "arg0", partName = "arg0")
-        String arg0);
+        String arg0)
+        throws AccessDeniedException_Exception, BonitaServiceException_Exception, InvalidPathException_Exception, PathAlreadyBoundException_Exception
+    ;
 
     /**
      * 
-     * @return
-     *     returns java.lang.String
-     */
-    @WebMethod
-    @WebResult(partName = "return")
-    public String getUserConnected();
-
-    /**
-     * 
+     * @param arg0
      * @return
      *     returns org.qualipso.factory.client.ws.ProcessInstanceUUID
+     * @throws BonitaServiceException_Exception
+     * @throws PathAlreadyBoundException_Exception
+     * @throws InvalidPathException_Exception
+     * @throws AccessDeniedException_Exception
      */
     @WebMethod
     @WebResult(partName = "return")
-    public ProcessInstanceUUID instantiateProjectWorkflow();
+    public ProcessInstanceUUID instantiateProjectWorkflow(
+        @WebParam(name = "arg0", partName = "arg0")
+        String arg0)
+        throws AccessDeniedException_Exception, BonitaServiceException_Exception, InvalidPathException_Exception, PathAlreadyBoundException_Exception
+    ;
 
     /**
      * 

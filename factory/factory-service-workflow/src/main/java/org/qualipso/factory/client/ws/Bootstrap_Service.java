@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.1
  * 
  */
-@WebServiceClient(name = "bootstrap", targetNamespace = "http://org.qualipso.factory.ws/service/bootstrap", wsdlLocation = "http://localhost:8080/factory-core/bootstrap?wsdl")
+@WebServiceClient(name = "bootstrap", targetNamespace = "http://org.qualipso.factory.ws/service/bootstrap", wsdlLocation = "http://localhost:8280/factory-core/bootstrap?wsdl")
 public class Bootstrap_Service
     extends Service
 {
@@ -30,9 +30,9 @@ public class Bootstrap_Service
         try {
             URL baseUrl;
             baseUrl = org.qualipso.factory.client.ws.Bootstrap_Service.class.getResource(".");
-            url = new URL(baseUrl, "http://localhost:8080/factory-core/bootstrap?wsdl");
+            url = new URL(baseUrl, "http://localhost:8280/factory-core/bootstrap?wsdl");
         } catch (MalformedURLException e) {
-            logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:8080/factory-core/bootstrap?wsdl', retrying as a local file");
+            logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:8280/factory-core/bootstrap?wsdl', retrying as a local file");
             logger.warning(e.getMessage());
         }
         BOOTSTRAP_WSDL_LOCATION = url;

@@ -33,7 +33,7 @@ import org.qualipso.factory.client.test.performance.AllPerfTest;
  */
 @RunWith(Suite.class)
 @SuiteClasses(value =  {
-    AllSBTests.class, AllWSTests.class, AllPerfTest.class}
+    AllSBTests.class, AllWSTests.class}
 )
 public class AllTests {
     public static final String ROOT_ACCOUNT_PASS = "root";

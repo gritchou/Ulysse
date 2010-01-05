@@ -12,7 +12,7 @@
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-bugtracker</artifactId>
 	<name>BugTracker services implementation</name>
-	<version>0.2.4-SNAPSHOT</version>
+	<version>0.2.4</version>
 	<packaging>ejb</packaging>
 
 	<scm>

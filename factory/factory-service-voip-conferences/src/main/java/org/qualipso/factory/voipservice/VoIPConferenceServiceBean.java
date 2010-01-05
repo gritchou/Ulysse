@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -28,11 +29,22 @@ import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
+import org.qualipso.factory.binding.InvalidPathException;
+import org.qualipso.factory.binding.PathAlreadyBoundException;
+import org.qualipso.factory.binding.PathNotFoundException;
+import org.qualipso.factory.collaboration.calendar.CalendarService;
+import org.qualipso.factory.collaboration.calendar.CalendarServiceException;
+import org.qualipso.factory.collaboration.calendar.entity.CalendarItem;
+import org.qualipso.factory.collaboration.ws.CalendarWSBean;
+import org.qualipso.factory.collaboration.ws.CalendarWService;
 import org.qualipso.factory.core.CoreService;
+import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.notification.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
+import org.qualipso.factory.security.pap.PAPServiceHelper;
+import org.qualipso.factory.security.pep.AccessDeniedException;
 import org.qualipso.factory.security.pep.PEPService;
 import org.qualipso.factory.voipservice.conference.AsteriskConferenceManagement;
 import org.qualipso.factory.voipservice.conference.AsteriskConferenceSettings;
@@ -75,6 +87,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	private MembershipService membership;
 	private SessionContext ctx;
 	private EntityManager em;
+
 	private AuthData authData;
 	
 	//#############################################################################################
@@ -154,7 +167,21 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	public MembershipService getMembershipService() {
 		return this.membership;
 	}
-	
+
+	public void updateAuthData() {
+	    	log.debug("### init authData");
+	    	log.debug("### init notification=" + notification);
+	    	log.debug("### init membership=" + membership);
+	    	
+	    	this.authData = new AuthData();
+	    	this.authData.setCore(core);
+	    	this.authData.setMembership(membership);
+	    	this.authData.setPap(pap);
+	    	this.authData.setPep(pep);
+	    	this.authData.setBinding(binding);
+	    	this.authData.setNotification(notification);
+	}
+
 	//#############################################################################################
 	/*
 	 *  CONSTURCTOR
@@ -165,8 +192,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	 */
 	public VoIPConferenceServiceBean() throws VoIPConferenceServiceException {
 		try {
-		    	authData = new AuthData();
-		    	authData.setCoreService(core);
+		    	updateAuthData();		    	
 			AsteriskJavaListener.getInstance();
 		} catch (Exception e) {
 			// noop
@@ -181,6 +207,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean kickUser(String userId, String pass, Integer confNo, Integer userConferenceId) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceManagement acm = new AsteriskConferenceManagement(userId, pass, authData);
 		return acm.kickUser(userId, pass, confNo, userConferenceId);
 	}
@@ -188,6 +215,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean banUser(String userId, String pass, Integer confNo, Integer userConferenceId) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceManagement acm = new AsteriskConferenceManagement(userId, pass, authData);
 		boolean status = false;
 		try {
@@ -201,6 +229,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean unbanUser(String userId, String pass, Integer confNo, String voipUsername) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceManagement acm = new AsteriskConferenceManagement(userId, pass, authData);
 		return acm.unbanUser(userId, pass, confNo, voipUsername);
 	}
@@ -208,6 +237,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean isUserBanned(String userId, String pass, Integer confNo, Integer userConferenceId) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceStatus acs = new AsteriskConferenceStatus(userId, pass, authData);
 		return acs.isUserBanned(userId, pass, confNo, userConferenceId);
 	}
@@ -215,6 +245,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public String[] listBannedUsers(String userId, String pass, Integer confNo) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceSettings acs = new AsteriskConferenceSettings(userId, pass, authData);
 		return acs.listBannedUsers(userId, confNo);
 	}
@@ -222,6 +253,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean muteUser(String userId, String pass, Integer confNo, Integer userConferenceId) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceManagement acm = new AsteriskConferenceManagement(userId, pass, authData);
 		return acm.muteUser(userId, pass, confNo, userConferenceId);
 	}
@@ -229,6 +261,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean unmuteUser(String userId, String pass, Integer confNo, Integer userConferenceId) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceManagement acm = new AsteriskConferenceManagement(userId, pass, authData);
 		return acm.unmuteUser(userId, pass, confNo, userConferenceId);
 	}	
@@ -236,6 +269,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean isUserMuted(String userId, String pass, Integer confNo, Integer userConferenceId) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceStatus acs = new AsteriskConferenceStatus(userId, pass, authData);
 		return acs.isUserMuted(userId, pass, confNo, userConferenceId);
 	}	
@@ -243,6 +277,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean isUserTalking(String userId, String pass, Integer confNo, Integer userConferenceId) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceStatus acs = new AsteriskConferenceStatus(userId, pass, authData);
 		return acs.isUserTalking(userId, pass, confNo, userConferenceId);
 	}	
@@ -255,6 +290,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean lockConf(String userId, String pass, Integer confNo) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceManagement acm = new AsteriskConferenceManagement(userId, pass, authData);
 		return acm.lockConf(userId, pass, confNo);
 	}
@@ -262,6 +298,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean unlockConf(String userId, String pass, Integer confNo) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceManagement acm = new AsteriskConferenceManagement(userId, pass, authData);
 		return acm.unlockConf(userId, pass, confNo);
 	}
@@ -269,6 +306,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean endConference(String userId, String pass, Integer confNo) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferences ac = new AsteriskConferences(userId, pass, authData);
 		return ac.endConference(userId, pass, confNo);
 	}
@@ -279,6 +317,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public String[] listUsers(String userId, String pass) throws VoIPConferenceServiceException {
+	    updateAuthData();
 		new AuthenticationModule(userId, pass, authData);
 		return AsteriskConferenceUtils.listUsers();
 	}
@@ -289,6 +328,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 			String voipUsername,
 			String secret, String email, String firstname, String lastname,
 			String qualipsoUserId) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		new AuthenticationModule(userId, pass, authData);
 		try {
 			if (AuthenticationModule.isSuperUser(userId, pass)) {
@@ -311,6 +351,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean deactivateVoipProfile(String userId, String pass, String voipUsername) throws VoIPConferenceServiceException {
+	    	updateAuthData();	
 		new AuthenticationModule(userId, pass, authData);
 
 		if (AuthenticationModule.isSuperUser(userId, pass)) {
@@ -324,6 +365,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean isVoIPProfileExists(String userId, String pass, String voipUsername) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		EntityManager em = AsteriskConferenceUtils.getEntityManager();
 		em.getTransaction().begin();
 
@@ -349,6 +391,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public String loginStatus(String userId, String pass, String confNo) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		boolean logged = false;
 		try {
 			logged = AuthenticationModule.authenticate(userId, pass, authData);
@@ -364,6 +407,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public String getVoipUsername(String userId, String pass, Integer confNo, Integer userConferenceId) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceStatus acs = new AsteriskConferenceStatus(userId, pass, authData);
 		return acs.getUserName(userId, pass, confNo, userConferenceId);
 	}
@@ -371,6 +415,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public String usernameFromQualipsoUsers(String userId, String pass, String voipUsername) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		String result = "";
 		try {
 			EntityManager em = AsteriskConferenceUtils.getEntityManager();
@@ -404,10 +449,11 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 			String owner, short accessType, boolean permanent, String pin,
 			String adminpin, Long startDate, Long endDate, Integer maxUsers,
 			String name, String agenda, boolean recorded) throws VoIPConferenceServiceException {
-		AsteriskConferenceSettings acs = new AsteriskConferenceSettings(userId, pass, authData);
+	    	updateAuthData();
+	    	AsteriskConferenceSettings acs = new AsteriskConferenceSettings(userId, pass, authData);
 		return acs.editConference(userId, pass, confNo, owner, accessType,
 				permanent, pin, adminpin, startDate, endDate, maxUsers, name,
-				agenda, recorded);
+				agenda, recorded, authData);
 	}
 	
 	@Override
@@ -416,7 +462,8 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 			String owner, short accessType, boolean permanent, String pin,
 			String adminpin, String startDateHR, String endDateHR, Integer maxUsers,
 			String name, String agenda, boolean recorded) throws VoIPConferenceServiceException {
-		AsteriskConferenceSettings acs = new AsteriskConferenceSettings(userId, pass, authData);
+	    	updateAuthData();
+	    	AsteriskConferenceSettings acs = new AsteriskConferenceSettings(userId, pass, authData);
 
 		SimpleDateFormat sf = (new SimpleDateFormat("yyyy-MM-dd HH:mm"));
 		Long start = new Long(0);
@@ -439,7 +486,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 
 		return acs.editConference(userId, pass, confNo, owner, accessType,
 				permanent, pin, adminpin, start, end, maxUsers, name,
-				agenda, recorded);
+				agenda, recorded, authData);
 	}
 
 	@Override
@@ -448,6 +495,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 			short accessType, boolean permanent, String pin, String adminpin,
 			Long startDate, Long endDate, Integer maxUsers, String name,
 			String agenda, boolean recorded, String project) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferences ac = new AsteriskConferences(userId, pass, authData);
 		return ac.createConference(userId, pass, owner, accessType, permanent,
 				pin, adminpin, startDate, endDate, maxUsers, name, agenda,
@@ -460,6 +508,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 			short accessType, boolean permanent, String pin, String adminpin,
 			String startDateHR, String endDateHR, Integer maxUsers,
 			String name, String agenda, boolean recorded, String project) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferences ac = new AsteriskConferences(userId, pass, authData);
 
 		SimpleDateFormat sf = (new SimpleDateFormat("yyyy-MM-dd HH:mm"));
@@ -491,6 +540,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean addUserToConference(String userId, String pass, String voipUsername, Integer confNo) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceSettings acmet = new AsteriskConferenceSettings(userId, pass, authData);
 		return acmet.addUserToConference(userId, pass, voipUsername, confNo);
 	}
@@ -498,6 +548,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean removeUserFromConference(String userId, String pass, String voipUsername, Integer confNo) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceSettings acs = new AsteriskConferenceSettings(userId, pass, authData);
 		return acs.removeUserFromConference(userId, pass, voipUsername, confNo);
 	}	
@@ -505,7 +556,8 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public ConferenceDetails getConferenceDetails(String userId, String pass, Integer confNo) throws VoIPConferenceServiceException {
-		AsteriskConferenceSettings acmet = new AsteriskConferenceSettings(userId, pass, authData);
+	    	updateAuthData();
+	    	AsteriskConferenceSettings acmet = new AsteriskConferenceSettings(userId, pass, authData);
 		return acmet.getConferenceDetails(userId, pass, confNo, authData);
 	}
 	
@@ -513,6 +565,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public ConferenceDetails[] getConferencesDetailsList(String userId, String pass, String voipUsername, String type, 
 		String project) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		Integer[] list = null;
 
 		log.debug("type=" + type);
@@ -545,13 +598,15 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public Integer removeConference(String userId, String pass, Integer confNumber) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferences ac = new AsteriskConferences(userId, pass, authData);
-		return ac.removeConference(userId, pass, confNumber);
+		return ac.removeConference(userId, pass, confNumber, authData);
 	}
 	
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public Integer[] listParticipants(String userId, String pass, Integer confNo) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceStatus acs = new AsteriskConferenceStatus(userId, pass, authData);
 		return acs.listParticipants(userId, pass, confNo);
 	}
@@ -559,6 +614,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public ParticipantsInfo[] getParticipantsListHR(String userId, String pass,Integer confNo) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		ArrayList<ParticipantsInfo> partList = new ArrayList<ParticipantsInfo>();
 
 		try {
@@ -585,6 +641,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public String[] listInvitedUsers(String userId, String pass, Integer confNo) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceSettings acs = new AsteriskConferenceSettings(userId, pass, authData);
 		return acs.listInvitedUsers(userId, confNo);
 	}
@@ -592,6 +649,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public Integer[] listConfferences(String userId, String pass, String project) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferences ac = new AsteriskConferences(userId, pass, authData);
 		return ac.listConfferences(userId, project);
 	}
@@ -599,6 +657,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean isPastConference(String userId, String pass, String voipUsername, Integer confNo, String project) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		Integer[] past = listPastConfferences(userId, pass, voipUsername, project);
 		int length = past.length;
 		for (int i = 0; i < length; ++i) {
@@ -612,6 +671,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public Integer[] listPastConfferences(String userId, String pass, String voipUsername, String project) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferences ac = new AsteriskConferences(userId, pass, authData);
 		return ac.listPastConfferences(voipUsername, project);
 	}
@@ -619,6 +679,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public String getRecordings(String userId, String pass, Integer confNo) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceSettings acmet = new AsteriskConferenceSettings(userId, pass, authData);
 		return acmet.getRecordings(userId, pass, confNo, authData);
 	}
@@ -626,6 +687,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public Integer[] listConfferencesByOwner(String userId, String pass, String voipUsername, String project) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferences ac = new AsteriskConferences(userId, pass, authData);
 		return ac.listConfferencesByOwner(voipUsername, project);
 	}
@@ -633,6 +695,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public Integer[] listConfferencesByInvitation(String userId, String pass, String voipUsername, String project) throws VoIPConferenceServiceException {
+	    	updateAuthData();	
 		AsteriskConferences ac = new AsteriskConferences(userId, pass, authData);
 		return ac.listConfferencesByInvitation(voipUsername, project);
 	} 
@@ -640,6 +703,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public Integer[] listPublicConfferences(String userId, String pass, String project) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferences ac = new AsteriskConferences(userId, pass, authData);
 		return ac.listPublicConfferences(project);
 	}
@@ -647,6 +711,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean setConferenceUserList(String userId, String pass, Integer confNo, String[] userList) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceSettings acs = new AsteriskConferenceSettings(userId, pass, authData);
 		boolean result = false;
 		try {
@@ -660,6 +725,7 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public Long getJoinDate(String userId, String pass, Integer confNo, Integer userConferenceId) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		AsteriskConferenceStatus acs = new AsteriskConferenceStatus(userId, pass, authData);
 		return acs.getJoinDate(userId, pass, confNo, userConferenceId);
 	}
@@ -667,12 +733,14 @@ public class VoIPConferenceServiceBean implements VoIPConferenceService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public String getJoinDateHR(String userId, String pass, Integer confNo, Integer userConferenceId)  throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		return AsteriskConferenceUtils.formatDate(getJoinDate(userId, pass, confNo, userConferenceId));
 	}
 	
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public boolean resetDatabase(String userId, String pass) throws VoIPConferenceServiceException {
+	    	updateAuthData();
 		return AsteriskConferenceSettings.resetDatabase();
 	}
 	//#############################################################################################

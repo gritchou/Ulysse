@@ -12,6 +12,7 @@ import javax.xml.bind.annotation.XmlType;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
+import org.qualipso.factory.workflow.BonitaService;
 
 /**
  * @author Emmanuel Rias (emmanuel.rias@bull.net)
@@ -106,8 +107,8 @@ public class Bonita extends FactoryResource {
 	@Override
 	@XmlTransient
 	public FactoryResourceIdentifier getFactoryResourceIdentifier() {
-		return new FactoryResourceIdentifier("WorkflowService",
-				"BonitaInstance", getId());
+		return new FactoryResourceIdentifier(BonitaService.SERVICE_NAME,
+				Bonita.RESOURCE_NAME, getId());
 	}
 
 	@Override

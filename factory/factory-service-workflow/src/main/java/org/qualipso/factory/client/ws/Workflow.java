@@ -43,10 +43,10 @@ public interface Workflow {
      * @param arg0
      * @return
      *     returns org.qualipso.factory.client.ws.FactoryResource
-     * @throws PathNotFoundException_Exception
+     * @throws AccessDeniedException_Exception
      * @throws FactoryException_Exception
      * @throws InvalidPathException_Exception
-     * @throws AccessDeniedException_Exception
+     * @throws PathNotFoundException_Exception
      */
     @WebMethod
     @WebResult(partName = "return")
@@ -85,15 +85,6 @@ public interface Workflow {
     public BonitaArray getTasksReadyForProfile(
         @WebParam(name = "arg0", partName = "arg0")
         String arg0);
-
-    /**
-     * 
-     * @return
-     *     returns java.lang.String
-     */
-    @WebMethod
-    @WebResult(partName = "return")
-    public String getUserConnected();
 
     /**
      * 

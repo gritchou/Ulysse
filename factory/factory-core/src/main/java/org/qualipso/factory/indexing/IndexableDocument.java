@@ -23,7 +23,9 @@ import org.qualipso.factory.FactoryResourceIdentifier;
 
 /**
  * <p>
- * Class which implements IndexableDocumentI
+ * Class which specify the property of indexable document. Documents are the
+ * unit of indexing. A Document is a set of fields. Each field has a name and a
+ * textual value.
  * </p>
  * 
  * @see IndexableDocumentI
@@ -32,11 +34,10 @@ import org.qualipso.factory.FactoryResourceIdentifier;
  * @author Jerome Blanchard (jayblanc@gmail.com)
  * @date 20 May 2009
  */
-public class IndexableDocument implements IndexableDocumentI {
-    private FactoryResourceIdentifier resourceFRI;
+public class IndexableDocument {
+    private FactoryResourceIdentifier resourceIdentifier;
     private String resourceService;
     private String resourceType;
-    private String resourceShortName;
     private String path;
     private IndexableContent indexableContent;
 
@@ -49,8 +50,8 @@ public class IndexableDocument implements IndexableDocumentI {
      * @param resourceFRI
      *            is a FactoryResourceIdentifier
      */
-    public void setResourceFRI(FactoryResourceIdentifier resourceFRI) {
-        this.resourceFRI = resourceFRI;
+    public void setResourceIdentifier(FactoryResourceIdentifier resourceIdentifier) {
+        this.resourceIdentifier = resourceIdentifier;
     }
 
     /**
@@ -79,18 +80,6 @@ public class IndexableDocument implements IndexableDocumentI {
 
     /**
      * <p>
-     * Set the name of document with a string
-     * </p>
-     * 
-     * @param resourceShortName
-     *            is a string
-     */
-    public void setResourceShortName(String resourceShortName) {
-        this.resourceShortName = resourceShortName;
-    }
-
-    /**
-     * <p>
      * set an object of type IndexableContent
      * </p>
      * 
@@ -110,8 +99,8 @@ public class IndexableDocument implements IndexableDocumentI {
     /**
      * @see IndexableDocumentI#getResourceURI()
      */
-    public FactoryResourceIdentifier getResourceFRI() {
-        return resourceFRI;
+    public FactoryResourceIdentifier getResourceIdentifier() {
+        return resourceIdentifier;
 
     }
 
@@ -127,13 +116,6 @@ public class IndexableDocument implements IndexableDocumentI {
      */
     public String getResourceType() {
         return resourceType;
-    }
-
-    /**
-     * @see IndexableDocumentI#getResourceShortName()
-     */
-    public String getResourceShortName() {
-        return resourceShortName;
     }
 
     /**
@@ -162,12 +144,11 @@ public class IndexableDocument implements IndexableDocumentI {
      */
     public Document getDocument() {
         Document document = new Document();
-        document.add(new Field("FRI", resourceFRI.serialize(), Field.Store.YES, Field.Index.NOT_ANALYZED));
+        document.add(new Field("IDENTIFIER", resourceIdentifier.serialize(), Field.Store.YES, Field.Index.NOT_ANALYZED));
         document.add(new Field("SERVICE", resourceService, Field.Store.YES, Field.Index.NO));
         document.add(new Field("TYPE", resourceType, Field.Store.YES, Field.Index.NO));
         document.add(new Field("PATH", path, Field.Store.YES, Field.Index.NOT_ANALYZED));
         document.add(new Field("CONTENT", indexableContent.toString(), Field.Store.YES, Field.Index.ANALYZED));
-        document.add(new Field("NAME", resourceShortName, Field.Store.YES, Field.Index.ANALYZED));
         return document;
     }
 }

@@ -17,15 +17,16 @@
  */
 package org.qualipso.factory;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.util.Properties;
 import java.util.Vector;
 
 import javax.naming.InitialContext;
 import javax.naming.NameClassPair;
 import javax.naming.NamingEnumeration;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.qualipso.factory.indexing.IndexableService;
 
 
 /**
@@ -38,7 +39,7 @@ import javax.naming.NamingEnumeration;
 public class Factory {
     private static Log logger = LogFactory.getLog(Factory.class);
     private static InitialContext jndi;
-
+    
     private static synchronized InitialContext getJndiContext()
         throws FactoryException {
         try {
@@ -46,7 +47,7 @@ public class Factory {
                 Properties properties = new Properties();
                 properties.put("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
                 properties.put("java.naming.factory.url.pkgs", "org.jboss.naming:org.jnp.interfaces");
-                properties.put("java.naming.provider.url", "localhost:1099");
+                properties.put("java.naming.provider.url", FactoryConfig.getInstance().getProperty("naming.host") + ":" + FactoryConfig.getInstance().getProperty("naming.port"));
                 jndi = new InitialContext(properties);
             }
 
@@ -82,7 +83,7 @@ public class Factory {
     }
 
     public static FactoryService findService(String serviceName)
-        throws FactoryException {
+    throws FactoryException {
         try {
             logger.debug("looking in jndi: " + FactoryNamingConvention.getJNDINameForService(serviceName));
 
@@ -91,4 +92,27 @@ public class Factory {
             throw new FactoryException(e);
         }
     }
+    
+    public static FactoryService findLocalService(String serviceName)
+    throws FactoryException {
+        try {
+            logger.debug("looking in jndi: " + FactoryNamingConvention.getJNDINameForLocalService(serviceName));
+
+            return (FactoryService) getJndiContext().lookup(FactoryNamingConvention.getJNDINameForLocalService(serviceName));
+        } catch (Exception e) {
+            throw new FactoryException(e);
+        }
+    }
+    
+    public static IndexableService findIndexableService(String serviceName)
+    throws FactoryException {
+    	try {
+            logger.debug("looking in jndi: " + FactoryNamingConvention.getJNDINameForLocalService(serviceName));
+
+            return (IndexableService) getJndiContext().lookup(FactoryNamingConvention.getJNDINameForLocalService(serviceName));
+        } catch (Exception e) {
+            throw new FactoryException(e);
+        }
+    }
+    
 }

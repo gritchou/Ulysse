@@ -47,42 +47,35 @@ public interface IndexingService extends FactoryService {
      * Index the resource identified by the given factoryResourceIdentifier, or
      * throws an IndexingServiceException if an error occurs.
      * 
-     * @param fs
-     *            The name of the service who want to index a resource.
      * @param path
      *            The path to the resource to index.
      * @throws IndexingServiceException
      *             if the message can't be send to the JMS queue.
      */
-    public void index(String fs, String path) throws IndexingServiceException;
+    public void index(String path) throws IndexingServiceException;
 
     /**
      * Update the indexed data of the resource identified by the given
      * FactoryResourceIdentfier, or throws an IndexingServiceExcpetion if an
      * error occurs.
      * 
-     * @param fs
-     *            The name of the service who want to reindex a resource.
      * @param path
      *            The path to the resource to reindex.
      * @throws IndexingServiceExcpetion
      *             if the message can't be send to the JMS queue.
      */
-    public void reindex(String fs, String path) throws IndexingServiceException;
+    public void reindex(String path) throws IndexingServiceException;
 
     /**
      * Remove the resource's indexing data from the index, or throws an
      * IndexingServiceExcpetion if an error occurs.
      * 
-     * @param fs
-     *            The name of the service who want to remove a resource from the
-     *            index.
      * @param path
      *            The path to the resource to stop to index.
      * @throws IndexingServiceException
      *             if the message can't be send to the queue.
      */
-    public void remove(String fs, String path) throws IndexingServiceException;
+    public void remove(String path) throws IndexingServiceException;
 
     /**
      * Search in the index a match to the query.

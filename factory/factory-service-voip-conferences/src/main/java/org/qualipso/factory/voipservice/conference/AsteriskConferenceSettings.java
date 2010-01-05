@@ -20,6 +20,7 @@ import javax.persistence.Query;
 import org.apache.log4j.Logger;
 import org.openmeetings.app.data.conference.Roommanagement;
 import org.openmeetings.app.hibernate.beans.rooms.Rooms;
+import org.qualipso.factory.collaboration.beans.CalendarEvent;
 import org.qualipso.factory.voipservice.VoIPConferenceServiceException;
 import org.qualipso.factory.voipservice.email.QualipsoConferenceEmail;
 import org.qualipso.factory.voipservice.entity.ConferenceDetails;
@@ -67,7 +68,7 @@ public class AsteriskConferenceSettings {
 	 * @param recorded
 	 * @return
 	 */
-	public Integer editConference(String username, String pass,Integer confNo, String owner, short accessType,boolean permanent,String pin,String adminpin,Long startDate,Long endDate,Integer maxUsers,String name,String agenda,boolean recorded) {
+	public Integer editConference(String username, String pass,Integer confNo, String owner, short accessType,boolean permanent,String pin,String adminpin,Long startDate,Long endDate,Integer maxUsers,String name,String agenda,boolean recorded, AuthData authData) {
 		EntityManager em=AsteriskConferenceUtils.getEntityManager();
 		em.getTransaction().begin();
 
@@ -109,7 +110,7 @@ public class AsteriskConferenceSettings {
 		    	try {
 		    	    	String calendarPath = "/projects/" + meetMe.getProject()  + "/calendar/voip/" + meetMe.getConfno();
 		    	    	
-		    	    	org.qualipso.factory.voipservice.client.ws.CalendarEvent details = new org.qualipso.factory.voipservice.client.ws.CalendarEvent();
+		    	    	CalendarEvent details = new CalendarEvent();
 		    	    	details.setName(name);
 
 		    	    	details.setContactName(owner);
@@ -125,10 +126,10 @@ public class AsteriskConferenceSettings {
 		    	    	details.setDate(sf1.format((new Date(startDate* 1000))));
 		    	    	details.setStartTime(sf2.format((new Date(startDate* 1000))));
 		    	    	details.setEndTime(sf2.format((new Date(endDate* 1000))));
-		    	    	org.qualipso.factory.voipservice.client.ws.Calendar_Service  calendar = new org.qualipso.factory.voipservice.client.ws.Calendar_Service();
-		    	    	calendar.getCalendarPort().updateEvent(calendarPath, details);
+		    	    	
+		    	    	authData.updateCalendar().updateEvent(calendarPath, details);
    			} catch (Exception e) {
-    			    	e.printStackTrace();
+   			    log.error(e.getMessage());
 			}
 		}
 		
@@ -490,7 +491,8 @@ public class AsteriskConferenceSettings {
 	 * Reset database information
 	 * @return operation status
 	 */
-	public static boolean resetDatabase() {
+	public static synchronized boolean resetDatabase() {
+	    synchronized (log) {
 		AsteriskConferenceUtils.clearDatabase();
 		AsteriskConferenceUtils.setupConfferenceExtension(AsteriskConferenceUtils.CONFERENCE_NAME, AsteriskConferenceUtils.DEFAULT_CONTEXT);
 
@@ -507,6 +509,7 @@ public class AsteriskConferenceSettings {
 				"Dariusz", "Janny",
 				"voip_admin");	
 		
-		return true;
+	    }
+	    return true;
 	}
 }

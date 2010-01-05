@@ -17,16 +17,17 @@
  */
 package org.qualipso.factory.test.sessionbean;
 
-import com.bm.testsuite.BaseSessionBeanFixture;
+import static org.hamcrest.text.StringContains.containsString;
+import static org.qualipso.factory.test.jmock.action.SaveParamsAction.saveParams;
+import static org.qualipso.factory.test.jmock.matcher.EventWithTypeEqualsToMatcher.anEventWithTypeEqualsTo;
+
+import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import static org.hamcrest.text.StringContains.containsString;
-
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.Sequence;
-
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
@@ -35,15 +36,14 @@ import org.qualipso.factory.core.CoreService;
 import org.qualipso.factory.core.CoreServiceBean;
 import org.qualipso.factory.core.entity.Folder;
 import org.qualipso.factory.core.entity.Link;
+import org.qualipso.factory.indexing.IndexingService;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.entity.Profile;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
-import static org.qualipso.factory.test.jmock.action.SaveParamsAction.saveParams;
-import static org.qualipso.factory.test.jmock.matcher.EventWithTypeEqualsToMatcher.anEventWithTypeEqualsTo;
 
-import java.util.Vector;
+import com.bm.testsuite.BaseSessionBeanFixture;
 
 
 /**
@@ -60,6 +60,7 @@ public class CoreServiceTest extends BaseSessionBeanFixture<CoreServiceBean> {
     private PEPService pep;
     private PAPService pap;
     private NotificationService notification;
+    private IndexingService indexing;
 
     public CoreServiceTest() {
         super(CoreServiceBean.class, usedBeans);
@@ -74,8 +75,10 @@ public class CoreServiceTest extends BaseSessionBeanFixture<CoreServiceBean> {
         pep = mockery.mock(PEPService.class);
         pap = mockery.mock(PAPService.class);
         notification = mockery.mock(NotificationService.class);
+        indexing = mockery.mock(IndexingService.class);
         getBeanToTest().setMembershipService(membership);
         getBeanToTest().setNotificationService(notification);
+        getBeanToTest().setIndexingService(indexing);
         getBeanToTest().setBindingService(binding);
         getBeanToTest().setPEPService(pep);
         getBeanToTest().setPAPService(pap);
@@ -115,6 +118,8 @@ public class CoreServiceTest extends BaseSessionBeanFixture<CoreServiceBean> {
                         oneOf(binding).setProperty(with(equal("/folder1")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("core.folder.create")));
+                        inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/folder1")));
                         inSequence(sequence1);
                     }
                 });
@@ -160,6 +165,8 @@ public class CoreServiceTest extends BaseSessionBeanFixture<CoreServiceBean> {
                         oneOf(binding).setProperty(with(equal("/folder1")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("core.folder.update")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/folder1")));
                         inSequence(sequence1);
                     }
                 });
@@ -212,6 +219,8 @@ public class CoreServiceTest extends BaseSessionBeanFixture<CoreServiceBean> {
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("core.folder.delete")));
                         inSequence(sequence1);
+                        oneOf(indexing).remove(with(equal("/folder1")));
+                        inSequence(sequence1);
                     }
                 });
 
@@ -261,6 +270,8 @@ public class CoreServiceTest extends BaseSessionBeanFixture<CoreServiceBean> {
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("core.folder.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/folder1")));
+                        inSequence(sequence1);
 
                         oneOf(membership).getProfilePathForConnectedIdentifier();
                         will(returnValue("/profiles/jayblanc"));
@@ -287,6 +298,8 @@ public class CoreServiceTest extends BaseSessionBeanFixture<CoreServiceBean> {
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("core.folder.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/folder2")));
+                        inSequence(sequence1);
 
                         oneOf(membership).getProfilePathForConnectedIdentifier();
                         will(returnValue("/profiles/jayblanc"));
@@ -312,6 +325,8 @@ public class CoreServiceTest extends BaseSessionBeanFixture<CoreServiceBean> {
                         oneOf(binding).setProperty(with(equal("/link1")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("core.link.create")));
+                        inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/link1")));
                         inSequence(sequence1);
                     }
                 });
@@ -359,6 +374,8 @@ public class CoreServiceTest extends BaseSessionBeanFixture<CoreServiceBean> {
                         oneOf(binding).setProperty(with(equal("/link1")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("core.link.update")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/link1")));
                         inSequence(sequence1);
                     }
                 });
@@ -408,6 +425,8 @@ public class CoreServiceTest extends BaseSessionBeanFixture<CoreServiceBean> {
                         oneOf(binding).unbind(with(equal("/link1")));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("core.link.delete")));
+                        inSequence(sequence1);
+                        oneOf(indexing).remove(with(equal("/link1")));
                         inSequence(sequence1);
                     }
                 });

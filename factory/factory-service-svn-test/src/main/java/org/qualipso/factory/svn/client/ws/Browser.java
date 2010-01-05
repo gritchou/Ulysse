@@ -29,8 +29,8 @@ public interface Browser {
      * @return
      *     returns org.qualipso.factory.svn.client.ws.FactoryResource
      * @throws BrowserServiceException_Exception
-     * @throws InvalidPathException_Exception
      * @throws AccessDeniedException_Exception
+     * @throws InvalidPathException_Exception
      * @throws PathNotFoundException_Exception
      */
     @WebMethod
@@ -65,8 +65,8 @@ public interface Browser {
      * @return
      *     returns boolean
      * @throws BrowserServiceException_Exception
-     * @throws InvalidPathException_Exception
      * @throws AccessDeniedException_Exception
+     * @throws InvalidPathException_Exception
      * @throws PathNotFoundException_Exception
      */
     @WebMethod
@@ -83,8 +83,8 @@ public interface Browser {
      * @return
      *     returns org.qualipso.factory.svn.client.ws.StringArray
      * @throws BrowserServiceException_Exception
-     * @throws InvalidPathException_Exception
      * @throws AccessDeniedException_Exception
+     * @throws InvalidPathException_Exception
      * @throws PathNotFoundException_Exception
      */
     @WebMethod
@@ -103,8 +103,8 @@ public interface Browser {
      * @return
      *     returns org.qualipso.factory.svn.client.ws.StringArray
      * @throws BrowserServiceException_Exception
-     * @throws InvalidPathException_Exception
      * @throws AccessDeniedException_Exception
+     * @throws InvalidPathException_Exception
      * @throws PathNotFoundException_Exception
      */
     @WebMethod

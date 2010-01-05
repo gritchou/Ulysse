@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlType;
  * <pre>
  * &lt;complexType name="group">
  *   &lt;complexContent>
- *     &lt;extension base="{http://org.qualipso.factory.ws/service/browser}factoryResource">
+ *     &lt;extension base="{http://org.qualipso.factory.ws/service/membership}factoryResource">
  *       &lt;sequence>
  *         &lt;element name="name" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *         &lt;element name="description" type="{http://www.w3.org/2001/XMLSchema}string"/>

@@ -29,7 +29,7 @@ import org.junit.runners.Suite.SuiteClasses;
  */
 @RunWith(Suite.class)
 @SuiteClasses(value =  {
-    MembershipServiceSBTest.class, BrowserServiceSBTest.class, EventQueueServiceSBTest.class, NotificationServiceSBTest.class, IndexingServiceSBTest.class}
+    MembershipServiceSBTest.class, BrowserServiceSBTest.class, EventQueueServiceSBTest.class, NotificationServiceSBTest.class, SearchServiceSBTest.class}
 )
 public class AllSBTests {
 }

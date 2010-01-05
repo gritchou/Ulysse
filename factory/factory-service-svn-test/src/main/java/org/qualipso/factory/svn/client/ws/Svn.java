@@ -61,10 +61,10 @@ public interface Svn {
      * @param arg0
      * @return
      *     returns org.qualipso.factory.svn.client.ws.FactoryResource
-     * @throws AccessDeniedException_Exception
      * @throws FactoryException_Exception
-     * @throws InvalidPathException_Exception
      * @throws PathNotFoundException_Exception
+     * @throws InvalidPathException_Exception
+     * @throws AccessDeniedException_Exception
      */
     @WebMethod
     @WebResult(partName = "return")
@@ -91,18 +91,6 @@ public interface Svn {
     @WebMethod
     @WebResult(partName = "return")
     public String getServiceName();
-
-    /**
-     * 
-     * @param arg0
-     * @return
-     *     returns org.qualipso.factory.svn.client.ws.SvnResource
-     */
-    @WebMethod
-    @WebResult(name = "svn-node", partName = "svn-node")
-    public SvnResource readNode(
-        @WebParam(name = "arg0", partName = "arg0")
-        String arg0);
 
     /**
      * 

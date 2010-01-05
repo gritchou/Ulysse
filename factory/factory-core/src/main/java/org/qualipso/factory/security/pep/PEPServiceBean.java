@@ -100,7 +100,7 @@ public class PEPServiceBean implements PEPService {
         XACMLResponseStatus status = PEPServiceHelper.getResponseStatus(response);
 
         if (!status.equals(XACMLResponseStatus.PERMIT)) {
-        	throw new AccessDeniedException("Response status is : " + status);
+        	throw new AccessDeniedException("Access is [" + status + "] for [" + subjects + "] to [" + action + "] resource [" + object + "]");
         }
     }
 }

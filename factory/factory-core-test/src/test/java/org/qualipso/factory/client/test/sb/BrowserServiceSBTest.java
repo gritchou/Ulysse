@@ -20,10 +20,6 @@ package org.qualipso.factory.client.test.sb;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.Properties;
-
-import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.security.auth.login.LoginContext;
 
@@ -34,7 +30,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.qualipso.factory.FactoryNamingConvention;
+import org.qualipso.factory.Factory;
+import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.bootstrap.BootstrapService;
 import org.qualipso.factory.bootstrap.BootstrapServiceException;
@@ -43,7 +40,6 @@ import org.qualipso.factory.client.test.AllTests;
 import org.qualipso.factory.core.CoreService;
 import org.qualipso.factory.core.entity.Folder;
 import org.qualipso.factory.core.entity.Link;
-import org.qualipso.factory.membership.MembershipService;
 
 
 /**
@@ -52,14 +48,11 @@ import org.qualipso.factory.membership.MembershipService;
  */
 public class BrowserServiceSBTest {
     private static Log logger = LogFactory.getLog(BrowserServiceSBTest.class);
-    private static Context ctx;
-    private MembershipService membership;
     private BrowserService browser;
     private CoreService core;
-    private LoginContext lc;
-
+    
     @BeforeClass
-    public static void beforeClass() throws NamingException {
+    public static void beforeClass() throws NamingException, FactoryException {
         try {
             logger.debug("jaas config file path : " + ClassLoader.getSystemResource("jaas.config").getPath());
             System.setProperty("java.security.auth.login.config", ClassLoader.getSystemResource("jaas.config").getPath());
@@ -67,27 +60,20 @@ public class BrowserServiceSBTest {
             logger.error("unable to load local jaas.config file");
         }
 
-        Properties properties = new Properties();
-        properties.put("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
-        properties.put("java.naming.factory.url.pkgs", "org.jboss.naming:org.jnp.interfaces");
-        properties.put("java.naming.provider.url", "localhost:1099");
-        ctx = new InitialContext(properties);
-
-        BootstrapService bootstrap = (BootstrapService) ctx.lookup(FactoryNamingConvention.getJNDINameForService("bootstrap"));
+        BootstrapService bootstrap = (BootstrapService) Factory.findService("bootstrap");
 
         try {
             bootstrap.bootstrap();
         } catch (BootstrapServiceException e) {
-            logger.error(e);
+            logger.error("error in before", e);
         }
     }
 
     @Before
     public void before() {
         try {
-            membership = (MembershipService) ctx.lookup(FactoryNamingConvention.getJNDINameForService("membership"));
-            browser = (BrowserService) ctx.lookup(FactoryNamingConvention.getJNDINameForService("browser"));
-            core = (CoreService) ctx.lookup(FactoryNamingConvention.getJNDINameForService("core"));
+            browser = (BrowserService) Factory.findService("browser");
+            core = (CoreService) Factory.findService("core");
 
             LoginContext lc = new LoginContext("qualipso", new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS));
             lc.login();
@@ -128,6 +114,24 @@ public class BrowserServiceSBTest {
             lc.logout();
         } catch (Exception e) {
             logger.error(e);
+            fail(e.getMessage());
+        }
+    }
+    
+    @Test
+    public void testResourceExists() {
+    	logger.debug("testing resourceExists");
+    	
+    	try {
+    		LoginContext lc = new LoginContext("qualipso", new UsernamePasswordHandler("root", AllTests.ROOT_ACCOUNT_PASS));
+            lc.login();
+
+            boolean exists = browser.exists("/testfolder");
+            assertTrue(exists);
+
+            lc.logout();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             fail(e.getMessage());
         }
     }

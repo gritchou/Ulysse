@@ -1,5 +1,3 @@
-package org.qualipso.factory.test.ws;
-
 /**
  * 
  * Copyright (C) 2006-2010 THALES
@@ -12,6 +10,7 @@ package org.qualipso.factory.test.ws;
  * Gregory Cunha from Thales Service, THERESIS Competence Center Open Source Software
  *
  */
+package org.qualipso.factory.test.ws;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -28,6 +27,8 @@ import org.jboss.ws.core.StubExt;
 import org.junit.BeforeClass;
 import org.qualipso.factory.svn.client.ws.Browser;
 import org.qualipso.factory.svn.client.ws.Browser_Service;
+import org.qualipso.factory.svn.client.ws.Membership;
+import org.qualipso.factory.svn.client.ws.Membership_Service;
 import org.qualipso.factory.svn.client.ws.Project;
 import org.qualipso.factory.svn.client.ws.ProjectServiceException_Exception;
 import org.qualipso.factory.svn.client.ws.Project_Service;
@@ -36,7 +37,6 @@ import org.qualipso.factory.svn.client.ws.SVNServiceException_Exception;
 import org.qualipso.factory.svn.client.ws.Svn;
 import org.qualipso.factory.svn.client.ws.SvnRepository;
 import org.qualipso.factory.svn.client.ws.Svn_Service;
-import org.qualipso.factory.svn.utils.FilterUtils;
 import org.tmatesoft.svn.core.SVNCommitInfo;
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNURL;
@@ -66,17 +66,6 @@ public class SvnServiceWSTest extends TestCase{
 	 */
 	private static final String PROJECT_NAME = "junitproject_ws";
 	
-	/**
-	 * project path
-	 */
-	private static final String PROJECT_PATH = "/profiles/guest/" + PROJECT_NAME;
-	
-	
-	/**
-	 * Path of test repository
-	 */
-	private static final String PATH_REPOS = PROJECT_PATH + "/" + "repostest";
-	
 	//************************
 	private static final String SSHD_HOSTNAME = "127.0.0.1";
 	private static final int SSHD_PORT = 3333;
@@ -84,6 +73,17 @@ public class SvnServiceWSTest extends TestCase{
 	private static final String PASSWD = "guest";
 	private File workingDir;
 	//************************
+	
+	/**
+	 * project path
+	 */
+	private static final String PROJECT_PATH = "/profiles/" + USERNAME + "/" + PROJECT_NAME;
+	
+	
+	/**
+	 * Path of test repository
+	 */
+	private static final String PATH_REPOS = PROJECT_PATH + "/" + "repostest";
 	
 	/**
 	 * ProjectService
@@ -101,6 +101,13 @@ public class SvnServiceWSTest extends TestCase{
 	private Browser browserService;
 	
 	/**
+	 * memberShipService
+	 */
+	private Membership memberShipService;
+	
+	
+	
+	/**
 	 * Logger
 	 */
 	private static final Logger logger = Logger.getLogger(SvnServiceWSTest.class);
@@ -112,6 +119,7 @@ public class SvnServiceWSTest extends TestCase{
 		Svn_Service serviceSvn = new Svn_Service();
 		svnService = serviceSvn.getSVNServiceBeanPort();
 		((StubExt) this.svnService).setConfigName("Standard WSSecurity Client");
+		
     	
     	Project_Service serviceProject = new Project_Service();
     	this.projectService = serviceProject.getProjectServiceBeanPort();
@@ -120,6 +128,10 @@ public class SvnServiceWSTest extends TestCase{
     	Browser_Service serviceBrowser = new Browser_Service();
     	this.browserService = serviceBrowser.getBrowserServiceBeanPort();
     	((StubExt) this.browserService).setConfigName("Standard WSSecurity Client");
+    	
+    	Membership_Service serviceMembership = new Membership_Service();
+    	this.memberShipService = serviceMembership.getMembershipServiceBeanPort();
+    	((StubExt) this.memberShipService).setConfigName("Standard WSSecurity Client");
 	}
 	
 	/**
@@ -140,7 +152,7 @@ public class SvnServiceWSTest extends TestCase{
 	/* (non-Javadoc)
 	 * @see junit.framework.TestCase#setUp()
 	 */
-	public void setUp() throws ProjectServiceException_Exception {
+	public void setUp() throws Exception {   	
 		logger.info("SETUP - begin");
     	// create a working directory
 		workingDir = new File("target/local");
@@ -149,16 +161,16 @@ public class SvnServiceWSTest extends TestCase{
 		
         //Test if project exist
         try {
-        	Project_Type project = projectService.getProject(PROJECT_PATH);
+        	Project_Type project = projectService.readProject(PROJECT_PATH);
         	logger.debug("setup - Project " + project.getName() + "  exists");
         	try {
         		svnService.deleteSVNRepository(PATH_REPOS);
         	}
-        	catch (SVNServiceException_Exception e) {
+        	catch (Exception e) {
         		//OK
         	}
         }
-        catch (ProjectServiceException_Exception e) {
+        catch (Exception e) {
         	// Create Project
         	logger.debug("setup - Project " + PROJECT_PATH + "  doesn't exist -> creation");
         	projectService.createProject(PROJECT_PATH, PROJECT_NAME, "description projet", "license projet");
@@ -169,14 +181,24 @@ public class SvnServiceWSTest extends TestCase{
 	/* (non-Javadoc)
 	 * @see junit.framework.TestCase#tearDown()
 	 */
-	public void tearDown() throws ProjectServiceException_Exception {
+	public void tearDown() throws Exception {
 		logger.info("TEARDOWN - begin");
+		//Delete repository
+		
+		try {
+			svnService.deleteSVNRepository(PATH_REPOS);
+		}
+		catch (SVNServiceException_Exception e) {
+			logger.debug("NO repository to delete", e);
+			//OK
+		}
+		
 		//Delete project
 		Project_Type project = null;
         try {
-        	project = projectService.getProject(PROJECT_PATH);
+        	project = projectService.readProject(PROJECT_PATH);
         }
-        catch (ProjectServiceException_Exception e) {
+        catch (Exception e) {
         	logger.debug("teardown - project " + PROJECT_PATH + " doesn't exist");
         }
         
@@ -191,7 +213,7 @@ public class SvnServiceWSTest extends TestCase{
         		//logger.debug("TEARDOWN 5");
         		svnService.deleteSVNRepository(PATH_REPOS);
         	}
-        	catch (SVNServiceException_Exception e) {
+        	catch (Exception e) {
         		//OK
         	}
         	
@@ -214,6 +236,7 @@ public class SvnServiceWSTest extends TestCase{
 		logger.debug("Create repository");
 		String idRepos = svnService.createSVNRepository(PATH_REPOS, "reposName", "description repo");
 		assertNotNull(idRepos);
+		
 		
 		/*
 		 * Read repository
@@ -250,8 +273,12 @@ public class SvnServiceWSTest extends TestCase{
 		}
 	}
     
+	/**
+	 * Test SVN operation throw ssh
+	 * @throws Exception if an error occurred
+	 */
     public void testSVNOperation() throws Exception {
-    	
+       
     	/*
     	 * Test create a repository
     	 */
@@ -293,6 +320,7 @@ public class SvnServiceWSTest extends TestCase{
 
 		SVNRepositoryFactoryImpl.setup();
 		ISVNOptions options = SVNWCUtil.createDefaultOptions(true);
+		//ISVNAuthenticationManager authManager = new BasicAuthenticationManager(USERNAME, PASSWD);
 		ISVNAuthenticationManager authManager = new BasicAuthenticationManager(USERNAME, PASSWD);
 		SVNClientManager svnClientManager = SVNClientManager.newInstance(options, authManager);
 
@@ -402,7 +430,7 @@ public class SvnServiceWSTest extends TestCase{
 		//SVNResource depth = 2 -> testfile3.txt does't exist
 		checkFactoryResourcesExist("subdir/subdir2", 0);
 		
-		/*
+		
 		logger.debug("#### DELETE ####");
 		SVNURL dstURLToDelete = SVNURL.parseURIDecoded("svn+ssh://" + USERNAME + "@" + SSHD_HOSTNAME + ":" + SSHD_PORT
 				+ "/" + idRepos + "/subdir/subdir2/testfile3.txt");
@@ -430,8 +458,7 @@ public class SvnServiceWSTest extends TestCase{
 		checkFileNotExist(workFolderCheckOut2, "subdir/subdir2/testfile3.txt");
 		
 		
-		logger.debug("#### DELETE 2 ####");
-		logger.debug("#### ERROR 2 ####");
+		logger.debug("#### DELETE (ERROR) ####");
 		dstURLToDelete = SVNURL.parseURIDecoded("svn+ssh://" + "root" + "@" + SSHD_HOSTNAME + ":" + SSHD_PORT
 				+ "/" + idRepos + "/subdir/subdir2");
 
@@ -443,27 +470,69 @@ public class SvnServiceWSTest extends TestCase{
 				dstURLToDelete
 		};
 		
-		info = clientCommit.doDelete(urls, "commitDelete2");
+		try {
+			info = clientCommit.doDelete(urls, "commitDelete2");
+			fail("Bad user, an exception will be occurred");
+		}
+		catch (Exception e) {
+			//OK
+		}
 		
-		System.out.println("getErrorMessage=" + info.getErrorMessage());
-		
-		//Check resource (no change, /subdir/subdir2/testfile3.txt not bound in the factory)
 		checkFactoryResourcesExist("testfile1bis.txt", 0);
-		
-		logger.debug("#### UPDATE CO2####");
-		clientUpdate.doUpdate(workFolderCheckOut2, SVNRevision.create(info.getNewRevision()), SVNDepth.INFINITY, true, false);
-		
-		checkFileExist(workFolderCheckOut2, "testfile1bis.txt", false);
-		checkFileNotExist(workFolderCheckOut2, "subdir");
-		checkFileNotExist(workFolderCheckOut2, "subdir/testfile2.txt");
-		checkFileNotExist(workFolderCheckOut2, "subdir/subdir2");
-		checkFileNotExist(workFolderCheckOut2, "subdir/subdir2/testfile3.txt");
+		checkFactoryResourcesExist("subdir", 2);
+		checkFactoryResourcesExist("subdir/testfile2.txt", 0);
+		checkFactoryResourcesExist("subdir/subdir2", 0);
 		
 		
-		logger.debug("#### ERROR 2 ####");
-		*/
+		logger.debug("#### COMMIT NEW FILE ####");
+		File file4 = new File(workingDir, "testfile4.txt");
+		FileOutputStream fos4 = new FileOutputStream(file4);
+		fos4.write("Youhou".getBytes());
+		fos4.flush();
+		fos4.close();
+		
+		files = new File[1];
+		fileToCommit = file4;
+		
+		authManager = new BasicAuthenticationManager(USERNAME, PASSWD);
+		svnClientManager = SVNClientManager.newInstance(options, authManager);
+		clientCommit = svnClientManager.getCommitClient();
+		SVNURL dstURL2 = SVNURL.parseURIDecoded("svn+ssh://" + USERNAME + "@" + SSHD_HOSTNAME + ":" + SSHD_PORT
+				+ "/" + idRepos + "/subdir/subdir2/testfile4.txt");
+		clientCommit.doImport(fileToCommit, dstURL2, "add file", null, false, false,
+				SVNDepth.INFINITY);
+		
+		checkFactoryResourcesExist("testfile1bis.txt", 0);
+		checkFactoryResourcesExist("subdir", 2);
+		checkFactoryResourcesExist("subdir/testfile2.txt", 0);
+		checkFactoryResourcesExist("subdir/subdir2", 0);
+		
+		
+		logger.debug("#### COMMIT NEW FILE 2####");
+		File file5 = new File(workFolderCheckOut2, "subdir/testfile5.txt");
+		FileOutputStream fos5 = new FileOutputStream(file5);
+		fos5.write("Youhou".getBytes());
+		fos5.flush();
+		fos5.close();
+		
+		fileToCommit = file5;
+		
+		dstURL2 = SVNURL.parseURIDecoded("svn+ssh://" + USERNAME + "@" + SSHD_HOSTNAME + ":" + SSHD_PORT
+				+ "/" + idRepos + "/subdir/testfile5.txt");
+		clientCommit.doImport(fileToCommit, dstURL2, "add file 2", null, false, false,
+				SVNDepth.INFINITY);
+		
+		checkFactoryResourcesExist("testfile1bis.txt", 0);
+		checkFactoryResourcesExist("subdir", 3);
+		checkFactoryResourcesExist("subdir/testfile2.txt", 0);
+		checkFactoryResourcesExist("subdir/subdir2", 0);
+		checkFactoryResourcesExist("subdir/testfile5.txt", 0);
     }
-    
+
+    /**
+     * Delete a folder recursively
+     * @param folder to delete
+     */
 	private void deleteFolderRecursively(File folder) {
 		if (folder != null) {
 			for (File file : folder.listFiles()) {
@@ -477,8 +546,14 @@ public class SvnServiceWSTest extends TestCase{
 		}
 	}
 	
+	/**
+	 * Check if the resource exist in the factory
+	 * @param factoryResourcesInFactory to check
+	 * @param nbChildren of this resource
+	 * @throws Exception if an error occurred
+	 */
 	private void checkFactoryResourcesExist(String factoryResourcesInFactory, int nbChildren) throws Exception{
-		String[] partsPath = FilterUtils.splitPath(factoryResourcesInFactory);
+		String[] partsPath = splitPath(factoryResourcesInFactory);
 		
 		StringBuilder relatifPath = new StringBuilder();
 		for (String part : partsPath) {
@@ -490,7 +565,12 @@ public class SvnServiceWSTest extends TestCase{
 		
 	}
 	
-	
+	/**
+	 * Check that the file exist in a the file system
+	 * @param parentPath of the file
+	 * @param filename of the file
+	 * @param isDirectory true if the file is a directory
+	 */
 	private void checkFileExist(File parentPath, String filename, boolean isDirectory) {
 		File f = new File(parentPath, filename);
 		assertTrue(f.exists());
@@ -503,8 +583,37 @@ public class SvnServiceWSTest extends TestCase{
 		}
 	}
 	
+	/**
+	 * Check that the file does not exist in a the file system
+	 * @param parentPath of the file
+	 * @param filename of the file
+	 */
 	private void checkFileNotExist(File parentPath, String filename) {
 		File f = new File(parentPath, filename);
 		assertFalse(f.exists());
+	}
+	
+	/**
+	 * split path
+	 * @param path to split
+	 * @return array
+	 */
+	private String[] splitPath(String path) {
+		String[] parts = null;
+		if (path != null) {
+			String pathToSplit = path;
+			//Delete parasite characters
+			pathToSplit = pathToSplit.replaceAll("'", "");
+			pathToSplit = pathToSplit.replaceAll("\"", "");
+			if (pathToSplit.startsWith("/")) {
+				pathToSplit = pathToSplit.substring(1);
+			}
+			if (pathToSplit.endsWith("/")) {
+				pathToSplit = pathToSplit.substring(0, (pathToSplit.length() - 1));
+			}
+			parts = pathToSplit.split("/");
+		}
+		
+		return parts;
 	}
 }

@@ -176,8 +176,9 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 		logger.debug("params : path=" + path + ", name=" + name + ", description=" + description);
 		
 		try {
-			String caller = membership.getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
+			final String caller = membership.getProfilePathForConnectedIdentifier();
+			final String[] subjects = membership.getConnectedIdentifierSubjects();
+			pep.checkSecurity(subjects, PathHelper.getParentPath(path), "create");
 			
 			SVNRepository svnRepository = new SVNRepository();
 			svnRepository.setId(UUID.randomUUID().toString());
@@ -216,7 +217,7 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 			binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
 			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
 			
-			notification.throwEvent(new Event(path, caller, SVNRepository.RESOURCE_NAME, "svn.svn-repository.create", ""));
+			notification.throwEvent(new Event(path, caller, SVNRepository.RESOURCE_NAME, Event.buildEventType(SVNService.SERVICE_NAME, SVNRepository.RESOURCE_NAME, "create"), ""));
 			
 			return svnRepository.getId();
 		} catch ( Exception e ) {
@@ -236,8 +237,9 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 		logger.debug("params : path=" + path);
 		
 		try {
-			String caller = membership.getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "read");
+			final String caller = membership.getProfilePathForConnectedIdentifier();
+			final String[] subjects = membership.getConnectedIdentifierSubjects();
+			pep.checkSecurity(subjects, path, "read");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			
@@ -249,7 +251,7 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 			}
 			repository.setResourcePath(path);
 			
-			notification.throwEvent(new Event(path, caller, SVNRepository.RESOURCE_NAME, "svn.svn-repository.read", ""));
+			notification.throwEvent(new Event(path, caller, SVNRepository.RESOURCE_NAME, Event.buildEventType(SVNService.SERVICE_NAME, SVNRepository.RESOURCE_NAME, "read"), ""));
 			
 			return repository;
 		} catch ( Exception e ) {
@@ -265,8 +267,9 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 		logger.debug("params : path=" + path + ", name=" + name + ", description=" + description);
 		
 		try {
-			String caller = membership.getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "update");
+			final String caller = membership.getProfilePathForConnectedIdentifier();
+			final String[] subjects = membership.getConnectedIdentifierSubjects();
+			pep.checkSecurity(subjects, path, "update");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			
@@ -282,7 +285,7 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 			
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
 			
-			notification.throwEvent(new Event(path, caller, SVNRepository.RESOURCE_NAME, "svn.svn-repository.update", ""));
+			notification.throwEvent(new Event(path, caller, SVNRepository.RESOURCE_NAME, Event.buildEventType(SVNService.SERVICE_NAME, SVNRepository.RESOURCE_NAME, "update"), ""));
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			logger.error("unable to update the svn repository at path " + path, e);
@@ -297,8 +300,9 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 		logger.debug("params : path=" + path);
 		
 		try {
-			String caller = membership.getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(caller, path, "delete");
+			final String caller = membership.getProfilePathForConnectedIdentifier();
+			final String[] subjects = membership.getConnectedIdentifierSubjects();
+			pep.checkSecurity(subjects, path, "delete");
 			
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 			
@@ -311,9 +315,9 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 			deleteFolderRecursively(new File(repository.getFolder()));
 			em.remove(repository);
 			
-			deleteRecursively(path, caller);
+			deleteRecursively(path, subjects);
 			
-			notification.throwEvent(new Event(path, caller, SVNRepository.RESOURCE_NAME, "svn.svn-repository.delete", ""));
+			notification.throwEvent(new Event(path, caller, SVNRepository.RESOURCE_NAME, Event.buildEventType(SVNService.SERVICE_NAME, SVNRepository.RESOURCE_NAME, "delete"), ""));
 		} catch ( Exception e ) {
 			ctx.setRollbackOnly();
 			logger.error("unable to delete the svn repository at path " + path, e);
@@ -368,7 +372,6 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 			throw new MembershipServiceException("resource identifier " + identifier + " does not refer to service " + getServiceName());
 		}
 		if ( !resourceTypeList.contains(identifier.getType()) ) {
-			//FIXME tester l'ecriture de la liste
 			throw new MembershipServiceException("resource identifier " + identifier + " does not refer to a resource of type " + resourceTypeList);
 		}
 	}
@@ -410,7 +413,8 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 			logger.debug("params : svnPathParts=" + svnPathParts);
 		}
 		try {
-			String caller = membership.getProfilePathForConnectedIdentifier();
+			final String caller = membership.getProfilePathForConnectedIdentifier();
+			final String[] subjects = membership.getConnectedIdentifierSubjects();
 			
 			String path = generateResourcePath(svnPathParts);
 			
@@ -424,22 +428,22 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 				if (type.equals(SVNResourceType.ADD_FILE)
 						|| type.equals(SVNResourceType.ADD_DIR)) {
 					//Update resource
-					pep.checkSecurity(caller, path, "update");
+					pep.checkSecurity(subjects, path, "update");
 					
 					binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
-					notification.throwEvent(new Event(path, caller, SVNNode.RESOURCE_NAME, "svn." + SVNNode.RESOURCE_NAME + ".update", ""));
+					notification.throwEvent(new Event(path, caller, SVNNode.RESOURCE_NAME, Event.buildEventType(SVNService.SERVICE_NAME, SVNNode.RESOURCE_NAME, "update"), ""));
 				}
 				else if (type.equals(SVNResourceType.DELETE_ENTRY)) {
-					deleteRecursively(path, caller);
+					deleteRecursively(path, subjects);
 					
 					//Using the notification service to throw an event : 
-					notification.throwEvent(new Event(path, caller, SVNNode.RESOURCE_NAME, "svn." + SVNNode.RESOURCE_NAME + ".delete", ""));
+					notification.throwEvent(new Event(path, caller, SVNNode.RESOURCE_NAME, Event.buildEventType(SVNService.SERVICE_NAME, SVNNode.RESOURCE_NAME, "delete"), ""));
 				}
 				else if (type.equals(SVNResourceType.CHECK_DELETE_ENTRY)) {
-					pep.checkSecurity(caller, path, "delete");
+					pep.checkSecurity(subjects, path, "delete");
 					
 					//Using the notification service to throw an event : 
-					notification.throwEvent(new Event(path, caller, SVNNode.RESOURCE_NAME, "svn." + SVNNode.RESOURCE_NAME + ".delete", ""));
+					notification.throwEvent(new Event(path, caller, SVNNode.RESOURCE_NAME, Event.buildEventType(SVNService.SERVICE_NAME, SVNNode.RESOURCE_NAME, "delete"), ""));
 				}
 				else {
 					logger.error("Creating SVN resource is not possible for " + path);
@@ -456,7 +460,7 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 				//create resource
 				FactoryResourceIdentifier identifierParent = binding.lookup(PathHelper.getParentPath(path));
 				
-				pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
+				pep.checkSecurity(subjects, PathHelper.getParentPath(path), "create");
 				
 				//parent must be a resource or a repository
 				List<String> resourceTypeList = new ArrayList<String>();
@@ -478,7 +482,7 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 				binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
 				binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
 				
-				notification.throwEvent(new Event(path, caller, SVNNode.RESOURCE_NAME, "svn." + SVNNode.RESOURCE_NAME + ".create", ""));
+				notification.throwEvent(new Event(path, caller, SVNNode.RESOURCE_NAME, Event.buildEventType(SVNService.SERVICE_NAME, SVNNode.RESOURCE_NAME, "create"), ""));
 			}
 		} 
 		catch ( SVNServiceException e1 ) {
@@ -498,16 +502,16 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 	 * @param caller of the delete
 	 * @throws Exception if an error occurred
 	 */
-	private void deleteRecursively(String path, String caller) throws Exception {
+	private void deleteRecursively(String path, String[] subjects) throws Exception {
 		String[] children = binding.list(path);
 		if (children != null) {
 			for (String child : children) {
-				deleteRecursively(child, caller);
+				deleteRecursively(child, subjects);
 			}
 		}
 		
 		//Delete resource
-		pep.checkSecurity(caller, path, "delete");
+		pep.checkSecurity(subjects, path, "delete");
 		
 		String policyId = binding.getProperty(path, FactoryResourceProperty.POLICY_ID, false);
 		if (!StringUtils.isEmpty(policyId)) {
@@ -521,7 +525,6 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 	@Override
 	public void readFromRepository(SVNResourceType type, List<String> svnPathParts)
 			throws SVNServiceException {
-		// TODO Auto-generated method stub
 		logger.info("readFromRepository(...) called");
 		if (type == null) {
 			throw new SVNTechnicalException("type cannot be null");
@@ -538,14 +541,16 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 		}
 		
 		try {
-			String caller = membership.getProfilePathForConnectedIdentifier();
+			final String caller = membership.getProfilePathForConnectedIdentifier();
+			final String[] subjects = membership.getConnectedIdentifierSubjects();
+			
 			
 			String path = generateResourcePath(svnPathParts);
 			
 			try {
 				FactoryResourceIdentifier identifier = binding.lookup(path);
 				
-				pep.checkSecurity(caller, path, "read");
+				pep.checkSecurity(subjects, path, "read");
 				
 				//parent must be a resource or a repository
 				List<String> resourceTypeList = new ArrayList<String>();
@@ -553,7 +558,7 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 				resourceTypeList.add(SVNNode.RESOURCE_NAME);
 				checkResourceType(identifier, resourceTypeList);
 			
-				notification.throwEvent(new Event(path, caller, identifier.getType(), "svn." + identifier.getType() + ".read", ""));
+				notification.throwEvent(new Event(path, caller, identifier.getType(), Event.buildEventType(SVNService.SERVICE_NAME, identifier.getType(), "read"), ""));
 			}
 			catch (PathNotFoundException e) {
 				logger.debug(path + " not found in the factory");
@@ -610,11 +615,5 @@ public class SVNServiceBean implements SVNService, SVNServiceLocal {
 	 */
 	public FactoryResourceIdentifier generateIdentifierForResourceInRepository() {
 		return new FactoryResourceIdentifier(SERVICE_NAME, SVNNode.RESOURCE_NAME, UUID.randomUUID().toString());
-	}
-
-	@Override
-	public SVNNode readNode(String path) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

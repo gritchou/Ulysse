@@ -3,7 +3,7 @@
   <PackageHeader>
     <XPDLVersion>1.0</XPDLVersion>
     <Vendor>Bonita Project Team</Vendor>
-    <Created>2009-12-16T16:59:22.727+0100</Created>
+    <Created>2009-12-30T15:45:47.865+0100</Created>
   </PackageHeader>
   <RedefinableHeader>
     <Version>1.0</Version>
@@ -122,7 +122,7 @@
           <ParticipantType Type="ROLE" />
           <ExtendedAttributes>
             <ExtendedAttribute Name="Mapper" Value="Custom" />
-            <ExtendedAttribute Name="MapperClassName" Value="org.qualipso.factory.workflow.bonita.mapper.AdminServicesMapper" />
+            <ExtendedAttribute Name="MapperClassName" Value="org.qualipso.factory.workflow.mapper.AdminServicesMapper" />
             <ExtendedAttribute Name="NewParticipant" Value="true" />
             <ExtendedAttribute Name="XOffset" Value="0" />
             <ExtendedAttribute Name="YOffset" Value="150" />
@@ -165,12 +165,12 @@
           <ExtendedAttributes>
             <ExtendedAttribute Name="XOffsetParticipantView" Value="419" />
             <ExtendedAttribute Name="YOffsetParticipantView" Value="102" />
-            <ExtendedAttribute Name="XOffset" Value="128" />
-            <ExtendedAttribute Name="YOffset" Value="152" />
+            <ExtendedAttribute Name="XOffset" Value="134" />
+            <ExtendedAttribute Name="YOffset" Value="140" />
             <ExtendedAttribute Name="CellHeight" Value="30" />
             <ExtendedAttribute Name="CellWidth" Value="161" />
             <ExtendedAttribute Name="Async" Value="false" />
-            <ExtendedAttribute Name="hook" Value="org.qualipso.factory.workflow.bonita.hook.CreateFactoryProject">
+            <ExtendedAttribute Name="hook" Value="org.qualipso.factory.workflow.hook.CreateFactoryProject">
               <HookEventName>automatic:onEnter</HookEventName>
               <Rollback>false</Rollback>
             </ExtendedAttribute>
@@ -187,11 +187,11 @@
             <ExtendedAttribute Name="XOffsetParticipantView" Value="27" />
             <ExtendedAttribute Name="YOffsetParticipantView" Value="2" />
             <ExtendedAttribute Name="XOffset" Value="2" />
-            <ExtendedAttribute Name="YOffset" Value="34" />
+            <ExtendedAttribute Name="YOffset" Value="40" />
             <ExtendedAttribute Name="CellHeight" Value="27" />
             <ExtendedAttribute Name="CellWidth" Value="129" />
             <ExtendedAttribute Name="Async" Value="false" />
-            <ExtendedAttribute Name="hook" Value="org.qualipso.factory.workflow.bonita.hook.Initialize">
+            <ExtendedAttribute Name="hook" Value="org.qualipso.factory.workflow.hook.Initialize">
               <HookEventName>automatic:onEnter</HookEventName>
               <Rollback>false</Rollback>
             </ExtendedAttribute>
@@ -220,11 +220,38 @@
             <ExtendedAttribute Name="Async" Value="false" />
           </ExtendedAttributes>
         </Activity>
+        <Activity Id="CreateSubversionRepository" Name="CreateSubversionRepository">
+          <Implementation>
+            <No />
+          </Implementation>
+          <StartMode>
+            <Automatic />
+          </StartMode>
+          <TransitionRestrictions>
+            <TransitionRestriction>
+              <Join Type="AND" />
+            </TransitionRestriction>
+          </TransitionRestrictions>
+          <ExtendedAttributes>
+            <ExtendedAttribute Name="XOffsetParticipantView" Value="211" />
+            <ExtendedAttribute Name="YOffsetParticipantView" Value="34" />
+            <ExtendedAttribute Name="XOffset" Value="363" />
+            <ExtendedAttribute Name="YOffset" Value="142" />
+            <ExtendedAttribute Name="CellHeight" Value="30" />
+            <ExtendedAttribute Name="CellWidth" Value="182" />
+            <ExtendedAttribute Name="Async" Value="false" />
+            <ExtendedAttribute Name="hook" Value="org.qualipso.factory.workflow.hook.CreateSubversionRepository">
+              <HookEventName>automatic:onEnter</HookEventName>
+              <Rollback>false</Rollback>
+            </ExtendedAttribute>
+          </ExtendedAttributes>
+        </Activity>
       </Activities>
       <Transitions>
         <Transition Id="CreateProject_CreateFactoryProject" Name="CreateProject_CreateFactoryProject" From="CreateProject" To="CreateFactoryProject" />
-        <Transition Id="CreateFactoryProject_End" Name="CreateFactoryProject_End" From="CreateFactoryProject" To="BonitaEnd" />
         <Transition Id="initialize_CreateProject" Name="initialize_CreateProject" From="initialize" To="CreateProject" />
+        <Transition Id="CreateFactoryProject_CreateSubversionRepository" Name="CreateFactoryProject_CreateSubversionRepository" From="CreateFactoryProject" To="CreateSubversionRepository" />
+        <Transition Id="CreateSubversionRepository_End" Name="CreateSubversionRepository_End" From="CreateSubversionRepository" To="BonitaEnd" />
       </Transitions>
     </WorkflowProcess>
   </WorkflowProcesses>

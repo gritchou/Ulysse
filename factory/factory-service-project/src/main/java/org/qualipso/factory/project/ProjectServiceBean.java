@@ -38,14 +38,19 @@ import org.qualipso.factory.FactoryResource;
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
+import org.qualipso.factory.binding.InvalidPathException;
+import org.qualipso.factory.binding.PathAlreadyBoundException;
 import org.qualipso.factory.binding.PathHelper;
+import org.qualipso.factory.binding.PathNotEmptyException;
+import org.qualipso.factory.binding.PathNotFoundException;
 import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.membership.MembershipService;
-import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.notification.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.project.entity.Project;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
+import org.qualipso.factory.security.pep.AccessDeniedException;
 import org.qualipso.factory.security.pep.PEPService;
 
 @Stateless(name = ProjectService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + ProjectService.SERVICE_NAME)
@@ -143,7 +148,7 @@ public class ProjectServiceBean implements ProjectService {
 	 * 
 	 */
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void createProject(String path, String name, String summary, String licence) throws ProjectServiceException {
+	public void createProject(String path, String name, String summary, String licence) throws ProjectServiceException, AccessDeniedException, InvalidPathException, PathAlreadyBoundException {
 		logger.debug("starting project creation");
 		try {
 
@@ -178,10 +183,18 @@ public class ProjectServiceBean implements ProjectService {
 
 			notification.throwEvent(new Event(path, caller, ProjectService.SERVICE_NAME, Event.buildEventType(ProjectService.SERVICE_NAME, Project.RESOURCE_NAME, "create"), ""));
 
-		} catch (Exception e) {
-
+		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
-			throw new ProjectServiceException(e);
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathAlreadyBoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (Exception e) {
+			ctx.setRollbackOnly();
+			throw new ProjectServiceException("unable to create the project at path: " + path, e);
 		}
 	}
 
@@ -191,7 +204,7 @@ public class ProjectServiceBean implements ProjectService {
 	 * 
 	 */
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void deleteProject(String path) throws ProjectServiceException {
+	public void deleteProject(String path) throws ProjectServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException, PathNotEmptyException {
 		try {
 
 			String caller = membership.getProfilePathForConnectedIdentifier();
@@ -213,9 +226,21 @@ public class ProjectServiceBean implements ProjectService {
 			binding.unbind(path);
 			notification.throwEvent(new Event(path, caller, ProjectService.SERVICE_NAME, Event.buildEventType(ProjectService.SERVICE_NAME, Project.RESOURCE_NAME, "delete"), ""));
 
+		} catch (AccessDeniedException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotFoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotEmptyException e) {
+			ctx.setRollbackOnly();
+			throw e;
 		} catch (Exception e) {
 			ctx.setRollbackOnly();
-			throw new ProjectServiceException("unable to delete the project at path " + path);
+			throw new ProjectServiceException("unable to delete the paroject at path: " + path, e);
 		}
 	}
 
@@ -226,7 +251,7 @@ public class ProjectServiceBean implements ProjectService {
 	 * @return a Project entity
 	 */
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
-	public Project getProject(String path) throws ProjectServiceException {
+	public Project readProject(String path) throws ProjectServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException  {
 		try {
 			String caller = membership.getProfilePathForConnectedIdentifier();
 			pep.checkSecurity(membership.getConnectedIdentifierSubjects(), path, "read");
@@ -244,8 +269,14 @@ public class ProjectServiceBean implements ProjectService {
 
 			return project;
 
+		} catch (AccessDeniedException e) {
+			throw e;
+		} catch (InvalidPathException e) {
+			throw e;
+		} catch (PathNotFoundException e) {
+			throw e;
 		} catch (Exception e) {
-			throw new ProjectServiceException(e);
+			throw new ProjectServiceException("unable to read the project at path: " + path, e);
 		}
 	}
 
@@ -267,7 +298,7 @@ public class ProjectServiceBean implements ProjectService {
 
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public void updateProject(String path, String name, String status, String summary, String licence) throws ProjectServiceException {
+	public void updateProject(String path, String name, String status, String summary, String licence) throws ProjectServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException  {
 		try {
 			if (name == null || name == "")
 				throw new ProjectServiceException("your must specify a name for your project");
@@ -295,10 +326,18 @@ public class ProjectServiceBean implements ProjectService {
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
 			notification.throwEvent(new Event(path, caller, ProjectService.SERVICE_NAME, Event.buildEventType(ProjectService.SERVICE_NAME, Project.RESOURCE_NAME, "update"), ""));
 
+		} catch (AccessDeniedException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotFoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
 		} catch (Exception e) {
 			ctx.setRollbackOnly();
-			throw new ProjectServiceException(e);
-
+			throw new ProjectServiceException("unable to update the project at path: " + path, e);
 		}
 
 	}
@@ -326,7 +365,7 @@ public class ProjectServiceBean implements ProjectService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
 	public void updateTagsProject(String path, String[] os, String[] topics, String[] language, String[] programming_language, String[] intended_audience)
-			throws ProjectServiceException {
+			throws ProjectServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		try {
 			String caller = membership.getProfilePathForConnectedIdentifier();
 
@@ -348,10 +387,18 @@ public class ProjectServiceBean implements ProjectService {
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
 			notification.throwEvent(new Event(path, caller, ProjectService.SERVICE_NAME, Event.buildEventType(ProjectService.SERVICE_NAME, Project.RESOURCE_NAME, "update"), ""));
 
+		} catch (AccessDeniedException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (InvalidPathException e) {
+			ctx.setRollbackOnly();
+			throw e;
+		} catch (PathNotFoundException e) {
+			ctx.setRollbackOnly();
+			throw e;
 		} catch (Exception e) {
 			ctx.setRollbackOnly();
-			throw new ProjectServiceException(e);
-
+			throw new ProjectServiceException("unable to update the project at path: " + path, e);
 		}
 
 	}
@@ -377,7 +424,7 @@ public class ProjectServiceBean implements ProjectService {
 			}
 
 			if (identifier.getType().equals(Project.RESOURCE_NAME)) {
-				return getProject(path);
+				return readProject(path);
 			}
 
 			throw new CoreServiceException("Resource " + identifier + " is not managed by " + ProjectService.SERVICE_NAME);

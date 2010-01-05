@@ -20,6 +20,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.qualipso.factory.Factory;
 import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.bootstrap.BootstrapService;
@@ -27,7 +28,7 @@ import org.qualipso.factory.bootstrap.BootstrapServiceException;
 import org.qualipso.factory.client.test.AllTests;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
-import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.eventqueue.entity.PersistentEvent;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationServiceException;
 
@@ -41,23 +42,11 @@ public class EventQueueServiceSBTest {
 
     private final static String pathQ1 = "/eventqueue1", pathQ2 = "/eventqueue2";
 
-    /**
-     * Set up service for all tests.
-     * 
-     * @throws LoginException
-     * @throws NotificationServiceException
-     * @throws MembershipServiceException
-     */
     @BeforeClass
-    public static void before() throws NamingException, LoginException, MembershipServiceException {
-        Properties properties = new Properties();
-        properties.put("java.naming.factory.initial", "org.jnp.interfaces.NamingContextFactory");
-        properties.put("java.naming.factory.url.pkgs", "org.jboss.naming:org.jnp.interfaces");
-        properties.put("java.naming.provider.url", "localhost:1099");
+    public static void before() throws NamingException, LoginException, FactoryException {
         System.setProperty("java.security.auth.login.config", ClassLoader.getSystemResource("jaas.config").getPath());
-        context = new InitialContext(properties);
-
-        BootstrapService bootstrap = (BootstrapService) context.lookup(FactoryNamingConvention.getJNDINameForService("bootstrap"));
+        
+        BootstrapService bootstrap = (BootstrapService) Factory.findService("bootstrap");
         try {
             bootstrap.bootstrap();
         } catch (BootstrapServiceException e) {
@@ -68,7 +57,7 @@ public class EventQueueServiceSBTest {
         loginContext = new LoginContext("qualipso", uph);
         loginContext.login();
 
-        eqs = (EventQueueService) context.lookup(FactoryNamingConvention.SERVICE_PREFIX + EventQueueService.SERVICE_NAME);
+        eqs = (EventQueueService) Factory.findService(EventQueueService.SERVICE_NAME);
         // paph = (PAPServiceHelper) context.lookup("PAPServiceHelper");
         // membership = (MembershipService)
         // context.lookup(FactoryNamingConvention.getJNDINameForService("membership"));
@@ -84,7 +73,6 @@ public class EventQueueServiceSBTest {
         // membership.deleteProfile("resource");
 
         loginContext.logout();
-        context.close();
     }
 
     @Before
@@ -109,11 +97,11 @@ public class EventQueueServiceSBTest {
     public void testExistingEventInEQ() throws EventQueueServiceException {
         logger.debug(" Test existence of Event in EventQueue(...)");
 
-        Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "toto", "resourceType", "read", "");
+        PersistentEvent myEvent2 = new PersistentEvent("/path/resource/", "titi", "resourceType", "read,write", "");
         eqs.pushEvent(pathQ1, myEvent1);
         eqs.pushEvent(pathQ1, myEvent2);
-        Event[] tabEvent = eqs.getEvents(pathQ1);
+        PersistentEvent[] tabEvent = eqs.getEvents(pathQ1);
 
         assertEquals("error in existing of myEvent1 in testExistingEventInEQ()", myEvent1, tabEvent[0]);
         assertEquals("error in existing of myEvent2 in testExistingEventInEQ() ", myEvent2, tabEvent[1]);
@@ -131,11 +119,11 @@ public class EventQueueServiceSBTest {
     public void testPushEventInTooEQ() throws EventQueueServiceException {
         logger.debug("push 1 Event in 2 EventQueue and verification(...)");
 
-        Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "toto", "resourceType", "read", "");
         eqs.pushEvent(pathQ1, myEvent1);
         eqs.pushEvent(pathQ2, myEvent1);
-        Event e1 = eqs.getLastEvent(pathQ1);
-        Event e2 = eqs.getLastEvent(pathQ2);
+        PersistentEvent e1 = eqs.getLastEvent(pathQ1);
+        PersistentEvent e2 = eqs.getLastEvent(pathQ2);
 
         assertEquals("error existing event in the first EQ :testPushEventInTooEQ()", myEvent1, e1);
         assertEquals("error existing event in the second EQ :testPushEventInTooEQ()", myEvent1, e2);
@@ -151,7 +139,7 @@ public class EventQueueServiceSBTest {
     public void testpushEventInInexistEQ() throws EventQueueServiceException {
 
         logger.debug("push 1 Event inexisting EventQueue and verification(...)");
-        Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "toto", "resourceType", "read", "");
         eqs.pushEvent("/eventqueueinexist", myEvent1);
 
     }
@@ -167,8 +155,8 @@ public class EventQueueServiceSBTest {
         logger.debug("test: testFindEventByResourcetypeEx()...");
         eqs.createEventQueue("/eventqueue1");
 
-        Event myEvent1 = new Event("/path/resource/", "toto", "rtype1", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titi", "rtype2", "read,write", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "toto", "rtype1", "read", "");
+        PersistentEvent myEvent2 = new PersistentEvent("/path/resource/", "titi", "rtype2", "read,write", "");
 
         eqs.pushEvent("/eventqueue1", myEvent1);
         eqs.pushEvent("/eventqueue1", myEvent2);
@@ -176,7 +164,7 @@ public class EventQueueServiceSBTest {
         // test existing of Event in the EventQueue having exactly a
         // ressourceType= rtype2
 
-        Event[] resultFind = eqs.findEventByRessourceType("/eventqueue1", "rtype2", false);
+        PersistentEvent[] resultFind = eqs.findEventByRessourceType("/eventqueue1", "rtype2", false);
 
         assertEquals("error length of array from testFindEventByResourcetypeEx() ", 1, resultFind.length);
         assertEquals("error length of array from testFindEventByResourcetypeEx() ", myEvent2, resultFind[0]);
@@ -195,8 +183,8 @@ public class EventQueueServiceSBTest {
         logger.debug("test: testFindEventByResourcetypeContains()...");
         eqs.createEventQueue("/eventqueue1");
 
-        Event myEvent1 = new Event("/path/resource/", "toto", "rtype1Resource", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titi", "Resourcetype2", "read,write", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "toto", "rtype1Resource", "read", "");
+        PersistentEvent myEvent2 = new PersistentEvent("/path/resource/", "titi", "Resourcetype2", "read,write", "");
 
         eqs.pushEvent("/eventqueue1", myEvent1);
         eqs.pushEvent("/eventqueue1", myEvent2);
@@ -204,7 +192,7 @@ public class EventQueueServiceSBTest {
         // test existing of Event in the EventQueue having ressourceType
         // contains ("Resource")
 
-        Event[] resultFind = eqs.findEventByRessourceType("/eventqueue1", "rtype2", true);
+        PersistentEvent[] resultFind = eqs.findEventByRessourceType("/eventqueue1", "rtype2", true);
 
         assertEquals("error length of array in  testFindEventByResourcetypeContains() ", 2, resultFind.length);
         assertEquals("error of finding Event2 in testFindEventByResourcetypeContains() ", myEvent2, resultFind[0]);
@@ -223,8 +211,8 @@ public class EventQueueServiceSBTest {
         logger.debug("test: testFindEventByThrower() ...");
         eqs.createEventQueue("/eventqueue1");
 
-        Event myEvent1 = new Event("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titiQualipso", "Resourcetype2", "read,write", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
+        PersistentEvent myEvent2 = new PersistentEvent("/path/resource/", "titiQualipso", "Resourcetype2", "read,write", "");
 
         eqs.pushEvent("/eventqueue1", myEvent1);
         eqs.pushEvent("/eventqueue1", myEvent2);
@@ -232,7 +220,7 @@ public class EventQueueServiceSBTest {
         // test existing of Event in the EventQueue having the attribute By
         // thrower contains ("Qualipso")
 
-        Event[] resultFind = eqs.findEventBythrower("/eventqueue1", "Qualipso", true);
+        PersistentEvent[] resultFind = eqs.findEventBythrower("/eventqueue1", "Qualipso", true);
 
         assertEquals("error length of array in testFindEventByThrower()  ", 2, resultFind.length);
         assertEquals("error of finding Event2 in testFindEventByThrower() ", myEvent2, resultFind[0]);
@@ -241,7 +229,7 @@ public class EventQueueServiceSBTest {
         // test existing of Event in the EventQueue having the attribute By
         // thrower ="titiQualipso"
 
-        Event[] resultFind1 = eqs.findEventBythrower("/eventqueue1", "titiQualipso", false);
+        PersistentEvent[] resultFind1 = eqs.findEventBythrower("/eventqueue1", "titiQualipso", false);
 
         assertEquals("error length of array1 in testFindEventByThrower()  ", 1, resultFind1.length);
         assertEquals("error of finding(array1) Event2 in testFindEventByThrower() ", myEvent2, resultFind1[0]);
@@ -259,8 +247,8 @@ public class EventQueueServiceSBTest {
         logger.debug("test: testFindEventByPath() ...");
         eqs.createEventQueue("/eventqueue1");
 
-        Event myEvent1 = new Event("/path/res/eq", "totoQualipso", "rtype1Resource", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titiQualipso", "Resourcetype2", "read,write", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/res/eq", "totoQualipso", "rtype1Resource", "read", "");
+        PersistentEvent myEvent2 = new PersistentEvent("/path/resource/", "titiQualipso", "Resourcetype2", "read,write", "");
 
         eqs.pushEvent("/eventqueue1", myEvent1);
         eqs.pushEvent("/eventqueue1", myEvent2);
@@ -268,7 +256,7 @@ public class EventQueueServiceSBTest {
         // test existing of Event in the EventQueue having the attribute path
         // contains ("path")
 
-        Event[] resultFind = eqs.findEventByFromRessource("/eventqueue1", "path", true);
+        PersistentEvent[] resultFind = eqs.findEventByFromRessource("/eventqueue1", "path", true);
 
         assertEquals("error length of array in testFindEventByPath() ", 2, resultFind.length);
         assertEquals("error of finding Event2 in testFindEventByPath() ", myEvent2, resultFind[0]);
@@ -277,7 +265,7 @@ public class EventQueueServiceSBTest {
         // test existing of Event in the EventQueue having the attribute path
         // ="/path/res/eq"
 
-        Event[] resultFind1 = eqs.findEventByFromRessource("/eventqueue1", "/path/res/eq", false);
+        PersistentEvent[] resultFind1 = eqs.findEventByFromRessource("/eventqueue1", "/path/res/eq", false);
 
         assertEquals("error length of array1 in testFindEventByThrower()  ", 1, resultFind1.length);
         assertEquals("error of finding(array1) Event2 in testFindEventByThrower() ", myEvent1, resultFind1[0]);
@@ -295,8 +283,8 @@ public class EventQueueServiceSBTest {
         logger.debug("test: testFindEventByDate() ...");
         eqs.createEventQueue("/eventqueue1");
 
-        Event myEvent1 = new Event("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titiQualipso", "Resourcetype2", "read,write", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
+        PersistentEvent myEvent2 = new PersistentEvent("/path/resource/", "titiQualipso", "Resourcetype2", "read,write", "");
 
         // Change the date of myEvent1 and myEvent2
 
@@ -316,7 +304,7 @@ public class EventQueueServiceSBTest {
 
         // finding by date1
 
-        Event[] resultFind = eqs.findEventByDate("/eventqueue1", date1);
+        PersistentEvent[] resultFind = eqs.findEventByDate("/eventqueue1", date1);
 
         // verify the length of array and the existing of myEent1 in the
         // EventQueue
@@ -338,8 +326,8 @@ public class EventQueueServiceSBTest {
         logger.debug("test: testFindEventByDateSup() ...");
         eqs.createEventQueue("/eventqueue1");
 
-        Event myEvent1 = new Event("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titiQualipso", "Resourcetype2", "read,write", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
+        PersistentEvent myEvent2 = new PersistentEvent("/path/resource/", "titiQualipso", "Resourcetype2", "read,write", "");
 
         // Change the date of myEvent1 and myEvent2
         Calendar c = Calendar.getInstance();
@@ -358,7 +346,7 @@ public class EventQueueServiceSBTest {
 
         // finding by date>= date1
 
-        Event[] resultFind = eqs.findEventByDateSup("/eventqueue1", date1);
+        PersistentEvent[] resultFind = eqs.findEventByDateSup("/eventqueue1", date1);
 
         // verify the length of array and the existing of myEent2 in the
         // EventQueue
@@ -379,8 +367,8 @@ public class EventQueueServiceSBTest {
         logger.debug("test: testFindEventByDateInf() ...");
         eqs.createEventQueue("/eventqueue1");
 
-        Event myEvent1 = new Event("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titiQualipso", "Resourcetype2", "read,write", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
+        PersistentEvent myEvent2 = new PersistentEvent("/path/resource/", "titiQualipso", "Resourcetype2", "read,write", "");
 
         // Change the date of myEvent1 and myEvent2
 
@@ -400,7 +388,7 @@ public class EventQueueServiceSBTest {
 
         // finding by date<= date2
 
-        Event[] resultFind = eqs.findEventByDateInf("/eventqueue1", date2);
+        PersistentEvent[] resultFind = eqs.findEventByDateInf("/eventqueue1", date2);
 
         // verify the length of array and the existing of myEent1 in the
         // EventQueue
@@ -423,8 +411,8 @@ public class EventQueueServiceSBTest {
         logger.debug("test: testFindEventByDateBetween() ...");
         eqs.createEventQueue("/eventqueue1");
 
-        Event myEvent1 = new Event("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titiQualipso", "Resourcetype2", "read,write", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "totoQualipso", "rtype1Resource", "read", "");
+        PersistentEvent myEvent2 = new PersistentEvent("/path/resource/", "titiQualipso", "Resourcetype2", "read,write", "");
 
         // Change the date of myEvent1 and myEvent2
 
@@ -449,7 +437,7 @@ public class EventQueueServiceSBTest {
 
         // finding by date between date3 and and date2
 
-        Event[] resultFind = eqs.findEventByDateBetween("/eventqueue1", date3, date2);
+        PersistentEvent[] resultFind = eqs.findEventByDateBetween("/eventqueue1", date3, date2);
 
         // verify the length of array and the existing of myEent1 and myEvent2
         // in the EventQueue
@@ -472,9 +460,9 @@ public class EventQueueServiceSBTest {
         logger.debug("test: search event(eventType) existing in eventQueue(...)");
         eqs.createEventQueue("/eventqueue1");
 
-        Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write", "");
-        Event myEvent3 = new Event("/path/resource/", "titi", "resourceType", "commit", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "toto", "resourceType", "read", "");
+        PersistentEvent myEvent2 = new PersistentEvent("/path/resource/", "titi", "resourceType", "read,write", "");
+        PersistentEvent myEvent3 = new PersistentEvent("/path/resource/", "titi", "resourceType", "commit", "");
 
         eqs.pushEvent("/eventqueue1", myEvent1);
         eqs.pushEvent("/eventqueue1", myEvent2);
@@ -482,7 +470,7 @@ public class EventQueueServiceSBTest {
 
         // test existing of Event in the EventQueue having the EventType
         // contains ("r")
-        Event[] resultFind = eqs.findEventByEventType("/eventqueue1", "r", true);
+        PersistentEvent[] resultFind = eqs.findEventByEventType("/eventqueue1", "r", true);
 
         assertEquals("error length of array in testFindEventByType() ", 2, resultFind.length);
         assertEquals("error of finding myEvent2 in testFindEventByType() ", myEvent2, resultFind[0]);
@@ -490,7 +478,7 @@ public class EventQueueServiceSBTest {
 
         // test existing of Event in the EventQueue having the EventType equals
         // to ("read")
-        Event[] resultFind1 = eqs.findEventByEventType("/eventqueue1", "read", false);
+        PersistentEvent[] resultFind1 = eqs.findEventByEventType("/eventqueue1", "read", false);
 
         assertEquals("error length of array in testFindEventByType() ", 2, resultFind1.length);
         assertEquals("error of finding myEvent2 in testFindEventByType() ", myEvent2, resultFind1[0]);
@@ -509,14 +497,14 @@ public class EventQueueServiceSBTest {
         logger.debug("test: delete an Event from EventQueue(...)");
         // eqs.createEventQueue("/eventqueue1");
 
-        Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "toto", "resourceType", "read", "");
+        PersistentEvent myEvent2 = new PersistentEvent("/path/resource/", "titi", "resourceType", "read,write", "");
 
         eqs.pushEvent(pathQ1, myEvent1);
         eqs.pushEvent(pathQ1, myEvent2);
         eqs.deleteEvent(pathQ1, myEvent1);
         eqs.deleteEvent(pathQ1, myEvent2);
-        Event[] tabEvent = eqs.getEvents(pathQ1);
+        PersistentEvent[] tabEvent = eqs.getEvents(pathQ1);
         assertEquals("error length of array intestDeleteeventFromEQ()", tabEvent.length, 0);
 
     }
@@ -541,29 +529,29 @@ public class EventQueueServiceSBTest {
      * 
      * @throws EventQueueServiceException
      */
-    @Test
-    public void testLastEventInEQ() throws EventQueueServiceException {
-
-        logger.debug("test: delete an Event from EventQueue(...)");
-        // eqs.createEventQueue("/eventqueue1");
-        Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
-        Event myEvent2 = new Event("/path/resource/", "titi", "resourceType", "read,write", "");
-        Event myEvent3 = new Event("/path/resource/", "titi", "resourceType", "write", "");
-
-        eqs.pushEvent(pathQ1, myEvent1);
-        eqs.pushEvent(pathQ1, myEvent2);
-        eqs.pushEvent(pathQ1, myEvent3);
-        Event[] tabEvent = eqs.getEvents(pathQ1);
-
-        for (int i = 0; i < tabEvent.length; i++) {
-            Event e = eqs.getLastEvent(pathQ1);
-            assertEquals(e, tabEvent[i]);
-
-            eqs.deleteEvent(pathQ1, e);
-
-        }
-
-    }
+//    @Test
+//    public void testLastEventInEQ() throws EventQueueServiceException {
+//
+//        logger.debug("test: delete an Event from EventQueue(...)");
+//        // eqs.createEventQueue("/eventqueue1");
+//        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "toto", "resourceType", "read", "");
+//        PersistentEvent myEvent2 = new PersistentEvent("/path/resource/", "titi", "resourceType", "read,write", "");
+//        PersistentEvent myEvent3 = new PersistentEvent("/path/resource/", "titi", "resourceType", "write", "");
+//
+//        eqs.pushEvent(pathQ1, myEvent1);
+//        eqs.pushEvent(pathQ1, myEvent2);
+//        eqs.pushEvent(pathQ1, myEvent3);
+//        PersistentEvent[] tabEvent = eqs.getEvents(pathQ1);
+//
+//        for (int i = 0; i < tabEvent.length; i++) {
+//            PersistentEvent e = eqs.getLastEvent(pathQ1);
+//            assertEquals(e, tabEvent[i]);
+//
+//            eqs.deleteEvent(pathQ1, e);
+//
+//        }
+//
+//    }
 
     // ******************************** Boundary
     // ******************************************
@@ -592,10 +580,10 @@ public class EventQueueServiceSBTest {
     public void testPushSameEventInEventQueue() throws EventQueueServiceException {
         logger.debug("test: push the same event in the eventQueue");
 
-        Event myEvent1 = new Event("/path/resource/", "toto", "resourceType", "read", "");
+        PersistentEvent myEvent1 = new PersistentEvent("/path/resource/", "toto", "resourceType", "read", "");
         eqs.pushEvent(pathQ1, myEvent1);
         eqs.pushEvent(pathQ1, myEvent1);
-        Event[] tabEvent = eqs.getEvents(pathQ1);
+        PersistentEvent[] tabEvent = eqs.getEvents(pathQ1);
         for (int i = 0; i < tabEvent.length; i++) {
             assertEquals(tabEvent[i], myEvent1);
         }

@@ -1,4 +1,4 @@
-package org.qualipso.factory.workflow.bonita.hook;
+package org.qualipso.factory.workflow.hook;
 
 import java.util.Map;
 import java.util.logging.Level;
@@ -14,6 +14,8 @@ import org.ow2.bonita.facade.runtime.ActivityBody;
 import org.ow2.bonita.facade.runtime.ActivityInstance;
 import org.ow2.bonita.facade.uuid.ActivityInstanceUUID;
 import org.ow2.bonita.facade.uuid.ProcessInstanceUUID;
+import org.ow2.bonita.util.AccessorUtil;
+import org.qualipso.factory.client.ws.PathNotFoundException_Exception;
 import org.qualipso.factory.client.ws.Project;
 import org.qualipso.factory.client.ws.ProjectServiceException_Exception;
 import org.qualipso.factory.client.ws.Project_Service;
@@ -52,19 +54,32 @@ public class CreateFactoryProject implements Hook {
 
 			// Service bootstrap = (BootstrapService)
 			// ctx.lookup(FactoryNamingConvention.getJNDINameForService("bootstrap"));
-
 			Project_Type projectType = projectService
-					.getProject("/profiles/root/testworkflow");
+					.readProject((String) AccessorUtil.getAPIAccessor()
+							.getQueryRuntimeAPI().getProcessInstanceVariable(
+									processInstanceUUID, ProcessNVUtil.PATH));
+
 			System.out.println("setup - Project " + projectType.getName()
 					+ "  exists");
-		} catch (ProjectServiceException_Exception e) {
+		} catch (Exception e) {
 			// Create Project
 			System.out.println("setup - Project "
-					+ "/profiles/root/testworkflow"
+					+ AccessorUtil.getAPIAccessor().getQueryRuntimeAPI()
+							.getProcessInstanceVariable(processInstanceUUID,
+									ProcessNVUtil.PATH)
 					+ "  doesn't exist -> creation");
-			projectService.createProject("/profiles/root/testworkflow",
-					"Test Projet Workflow", "this is a test for workflow",
-					"GPL");
+			projectService.createProject((String) AccessorUtil.getAPIAccessor()
+					.getQueryRuntimeAPI().getProcessInstanceVariable(
+							processInstanceUUID, ProcessNVUtil.PATH),
+					(String) AccessorUtil.getAPIAccessor().getQueryRuntimeAPI()
+							.getProcessInstanceVariable(processInstanceUUID,
+									ProcessNVUtil.NAME), (String) AccessorUtil
+							.getAPIAccessor().getQueryRuntimeAPI()
+							.getProcessInstanceVariable(processInstanceUUID,
+									ProcessNVUtil.SUMMARY),
+					(String) AccessorUtil.getAPIAccessor().getQueryRuntimeAPI()
+							.getProcessInstanceVariable(processInstanceUUID,
+									ProcessNVUtil.LICENCE));
 		}
 
 	}

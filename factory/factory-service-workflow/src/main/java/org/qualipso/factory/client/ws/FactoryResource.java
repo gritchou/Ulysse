@@ -29,10 +29,10 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "factoryResource")
 @XmlSeeAlso({
     Profile.class,
-    Folder.class,
-    Bonita.class,
     Group.class,
+    Folder.class,
     File.class,
+    SvnRepository.class,
     Link.class
 })
 public abstract class FactoryResource {

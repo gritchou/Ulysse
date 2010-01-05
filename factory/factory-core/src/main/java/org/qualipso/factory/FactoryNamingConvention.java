@@ -40,6 +40,7 @@ public class FactoryNamingConvention {
     public static final String RESOURCE_NAMESPACE = "http://org.qualipso.factory.ws/resource/";
     public static final String SEARCH_NAMESPACE = "http://org.qualipso.factory.ws/search/";
     public static final String EVENT_NAMESPACE = "http://org.qualipso.factory.ws/event/";
+    
 
     /**
      * @param the service name
@@ -57,7 +58,7 @@ public class FactoryNamingConvention {
      * @param the service name
      * @return a String representing the local jndi name of this service
      */
-    public static String getLocalJNDINameForService(String service) {
+    public static String getJNDINameForLocalService(String service) {
         if (!service.toLowerCase().equals(service)) {
             logger.warn("service names should not contains caps");
         }

@@ -10,7 +10,7 @@ import javax.xml.ws.WebFault;
  * Generated source version: 2.1
  * 
  */
-@WebFault(name = "PathNotFoundException", targetNamespace = "http://org.qualipso.factory.ws/service/browser")
+@WebFault(name = "PathNotFoundException", targetNamespace = "http://org.qualipso.factory.ws/service/membership")
 public class PathNotFoundException_Exception
     extends Exception
 {

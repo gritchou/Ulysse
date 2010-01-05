@@ -3,8 +3,6 @@
     <wb-module deploy-name="factory-service-jabuti-0.4-SNAPSHOT">
         <wb-resource deploy-path="/" source-path="/src/main/resources"/>
         <wb-resource deploy-path="/" source-path="/src/main/java"/>
-        <wb-resource deploy-path="/" source-path="/src/test/java"/>
-        <wb-resource deploy-path="/" source-path="/src/test/resources"/>
         <property name="java-output-path"/>
     </wb-module>
 </project-modules>

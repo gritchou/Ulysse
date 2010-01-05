@@ -10,6 +10,7 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.qualipso.factory.notification.Event;
 
 /**
  * @author Nicolas HENRY

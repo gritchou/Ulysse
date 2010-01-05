@@ -10,7 +10,7 @@ import javax.xml.ws.WebFault;
  * Generated source version: 2.1
  * 
  */
-@WebFault(name = "AccessDeniedException", targetNamespace = "http://org.qualipso.factory.ws/service/browser")
+@WebFault(name = "AccessDeniedException", targetNamespace = "http://org.qualipso.factory.ws/service/membership")
 public class AccessDeniedException_Exception
     extends Exception
 {

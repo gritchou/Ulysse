@@ -24,7 +24,7 @@ Date
 	</scm>
 	<properties>
 		<ws.core.uri>http://localhost:8080/factory-core</ws.core.uri>
-		<ws.root.uri>http://localhost:8080/factory-service</ws.root.uri>
+		<ws.root.uri>http://localhost:8080/factory</ws.root.uri>
 	</properties>
 	<build>
 		<plugins>
@@ -38,7 +38,7 @@ Date
 						</goals>
 						<configuration>
 							<wsdlUrls>
-	                            <wsdlUrl>${ws.root.uri}-jabuti/jabuti?wsdl</wsdlUrl>
+	                            <wsdlUrl>http://localhost:8080/factory-jabuti/jabuti?wsdl</wsdlUrl>
                                 <wsdlUrl>${ws.core.uri}/bootstrap?wsdl</wsdlUrl>
                             </wsdlUrls>
 							<packageName>org.qualipso.factory.jabuti.client.ws</packageName>
@@ -104,8 +104,7 @@ Date
 		<dependency>
 			<groupId>org.qualipso</groupId>
 			<artifactId>factory-core</artifactId>
-			<version>0.3.2-SNAPSHOT</version>
-			<scope>runtime</scope>
+			<version>0.4.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.qualipso</groupId>
@@ -116,13 +115,13 @@ Date
 		<dependency>
 			<groupId>org.jboss.ws.native</groupId>
 			<artifactId>jbossws-native-client</artifactId>
-			<version>3.0.5.GA</version>
+			<version>3.1.2.GA</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.jbossas</groupId>
 			<artifactId>jboss-as-client</artifactId>
-			<version>5.0.1.GA</version>
+			<version>5.1.0.GA</version>
 			<type>pom</type>
 			<scope>runtime</scope>
 		</dependency>

@@ -27,7 +27,7 @@ import org.qualipso.factory.binding.PathNotFoundException;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceBean;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
-import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.eventqueue.entity.PersistentEvent;
 import org.qualipso.factory.eventqueue.entity.EventQueue;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
@@ -95,6 +95,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws EventQueueServiceException
      */
 
+    @Test
     public void testCreateEventQueue() throws Exception {
         logger.debug("testing testCreateEventQueue(...)");
         final String name = "/queue/myQueue";
@@ -192,6 +193,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PAPServiceException
      * @throws EventQueueServiceException
      */
+    @Test
     public void testpushEvent1() throws Exception {
 
         logger.debug("testing testPushEvent(...)");
@@ -204,7 +206,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         final Vector<Object> allParams = new Vector<Object>();
         final EventQueue firstQueue = new EventQueue();
-        firstQueue.setEvents(new ArrayList<Event>());
+        firstQueue.setEvents(new ArrayList<PersistentEvent>());
         firstQueue.setResourcePath(name);
         mockery.checking(new Expectations() {
             {
@@ -233,7 +235,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         EventQueueServiceBean eqsb = getBeanToTest();
 
-        Event e = new Event("aResource", "aService", "aType", "anEventType", "");
+        PersistentEvent e = new PersistentEvent("aResource", "aService", "aType", "anEventType", "");
         eqsb.pushEvent(name, e);
         // l'event est bien ajoute
         assertEquals(((EventQueue) allParams.get(0)).getEvents().size(), 1);
@@ -272,7 +274,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
             }
         });
 
-        e = new Event("aSResource", "aSService", "aSType", "aSEventType", "");
+        e = new PersistentEvent("aSResource", "aSService", "aSType", "aSEventType", "");
         eqsb.pushEvent(name, e);
         // l'event est bien ajoute
         assertEquals(((EventQueue) allParams.get(1)).getEvents().size(), 2);
@@ -295,6 +297,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PAPServiceException
      * @throws EventQueueServiceException
      */
+    @Test
     public void testDeleteEventNotInTheQueue() throws Exception {
         logger.debug("testing testDeleteEventNotInTheQueue(...)");
         final Sequence sq1 = mockery.sequence("seq1");
@@ -305,8 +308,8 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
-        Event e = new Event("aResource", "aService", "aType", "anEventType", "");
-        ArrayList<Event> ale = new ArrayList<Event>();
+        PersistentEvent e = new PersistentEvent("aResource", "aService", "aType", "anEventType", "");
+        ArrayList<PersistentEvent> ale = new ArrayList<PersistentEvent>();
         ale.add(e);
         firstQueue.setEvents(ale);
 
@@ -355,6 +358,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws PAPServiceException
      * @throws EventQueueServiceException
      */
+    @Test
     public void testDeleteEventInTheQueue() throws Exception {
         logger.debug("testing testDeleteEventInTheQueue(...)");
         final Sequence sq1 = mockery.sequence("seq1");
@@ -365,8 +369,8 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
-        Event e1 = new Event("aResource", "aService", "aType", "anEventType", "");
-        ArrayList<Event> eventL = new ArrayList<Event>();
+        PersistentEvent e1 = new PersistentEvent("aResource", "aService", "aType", "anEventType", "");
+        ArrayList<PersistentEvent> eventL = new ArrayList<PersistentEvent>();
         eventL.add(e1);
         firstQueue.setEvents(eventL);
         firstQueue.setResourcePath(name);
@@ -428,7 +432,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
-        firstQueue.setEvents(new ArrayList<Event>());
+        firstQueue.setEvents(new ArrayList<PersistentEvent>());
         firstQueue.setResourcePath(name);
 
         mockery.checking(new Expectations() {
@@ -516,7 +520,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
-        firstQueue.setEvents(new ArrayList<Event>());
+        firstQueue.setEvents(new ArrayList<PersistentEvent>());
         firstQueue.setResourcePath(name);
 
         logger.info(" verification TRNEQ");
@@ -565,6 +569,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
+    @Test
     public void testfindEventByDate() throws Exception {
 
         logger.debug("testing testfindEventByDate(...)");
@@ -576,10 +581,10 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
-        ArrayList<Event> a = new ArrayList<Event>();
-        a.add(new Event());
-        a.add(new Event());
-        a.add(new Event());
+        ArrayList<PersistentEvent> a = new ArrayList<PersistentEvent>();
+        a.add(new PersistentEvent());
+        a.add(new PersistentEvent());
+        a.add(new PersistentEvent());
 
         firstQueue.setEvents(a);
         firstQueue.setResourcePath(name);
@@ -609,7 +614,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventByDate(name, new Date()));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByDate(name, new Date()));
             assertEquals(myTab.length, 0);
 
         } catch (EventQueueServiceException e) {
@@ -628,7 +633,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
-
+    @Test
     public void testfindEventByDateBetween() throws Exception {
 
         logger.debug("testing testfindEventByDateBetween(...)");
@@ -640,15 +645,15 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
-        ArrayList<Event> a = new ArrayList<Event>();
-        a.add(new Event());
+        ArrayList<PersistentEvent> a = new ArrayList<PersistentEvent>();
+        a.add(new PersistentEvent());
 
         Date dTest = new Date();
-        a.add(new Event());
-        a.add(new Event());
+        a.add(new PersistentEvent());
+        a.add(new PersistentEvent());
         Date dTest2 = new Date();
 
-        a.add(new Event());
+        a.add(new PersistentEvent());
 
         firstQueue.setEvents(a);
         firstQueue.setResourcePath(name);
@@ -679,9 +684,9 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         try {
 
             EventQueueServiceBean eqsb = getBeanToTest();
-            a.add(new Event());
+            a.add(new PersistentEvent());
 
-            Event[] myTab = (Event[]) (eqsb.findEventByDateBetween(name, dTest, new Date()));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByDateBetween(name, dTest, new Date()));
             assertEquals(myTab.length, 5);
 
         } catch (EventQueueServiceException e) {
@@ -717,7 +722,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventByDateBetween(name, dTest, dTest2));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByDateBetween(name, dTest, dTest2));
             assertEquals(myTab.length, 4);
 
         } catch (EventQueueServiceException e) {
@@ -735,7 +740,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
-
+    @Test
     public void testfindEventByDateInf() throws Exception {
 
         logger.debug("testing testfindEventByDateInf(...)");
@@ -746,15 +751,15 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
                 .randomUUID().toString());
         final EventQueue firstQueue = new EventQueue();
-        ArrayList<Event> a = new ArrayList<Event>();
-        a.add(new Event());
+        ArrayList<PersistentEvent> a = new ArrayList<PersistentEvent>();
+        a.add(new PersistentEvent());
 
         Date dTest = new Date();
-        a.add(new Event());
-        a.add(new Event());
+        a.add(new PersistentEvent());
+        a.add(new PersistentEvent());
         Date dTest2 = new Date();
 
-        a.add(new Event());
+        a.add(new PersistentEvent());
 
         firstQueue.setEvents(a);
         firstQueue.setResourcePath(name);
@@ -785,9 +790,9 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         try {
 
             EventQueueServiceBean eqsb = getBeanToTest();
-            a.add(new Event());
+            a.add(new PersistentEvent());
 
-            Event[] myTab = (Event[]) (eqsb.findEventByDateInf(name, dTest));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByDateInf(name, dTest));
             assertEquals(myTab.length, 4);
 
         } catch (EventQueueServiceException e) {
@@ -823,7 +828,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventByDateInf(name, dTest2));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByDateInf(name, dTest2));
             assertEquals(myTab.length, 4);
 
         } catch (EventQueueServiceException e) {
@@ -841,6 +846,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
+    @Test
     public void testfindEventByDateSup() throws Exception {
 
         logger.debug("testing testfindEventByDateInf(...)");
@@ -851,13 +857,13 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
                 .randomUUID().toString());
         final EventQueue firstQueue = new EventQueue();
-        ArrayList<Event> a = new ArrayList<Event>();
-        a.add(new Event());
+        ArrayList<PersistentEvent> a = new ArrayList<PersistentEvent>();
+        a.add(new PersistentEvent());
 
         Date dTest = new Date();
-        a.add(new Event());
-        a.add(new Event());
-        a.add(new Event());
+        a.add(new PersistentEvent());
+        a.add(new PersistentEvent());
+        a.add(new PersistentEvent());
 
         firstQueue.setEvents(a);
         firstQueue.setResourcePath(name);
@@ -888,7 +894,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         try {
 
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventByDateSup(name, dTest));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByDateSup(name, dTest));
             assertEquals(myTab.length, 4);
 
         } catch (EventQueueServiceException e) {
@@ -924,9 +930,9 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             Date dTest2 = new Date();
-            a.add(new Event());
+            a.add(new PersistentEvent());
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventByDateSup(name, dTest2));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByDateSup(name, dTest2));
             assertEquals(myTab.length, 1);
 
         } catch (EventQueueServiceException e) {
@@ -944,7 +950,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
-
+    @Test
     public void testfindEventByEventType() throws Exception {
 
         logger.debug("testing testfindEventByEventType(...)");
@@ -955,10 +961,10 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
                 .randomUUID().toString());
         final EventQueue firstQueue = new EventQueue();
-        ArrayList<Event> a = new ArrayList<Event>();
-        a.add(new Event("/name", "Rule", "eventype", ""));
-        a.add(new Event("/ressource", "Rule", "eventype2", ""));
-        a.add(new Event("/ressource2", "Rule", "eventype3", ""));
+        ArrayList<PersistentEvent> a = new ArrayList<PersistentEvent>();
+        a.add(new PersistentEvent("/name", "Rule", "eventype", ""));
+        a.add(new PersistentEvent("/ressource", "Rule", "eventype2", ""));
+        a.add(new PersistentEvent("/ressource2", "Rule", "eventype3", ""));
 
         logger.info(" verification TRNEQ");
         mockery.checking(new Expectations() {
@@ -986,7 +992,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventByEventType(name, "eventype", false));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByEventType(name, "eventype", false));
             assertEquals(myTab.length, 0);
         } catch (EventQueueServiceException e) {
             logger.info("exception generated : " + e.getMessage());
@@ -1020,7 +1026,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventByEventType(name, "eventype", true));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByEventType(name, "eventype", true));
             assertEquals(myTab.length, 3);
         } catch (EventQueueServiceException e) {
             logger.info("exception generated : " + e.getMessage());
@@ -1050,7 +1056,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventByEventType(name, "eventype", false));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByEventType(name, "eventype", false));
             assertEquals(myTab.length, 1);
         } catch (EventQueueServiceException e) {
             logger.info("exception generated : " + e.getMessage());
@@ -1066,15 +1072,16 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
+    @Test
     public void testfindEventByEventTypeNullParameter() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
         logger.debug("testing testfindEventByEventTypeNullParameter(...)");
 
         final String name = "myQueue";
         final EventQueue firstQueue = new EventQueue();
-        ArrayList<Event> a = new ArrayList<Event>();
-        a.add(new Event("/name", "Rule", "eventype", ""));
-        a.add(new Event("/ressource", "Rule", "eventype2", ""));
-        a.add(new Event("/ressource2", "Rule", "eventype3", ""));
+        ArrayList<PersistentEvent> a = new ArrayList<PersistentEvent>();
+        a.add(new PersistentEvent("/name", "Rule", "eventype", ""));
+        a.add(new PersistentEvent("/ressource", "Rule", "eventype2", ""));
+        a.add(new PersistentEvent("/ressource2", "Rule", "eventype3", ""));
 
         firstQueue.setEvents(a);
         firstQueue.setResourcePath(name);
@@ -1104,7 +1111,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
-
+    @Test
     public void testfindEventRessourceType() throws Exception {
         logger.debug("testing testfindEventfromRessource(...)");
         final Sequence sq1 = mockery.sequence("seq1");
@@ -1116,10 +1123,10 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
-        ArrayList<Event> a = new ArrayList<Event>();
-        a.add(new Event("", "", ressource, "", ""));
-        a.add(new Event("", "", "anOtherRessourceType", "", ""));
-        a.add(new Event("", "", "TheRessourceType", "", ""));
+        ArrayList<PersistentEvent> a = new ArrayList<PersistentEvent>();
+        a.add(new PersistentEvent("", "", ressource, "", ""));
+        a.add(new PersistentEvent("", "", "anOtherRessourceType", "", ""));
+        a.add(new PersistentEvent("", "", "TheRessourceType", "", ""));
 
         firstQueue.setEvents(a);
         firstQueue.setResourcePath(name);
@@ -1151,7 +1158,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventByRessourceType(name, ressource, true));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByRessourceType(name, ressource, true));
             assertEquals(myTab.length, 3);
 
         } catch (EventQueueServiceException e) {
@@ -1161,7 +1168,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         mockery.assertIsSatisfied();
 
         // deuxieme exactement type ressource : RessourceType
-        a.add(new Event("", "", "ressourceType", "", ""));
+        a.add(new PersistentEvent("", "", "ressourceType", "", ""));
         firstQueue.setEvents(a);
 
         mockery.checking(new Expectations() {
@@ -1189,7 +1196,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventByRessourceType(name, ressource, false));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByRessourceType(name, ressource, false));
             assertEquals(myTab.length, 1);
             assertEquals(myTab[0].getThrowedBy(), ressource);
 
@@ -1207,15 +1214,16 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
+    @Test
     public void testfindEventByRessourceTypeNullParameter() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
         logger.debug("testing testfindEventByRessourceTypeNullParameter(...)");
 
         final String name = "myQueue";
         final EventQueue firstQueue = new EventQueue();
-        ArrayList<Event> a = new ArrayList<Event>();
-        a.add(new Event("/name", "Rule", "eventype", ""));
-        a.add(new Event("/ressource", "Rule", "eventype2", ""));
-        a.add(new Event("/ressource2", "Rule", "eventype3", ""));
+        ArrayList<PersistentEvent> a = new ArrayList<PersistentEvent>();
+        a.add(new PersistentEvent("/name", "Rule", "eventype", ""));
+        a.add(new PersistentEvent("/ressource", "Rule", "eventype2", ""));
+        a.add(new PersistentEvent("/ressource2", "Rule", "eventype3", ""));
 
         firstQueue.setEvents(a);
         firstQueue.setResourcePath(name);
@@ -1245,7 +1253,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
-
+    @Test
     public void testfindEventFromRessource() throws Exception {
         logger.debug("testing testfindEventfromRessource(...)");
         final Sequence sq1 = mockery.sequence("seq1");
@@ -1257,10 +1265,10 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
-        ArrayList<Event> a = new ArrayList<Event>();
-        a.add(new Event(ressource, "", "", "", ""));
-        a.add(new Event("anOtherRessource", "", "", "", ""));
-        a.add(new Event("TheRessource", "", "", "", ""));
+        ArrayList<PersistentEvent> a = new ArrayList<PersistentEvent>();
+        a.add(new PersistentEvent(ressource, "", "", "", ""));
+        a.add(new PersistentEvent("anOtherRessource", "", "", "", ""));
+        a.add(new PersistentEvent("TheRessource", "", "", "", ""));
 
         firstQueue.setEvents(a);
         firstQueue.setResourcePath(name);
@@ -1292,7 +1300,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventByRessourceType(name, ressource, true));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByRessourceType(name, ressource, true));
             assertEquals(myTab.length, 3);
 
         } catch (EventQueueServiceException e) {
@@ -1302,7 +1310,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         mockery.assertIsSatisfied();
 
         // deuxieme exactement nom ressource : Ressource
-        a.add(new Event("ressource", "", "", "", ""));
+        a.add(new PersistentEvent("ressource", "", "", "", ""));
         firstQueue.setEvents(a);
 
         mockery.checking(new Expectations() {
@@ -1330,7 +1338,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventByRessourceType(name, ressource, false));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventByRessourceType(name, ressource, false));
             assertEquals(myTab.length, 1);
             assertEquals(myTab[0].getThrowedBy(), ressource);
 
@@ -1348,15 +1356,16 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
+    @Test
     public void testfindEventFromRessourceNullParameter() throws InvalidPathException, PathNotFoundException, MembershipServiceException, PEPServiceException {
         logger.debug("testing testfindEventFromRessourceNullParameter(...)");
 
         final String name = "myQueue";
         final EventQueue firstQueue = new EventQueue();
-        ArrayList<Event> a = new ArrayList<Event>();
-        a.add(new Event("/name", "Rule", "eventype", ""));
-        a.add(new Event("/ressource", "Rule", "eventype2", ""));
-        a.add(new Event("/ressource2", "Rule", "eventype3", ""));
+        ArrayList<PersistentEvent> a = new ArrayList<PersistentEvent>();
+        a.add(new PersistentEvent("/name", "Rule", "eventype", ""));
+        a.add(new PersistentEvent("/ressource", "Rule", "eventype2", ""));
+        a.add(new PersistentEvent("/ressource2", "Rule", "eventype3", ""));
 
         firstQueue.setEvents(a);
         firstQueue.setResourcePath(name);
@@ -1386,6 +1395,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
+    @Test
     public void testfindObjectEvent() throws Exception {
         logger.debug("testing testfindObjectEvent(...)");
         final Sequence sq1 = mockery.sequence("seq1");
@@ -1395,12 +1405,12 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         final FactoryResourceIdentifier identifier = new FactoryResourceIdentifier(EventQueueService.SERVICE_NAME, EventQueueService.SERVICE_NAME, UUID
                 .randomUUID().toString());
         final EventQueue firstQueue = new EventQueue();
-        ArrayList<Event> a = new ArrayList<Event>();
-        Event e1 = new Event("/name", "Rule", "eventype", "");
-        Event e2 = new Event("/name2", "Rule3", "eventypeAlpha", "args");
-        a.add(new Event("/name", "Rule", "eventype", ""));
-        a.add(new Event("/ressource", "Rule", "eventype2", ""));
-        a.add(new Event("/ressource2", "Rule", "eventype3", ""));
+        ArrayList<PersistentEvent> a = new ArrayList<PersistentEvent>();
+        PersistentEvent e1 = new PersistentEvent("/name", "Rule", "eventype", "");
+        PersistentEvent e2 = new PersistentEvent("/name2", "Rule3", "eventypeAlpha", "args");
+        a.add(new PersistentEvent("/name", "Rule", "eventype", ""));
+        a.add(new PersistentEvent("/ressource", "Rule", "eventype2", ""));
+        a.add(new PersistentEvent("/ressource2", "Rule", "eventype3", ""));
         firstQueue.setEvents(a);
         firstQueue.setResourcePath(name);
 
@@ -1429,7 +1439,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findObjectEvent(name, e1));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findObjectEvent(name, e1));
             assertEquals(myTab.length, 1);
         } catch (EventQueueServiceException e) {
             logger.info("exception generated : " + e.getMessage());
@@ -1460,7 +1470,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findObjectEvent(name, e2));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findObjectEvent(name, e2));
             assertEquals(myTab.length, 0);
         } catch (EventQueueServiceException e) {
             logger.info("exception generated : " + e.getMessage());
@@ -1476,7 +1486,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
      * @throws MembershipServiceException
      * @throws PEPServiceException
      */
-
+    @Test
     public void testfindEventBythrower() throws Exception {
 
         logger.debug("testing testfindEventBythrower(...)");
@@ -1489,10 +1499,10 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
                 .randomUUID().toString());
 
         final EventQueue firstQueue = new EventQueue();
-        ArrayList<Event> a = new ArrayList<Event>();
-        a.add(new Event("", thrower1, "", "", ""));
-        a.add(new Event("", "anOtherThrower", "", "", ""));
-        a.add(new Event("", "TheThrower1", "", "", ""));
+        ArrayList<PersistentEvent> a = new ArrayList<PersistentEvent>();
+        a.add(new PersistentEvent("", thrower1, "", "", ""));
+        a.add(new PersistentEvent("", "anOtherThrower", "", "", ""));
+        a.add(new PersistentEvent("", "TheThrower1", "", "", ""));
 
         firstQueue.setEvents(a);
         firstQueue.setResourcePath(name);
@@ -1522,7 +1532,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventBythrower(name, thrower1, true));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventBythrower(name, thrower1, true));
             assertEquals(myTab.length, 3);
 
         } catch (EventQueueServiceException e) {
@@ -1532,7 +1542,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
         mockery.assertIsSatisfied();
 
         // recherche exactement nom thrower : Thrower
-        a.add(new Event("", "thrower2", "", "", ""));
+        a.add(new PersistentEvent("", "thrower2", "", "", ""));
         firstQueue.setEvents(a);
 
         mockery.checking(new Expectations() {
@@ -1558,7 +1568,7 @@ public class EventQueueServiceTest extends BaseSessionBeanFixture<EventQueueServ
 
         try {
             EventQueueServiceBean eqsb = getBeanToTest();
-            Event[] myTab = (Event[]) (eqsb.findEventBythrower(name, thrower1, false));
+            PersistentEvent[] myTab = (PersistentEvent[]) (eqsb.findEventBythrower(name, thrower1, false));
             assertEquals(myTab.length, 1);
             assertEquals(myTab[0].getThrowedBy(), thrower1);
 

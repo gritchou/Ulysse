@@ -1,5 +1,6 @@
 package org.qualipso.factory.greeting.test;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Map;
@@ -36,8 +37,12 @@ public class GreetingServiceTest {
             port.createName("/howard", "Howard Wolowitz");
             
             String message = port.sayHello("/sheldon");
-            
             logger.debug("message : " + message);
+            assertTrue(message.equals("Hello dear Sheldon Cooper !!"));
+            
+            message = port.sayHello("/sheldon");
+            logger.debug("message : " + message);
+            assertTrue(message.equals("Hello dear Howard Wolowitz !!"));
         } catch (Exception e) {
             e.printStackTrace();
             fail(e.getMessage());

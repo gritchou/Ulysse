@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.1
  * 
  */
-@WebServiceClient(name = "workflow", targetNamespace = "http://org.qualipso.factory.ws/service/workflow", wsdlLocation = "http://localhost:8080/workflow/workflow?wsdl")
+@WebServiceClient(name = "workflow", targetNamespace = "http://org.qualipso.factory.ws/service/workflow", wsdlLocation = "http://localhost:8280/workflow/workflow?wsdl")
 public class Workflow_Service
     extends Service
 {
@@ -30,9 +30,9 @@ public class Workflow_Service
         try {
             URL baseUrl;
             baseUrl = org.qualipso.factory.client.ws.Workflow_Service.class.getResource(".");
-            url = new URL(baseUrl, "http://localhost:8080/workflow/workflow?wsdl");
+            url = new URL(baseUrl, "http://localhost:8280/workflow/workflow?wsdl");
         } catch (MalformedURLException e) {
-            logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:8080/workflow/workflow?wsdl', retrying as a local file");
+            logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:8280/workflow/workflow?wsdl', retrying as a local file");
             logger.warning(e.getMessage());
         }
         WORKFLOW_WSDL_LOCATION = url;

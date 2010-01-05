@@ -53,10 +53,12 @@ import org.qualipso.factory.binding.PathNotFoundException;
 import org.qualipso.factory.core.CoreService;
 import org.qualipso.factory.core.entity.File;
 import org.qualipso.factory.core.entity.Folder;
+import org.qualipso.factory.indexing.IndexableContent;
+import org.qualipso.factory.indexing.IndexingServiceException;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceBean;
 import org.qualipso.factory.membership.entity.Profile;
-import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.notification.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
@@ -343,11 +345,12 @@ public class BootstrapServiceBean implements BootstrapService {
     }
 
     @Override
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
     public FactoryResource findResource(String path) throws FactoryException {
         logger.info("findResource(...) called");
         logger.debug("params : path=" + path);
 
         throw new BootstrapServiceException("Bootstrap service does not manage any resource");
     }
+    
 }

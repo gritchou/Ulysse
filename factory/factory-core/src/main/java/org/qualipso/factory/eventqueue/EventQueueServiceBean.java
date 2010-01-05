@@ -54,7 +54,7 @@ import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.core.CoreServiceException;
-import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.eventqueue.entity.PersistentEvent;
 import org.qualipso.factory.eventqueue.entity.EventQueue;
 import org.qualipso.factory.eventqueue.entity.Rule;
 import org.qualipso.factory.membership.MembershipService;
@@ -74,10 +74,8 @@ import org.qualipso.factory.security.pep.PEPServiceException;
  * @date 27 July 2009
  */
 @Stateless(name = EventQueueService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + EventQueueService.SERVICE_NAME)
-@WebService(endpointInterface = "org.qualipso.factory.eventqueue.EventQueueService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE
-        + EventQueueService.SERVICE_NAME, serviceName = EventQueueService.SERVICE_NAME)
-@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX
-        + EventQueueService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.eventqueue.EventQueueService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + EventQueueService.SERVICE_NAME, serviceName = EventQueueService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + EventQueueService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
@@ -251,7 +249,7 @@ public class EventQueueServiceBean implements EventQueueService {
      * @return returne un tableau des evenements contenu dans la queue
      */
     @Override
-    public Event[] getEvents(String path) throws EventQueueServiceException {
+    public PersistentEvent[] getEvents(String path) throws EventQueueServiceException {
 
         FactoryResourceIdentifier identifier;
         try {
@@ -265,7 +263,7 @@ public class EventQueueServiceBean implements EventQueueService {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
 
-                Event[] evs = new Event[eventqueue.getEvents().size()];
+                PersistentEvent[] evs = new PersistentEvent[eventqueue.getEvents().size()];
 
                 /*
                  * ArrayList<Event> evts = new ArrayList<Event>();
@@ -308,7 +306,7 @@ public class EventQueueServiceBean implements EventQueueService {
             pep.checkSecurity(caller, PathHelper.getParentPath(path), "create");
             EventQueue evq = new EventQueue();
             evq.setId(UUID.randomUUID().toString());
-            evq.setEvents(new ArrayList<Event>());
+            evq.setEvents(new ArrayList<PersistentEvent>());
             em.persist(evq);
 
             binding.bind(evq.getFactoryResourceIdentifier(), path);
@@ -318,6 +316,9 @@ public class EventQueueServiceBean implements EventQueueService {
                     "read", "update" }));
             binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
             binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
+            
+            //TODO notification...
+            //TODO indexation...
 
         } catch (Exception e) {
             logger.error("unable to create an event queue", e);
@@ -337,7 +338,7 @@ public class EventQueueServiceBean implements EventQueueService {
      * 
      */
     @Override
-    public void pushEvent(String path, Event event) throws EventQueueServiceException {
+    public void pushEvent(String path, PersistentEvent event) throws EventQueueServiceException {
 
         FactoryResourceIdentifier identifier;
         try {
@@ -398,7 +399,7 @@ public class EventQueueServiceBean implements EventQueueService {
     }
 
     @Override
-    public Event getLastEvent(String path) throws EventQueueServiceException {
+    public PersistentEvent getLastEvent(String path) throws EventQueueServiceException {
 
         FactoryResourceIdentifier identifier;
         try {
@@ -413,9 +414,9 @@ public class EventQueueServiceBean implements EventQueueService {
                 }
 
                 int size = eventqueue.getEvents().size();
-                Event[] evq = new Event[size];
+                PersistentEvent[] evq = new PersistentEvent[size];
                 evq = eventqueue.getEvents().toArray(evq);
-                Event result = evq[size - 1];
+                PersistentEvent result = evq[size - 1];
                 return result;
 
             } else {
@@ -450,7 +451,7 @@ public class EventQueueServiceBean implements EventQueueService {
     }
 
     @Override
-    public void deleteEvent(String path, Event e) throws EventQueueServiceException {
+    public void deleteEvent(String path, PersistentEvent e) throws EventQueueServiceException {
 
         FactoryResourceIdentifier identifier;
 
@@ -468,7 +469,7 @@ public class EventQueueServiceBean implements EventQueueService {
                  * int size = eventqueue.getEvents().size(); Event[] evq = new
                  * Event[size]; evq = eventqueue.getEvents().toArray(evq);
                  */
-                ArrayList<Event> newEventList = eventqueue.getEvents();
+                ArrayList<PersistentEvent> newEventList = eventqueue.getEvents();
                 if (newEventList.remove(e)) {
                     eventqueue.setEvents(newEventList);
                     em.merge(eventqueue);
@@ -502,7 +503,7 @@ public class EventQueueServiceBean implements EventQueueService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByRessourceType(String path, String ressourceType, boolean substring) throws EventQueueServiceException {
+    public PersistentEvent[] findEventByRessourceType(String path, String ressourceType, boolean substring) throws EventQueueServiceException {
 
         FactoryResourceIdentifier identifier;
         try {
@@ -520,14 +521,14 @@ public class EventQueueServiceBean implements EventQueueService {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
 
-                ArrayList<Event> resultContains = new ArrayList<Event>();
-                ArrayList<Event> resultEquals = new ArrayList<Event>();
+                ArrayList<PersistentEvent> resultContains = new ArrayList<PersistentEvent>();
+                ArrayList<PersistentEvent> resultEquals = new ArrayList<PersistentEvent>();
 
-                ArrayList<Event> listEvent = eventqueue.getEvents();
-                Iterator<Event> it = listEvent.iterator();
+                ArrayList<PersistentEvent> listEvent = eventqueue.getEvents();
+                Iterator<PersistentEvent> it = listEvent.iterator();
 
                 while (it.hasNext()) {
-                    Event ev = it.next();
+                    PersistentEvent ev = it.next();
 
                     if (substring == true && ev.getResourceType().contains(ressourceType)) {
                         resultContains.add(ev);
@@ -540,9 +541,9 @@ public class EventQueueServiceBean implements EventQueueService {
                 }
 
                 if (substring == true) {
-                    return (Event[]) (resultContains.toArray());
+                    return (PersistentEvent[]) (resultContains.toArray());
                 } else {
-                    return (Event[]) (resultEquals.toArray());
+                    return (PersistentEvent[]) (resultEquals.toArray());
                 }
             }
 
@@ -572,7 +573,7 @@ public class EventQueueServiceBean implements EventQueueService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventBythrower(String path, String thrower, boolean substring) throws EventQueueServiceException {
+    public PersistentEvent[] findEventBythrower(String path, String thrower, boolean substring) throws EventQueueServiceException {
 
         FactoryResourceIdentifier identifier;
         try {
@@ -586,14 +587,14 @@ public class EventQueueServiceBean implements EventQueueService {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
 
-                ArrayList<Event> resultContains = new ArrayList<Event>();
-                ArrayList<Event> resultFalse = new ArrayList<Event>();
+                ArrayList<PersistentEvent> resultContains = new ArrayList<PersistentEvent>();
+                ArrayList<PersistentEvent> resultFalse = new ArrayList<PersistentEvent>();
 
-                ArrayList<Event> listEvent = eventqueue.getEvents();
-                Iterator<Event> it = listEvent.iterator();
+                ArrayList<PersistentEvent> listEvent = eventqueue.getEvents();
+                Iterator<PersistentEvent> it = listEvent.iterator();
 
                 while (it.hasNext()) {
-                    Event ev = it.next();
+                    PersistentEvent ev = it.next();
 
                     if (substring == true && ev.getThrowedBy().contains(thrower)) {
                         resultContains.add(ev);
@@ -605,7 +606,7 @@ public class EventQueueServiceBean implements EventQueueService {
                 }
 
                 if (substring == true) {
-                    Event[] tab = new Event[resultContains.size()];
+                    PersistentEvent[] tab = new PersistentEvent[resultContains.size()];
                     int i = 0;
                     while (i < resultContains.size()) {
                         tab[i] = resultContains.get(i);
@@ -613,7 +614,7 @@ public class EventQueueServiceBean implements EventQueueService {
                     }
                     return tab;
                 } else {
-                    Event[] tab = new Event[resultFalse.size()];
+                    PersistentEvent[] tab = new PersistentEvent[resultFalse.size()];
                     int i = 0;
                     while (i < resultFalse.size()) {
                         tab[i] = resultFalse.get(i);
@@ -648,7 +649,7 @@ public class EventQueueServiceBean implements EventQueueService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByFromRessource(String path, String fromRessource, boolean substring) throws EventQueueServiceException {
+    public PersistentEvent[] findEventByFromRessource(String path, String fromRessource, boolean substring) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
             // li des cas exceptionnelles
@@ -665,14 +666,14 @@ public class EventQueueServiceBean implements EventQueueService {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
 
-                ArrayList<Event> resultContains = new ArrayList<Event>();
-                ArrayList<Event> resultFalse = new ArrayList<Event>();
+                ArrayList<PersistentEvent> resultContains = new ArrayList<PersistentEvent>();
+                ArrayList<PersistentEvent> resultFalse = new ArrayList<PersistentEvent>();
 
-                ArrayList<Event> listEvent = eventqueue.getEvents();
-                Iterator<Event> it = listEvent.iterator();
+                ArrayList<PersistentEvent> listEvent = eventqueue.getEvents();
+                Iterator<PersistentEvent> it = listEvent.iterator();
 
                 while (it.hasNext()) {
-                    Event ev = it.next();
+                    PersistentEvent ev = it.next();
 
                     if (substring == true && ev.getFromResource().contains(fromRessource)) {
                         resultContains.add(ev);
@@ -684,7 +685,7 @@ public class EventQueueServiceBean implements EventQueueService {
                 }
 
                 if (substring == true) {
-                    Event[] tab = new Event[resultContains.size()];
+                    PersistentEvent[] tab = new PersistentEvent[resultContains.size()];
                     int i = 0;
                     while (i < resultContains.size()) {
                         tab[i] = resultContains.get(i);
@@ -692,7 +693,7 @@ public class EventQueueServiceBean implements EventQueueService {
                     }
                     return tab;
                 } else {
-                    Event[] tab = new Event[resultFalse.size()];
+                    PersistentEvent[] tab = new PersistentEvent[resultFalse.size()];
                     int i = 0;
                     while (i < resultFalse.size()) {
                         tab[i] = resultFalse.get(i);
@@ -722,7 +723,7 @@ public class EventQueueServiceBean implements EventQueueService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByDate(String path, Date date) throws EventQueueServiceException {
+    public PersistentEvent[] findEventByDate(String path, Date date) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
@@ -735,20 +736,20 @@ public class EventQueueServiceBean implements EventQueueService {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
 
-                ArrayList<Event> result = new ArrayList<Event>();
+                ArrayList<PersistentEvent> result = new ArrayList<PersistentEvent>();
 
-                ArrayList<Event> listEvent = eventqueue.getEvents();
-                Iterator<Event> it = listEvent.iterator();
+                ArrayList<PersistentEvent> listEvent = eventqueue.getEvents();
+                Iterator<PersistentEvent> it = listEvent.iterator();
 
                 while (it.hasNext()) {
-                    Event ev = it.next();
+                    PersistentEvent ev = it.next();
                     if (ev.getDate().equals(date)) {
                         result.add(ev);
                     }
 
                 }
 
-                Event[] tab = new Event[result.size()];
+                PersistentEvent[] tab = new PersistentEvent[result.size()];
                 int i = 0;
                 while (i < result.size()) {
                     tab[i] = result.get(i);
@@ -781,7 +782,7 @@ public class EventQueueServiceBean implements EventQueueService {
      */
 
     @WebMethod
-    public Event[] findEventByDateInf(String path, Date date) throws EventQueueServiceException {
+    public PersistentEvent[] findEventByDateInf(String path, Date date) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
@@ -794,13 +795,13 @@ public class EventQueueServiceBean implements EventQueueService {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
 
-                ArrayList<Event> result = new ArrayList<Event>();
+                ArrayList<PersistentEvent> result = new ArrayList<PersistentEvent>();
 
-                ArrayList<Event> listEvent = eventqueue.getEvents();
-                Iterator<Event> it = listEvent.iterator();
+                ArrayList<PersistentEvent> listEvent = eventqueue.getEvents();
+                Iterator<PersistentEvent> it = listEvent.iterator();
 
                 while (it.hasNext()) {
-                    Event ev = (Event) it.next();
+                    PersistentEvent ev = (PersistentEvent) it.next();
                     if (ev.getDate().before(date) || ev.getDate().equals(date)) {
                         result.add(ev);
                     }
@@ -809,7 +810,7 @@ public class EventQueueServiceBean implements EventQueueService {
 
                 // return (Event[]) (result.toArray());
 
-                Event[] tab = new Event[result.size()];
+                PersistentEvent[] tab = new PersistentEvent[result.size()];
                 int i = 0;
                 while (i < result.size()) {
                     tab[i] = result.get(i);
@@ -839,7 +840,7 @@ public class EventQueueServiceBean implements EventQueueService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByDateSup(String path, Date date) throws EventQueueServiceException {
+    public PersistentEvent[] findEventByDateSup(String path, Date date) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
@@ -852,20 +853,20 @@ public class EventQueueServiceBean implements EventQueueService {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
 
-                ArrayList<Event> result = new ArrayList<Event>();
+                ArrayList<PersistentEvent> result = new ArrayList<PersistentEvent>();
 
-                ArrayList<Event> listEvent = eventqueue.getEvents();
-                Iterator<Event> it = listEvent.iterator();
+                ArrayList<PersistentEvent> listEvent = eventqueue.getEvents();
+                Iterator<PersistentEvent> it = listEvent.iterator();
 
                 while (it.hasNext()) {
-                    Event ev = it.next();
+                    PersistentEvent ev = it.next();
                     if (ev.getDate().after(date) || ev.getDate().equals(date)) {
                         result.add(ev);
                     }
 
                 }// while
 
-                Event[] tab = new Event[result.size()];
+                PersistentEvent[] tab = new PersistentEvent[result.size()];
                 int i = 0;
                 while (i < result.size()) {
                     tab[i] = result.get(i);
@@ -897,7 +898,7 @@ public class EventQueueServiceBean implements EventQueueService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByDateBetween(String path, Date date1, Date date2) throws EventQueueServiceException {
+    public PersistentEvent[] findEventByDateBetween(String path, Date date1, Date date2) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
             identifier = binding.lookup(path);
@@ -910,12 +911,12 @@ public class EventQueueServiceBean implements EventQueueService {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
 
-                ArrayList<Event> result = new ArrayList<Event>();
+                ArrayList<PersistentEvent> result = new ArrayList<PersistentEvent>();
 
-                ArrayList<Event> listEvent = eventqueue.getEvents();
-                Iterator<Event> it = listEvent.iterator();
+                ArrayList<PersistentEvent> listEvent = eventqueue.getEvents();
+                Iterator<PersistentEvent> it = listEvent.iterator();
                 while (it.hasNext()) {
-                    Event ev = it.next();
+                    PersistentEvent ev = it.next();
 
                     // correction d'un bug concernant date1 et date2 et inversé
                     // if (((ev.getDate().before(date1)) ||
@@ -931,7 +932,7 @@ public class EventQueueServiceBean implements EventQueueService {
 
                 }// while
 
-                Event[] tab = new Event[result.size()];
+                PersistentEvent[] tab = new PersistentEvent[result.size()];
                 int i = 0;
                 while (i < result.size()) {
                     tab[i] = result.get(i);
@@ -959,7 +960,7 @@ public class EventQueueServiceBean implements EventQueueService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByEventType(String path, String eventType, boolean substring) throws EventQueueServiceException {
+    public PersistentEvent[] findEventByEventType(String path, String eventType, boolean substring) throws EventQueueServiceException {
         FactoryResourceIdentifier identifier;
         try {
             // li des cas exceptionnelles
@@ -976,14 +977,14 @@ public class EventQueueServiceBean implements EventQueueService {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
 
-                ArrayList<Event> resultContains = new ArrayList<Event>();
-                ArrayList<Event> resultEquals = new ArrayList<Event>();
+                ArrayList<PersistentEvent> resultContains = new ArrayList<PersistentEvent>();
+                ArrayList<PersistentEvent> resultEquals = new ArrayList<PersistentEvent>();
 
-                ArrayList<Event> listEvent = eventqueue.getEvents();
-                Iterator<Event> it = listEvent.iterator();
+                ArrayList<PersistentEvent> listEvent = eventqueue.getEvents();
+                Iterator<PersistentEvent> it = listEvent.iterator();
 
                 while (it.hasNext()) {
-                    Event ev = it.next();
+                    PersistentEvent ev = it.next();
                     if ((substring == true) && (ev.getEventType().contains(eventType))) {
                         resultContains.add(ev);
                     }
@@ -994,7 +995,7 @@ public class EventQueueServiceBean implements EventQueueService {
                 }// while
 
                 if (substring == true) {
-                    Event[] tab = new Event[resultContains.size()];
+                    PersistentEvent[] tab = new PersistentEvent[resultContains.size()];
                     int i = 0;
                     while (i < resultContains.size()) {
                         tab[i] = resultContains.get(i);
@@ -1002,7 +1003,7 @@ public class EventQueueServiceBean implements EventQueueService {
                     }
                     return tab;
                 } else {
-                    Event[] tab = new Event[resultEquals.size()];
+                    PersistentEvent[] tab = new PersistentEvent[resultEquals.size()];
                     int i = 0;
                     while (i < resultEquals.size()) {
                         tab[i] = resultEquals.get(i);
@@ -1022,7 +1023,7 @@ public class EventQueueServiceBean implements EventQueueService {
         }
     }
 
-    public Event[] findObjectEvent(String path, Event event) throws EventQueueServiceException {
+    public PersistentEvent[] findObjectEvent(String path, PersistentEvent event) throws EventQueueServiceException {
 
         FactoryResourceIdentifier identifier;
         try {
@@ -1036,18 +1037,18 @@ public class EventQueueServiceBean implements EventQueueService {
                     throw new EventQueueServiceException("unable to find an event queue for id " + identifier.getId());
                 }
 
-                ArrayList<Event> result = new ArrayList<Event>();
-                ArrayList<Event> listEvent = eventqueue.getEvents();
-                Iterator<Event> it = listEvent.iterator();
+                ArrayList<PersistentEvent> result = new ArrayList<PersistentEvent>();
+                ArrayList<PersistentEvent> listEvent = eventqueue.getEvents();
+                Iterator<PersistentEvent> it = listEvent.iterator();
 
                 while (it.hasNext()) {
-                    Event ev = it.next();
+                    PersistentEvent ev = it.next();
                     if (ev.equals(event)) {
                         result.add(ev);
                     }
                 }
 
-                Event[] tab = new Event[result.size()];
+                PersistentEvent[] tab = new PersistentEvent[result.size()];
                 int i = 0;
                 while (i < result.size()) {
                     tab[i] = result.get(i);
@@ -1095,13 +1096,13 @@ public class EventQueueServiceBean implements EventQueueService {
     }
 
     @WebMethod
-    public Event[] findEventBySimpleParameter(String path, String eventType, String thrower, String resourceType, String fromRessource, Date date,
+    public PersistentEvent[] findEventBySimpleParameter(String path, String eventType, String thrower, String resourceType, String fromRessource, Date date,
             boolean dateSup, boolean dateInf) throws EventQueueServiceException {
         return null;
     }
 
     @WebMethod
-    public Event[] findEventByComposedParameter(String path, String eventType, String thrower, String resourceType, String fromRessource, Date date1, Date date2)
+    public PersistentEvent[] findEventByComposedParameter(String path, String eventType, String thrower, String resourceType, String fromRessource, Date date1, Date date2)
             throws EventQueueServiceException {
         return null;
     }

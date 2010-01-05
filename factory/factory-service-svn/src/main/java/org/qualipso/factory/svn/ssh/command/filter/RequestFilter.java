@@ -59,6 +59,10 @@ public class RequestFilter {
 	 */
 	private List<ExecutedResource> resources = new ArrayList<ExecutedResource>();
 	
+	/**
+	 * Path checked in request
+	 */
+	protected List<String> pathsChecked = new ArrayList<String>();
 	
 	/**
 	 * Map to know which task and service must be necessary to observe to extract SVNNode
@@ -117,7 +121,10 @@ public class RequestFilter {
 		FilterUtils.extractSVNResource(request, 0, SVNResourceType.ADD_FILE, requestComponents);
 		//delete
 		FilterUtils.extractSVNResourceDelete(request, 0, requestComponents);
-			
+		
+		//check-path
+		FilterUtils.extractSVNCheckPath(request, 0, this.pathsChecked);
+		
 		//Sort the components
 		Set<Integer> indexes = requestComponents.keySet();
 		List<Integer> listIndexes = new ArrayList<Integer>();
@@ -133,16 +140,16 @@ public class RequestFilter {
 	}
 	
 	/**
-	 * Define the idRepository
-	 * @param pIdRepsoitory to define
+	 * Define the pIdRepository
+	 * @param pIdRepository to define
 	 */
-	public void defineIdRepository(String pIdRepsoitory) {
-		logger.debug("defineIdRepository called...");
-		logger.debug("pIdRepsoitory=" + pIdRepsoitory);
-		logger.debug("existing id repo=" + this.idRepository);
+	public void defineIdRepository(String pIdRepository) {
+		logger.trace("defineIdRepository called...");
+		logger.trace("pIdRepsoitory=" + pIdRepository);
+		logger.trace("existing id repo=" + this.idRepository);
 
-		if (!StringUtils.isEmpty(pIdRepsoitory) && !pIdRepsoitory.equals(this.idRepository)) {
-			this.idRepository = pIdRepsoitory;
+		if (!StringUtils.isEmpty(pIdRepository) && !pIdRepository.equals(this.idRepository)) {
+			this.idRepository = pIdRepository;
 			logger.debug("define new id repository " + this.idRepository);
 		}
 	}
@@ -152,7 +159,7 @@ public class RequestFilter {
 	 * @param pOperation to define
 	 */
 	public void defineSVNOperation(SVNOperationType pOperation) {
-		logger.debug("defineSVNOperation called...");
+		logger.trace("defineSVNOperation called...");
 		if (pOperation == null) {
 			logger.error("SVNOperationType cannot be null");
 			throw new SVNTechnicalException("");
@@ -175,12 +182,18 @@ public class RequestFilter {
 	 * @throws SVNServiceException  if the SVN operation is not define
 	 */
 	public void checkResource(SVNResource pResource, TaskType taskType) throws SVNServiceException {
-		logger.debug("checkResource called...");
+		logger.trace("checkResource called...");
 		if (pResource == null) {
 			logger.error("SVNResource cannot be null");
 			throw new SVNTechnicalException("SVNResource cannot be null");
 		}
-		logger.debug("pResource=" + pResource.toString());
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("pResource=" + pResource.toString());
+			logger.trace("pathsChecked=" + this.pathsChecked.toString());
+		}
+		
+		
 		
 		if (this.svnOperation == null) {
 			logger.warn("svnOperation null, cannot execute " + pResource.toString());
@@ -188,10 +201,10 @@ public class RequestFilter {
 		}
 		if (this.idRepository == null) {
 			logger.warn("idRepository null, cannot execute " + pResource.toString());
-			return;
+			throw new SVNServiceException("idRepository null, cannot execute " + pResource.toString());
 		}
 		
-		logger.debug("svnOperation=" + svnOperation.toString());
+		logger.trace("svnOperation=" + svnOperation.toString());
 		
 		//Getting the appropriate type of task fot the svn operation
 		SVNOperationBehavior behavior = operationsBehavior.get(this.svnOperation);
@@ -282,7 +295,16 @@ public class RequestFilter {
 			// Check the depth
 			int depthCheck = SVNProperties.getInstance().getDepthCheckRights();
 			
-			List<String> completePath = FilterUtils.generateResourcePath(path, resource.getPath());
+			//Check in the checked path
+			String pathToExec = FilterUtils.normalizePath(resource.getPath());
+			for (String pathChecked : pathsChecked) {
+				if (pathChecked.endsWith(pathToExec)) {
+					pathToExec = pathChecked;
+					break;
+				}
+			}
+			
+			List<String> completePath = FilterUtils.generateResourcePath(path, pathToExec);
 			
 			if (depthCheck == SVNProperties.DEPTH_CHECK_RIGHT_NO_LIMIT) {
 				this.pathParts = completePath;

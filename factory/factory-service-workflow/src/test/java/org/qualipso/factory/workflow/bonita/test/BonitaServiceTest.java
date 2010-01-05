@@ -36,8 +36,8 @@ public class BonitaServiceTest {
 	private Workflow workflow;
 
 	public BonitaServiceTest() {
-		project = new Project_Service().getProjectServiceBeanPort();
-		workflow = new Workflow_Service().getBonitaServiceBeanPort();
+//		project = new Project_Service().getProjectServiceBeanPort();
+//		workflow = new Workflow_Service().getBonitaServiceBeanPort();
 	}
 
 	@Test
@@ -106,22 +106,22 @@ public class BonitaServiceTest {
 
 	@BeforeClass
 	public static void init() {
-		try {
-			Bootstrap bootstrap = new Bootstrap_Service()
-					.getBootstrapServiceBeanPort();
-			((StubExt) bootstrap).setConfigName("Standard WSSecurity Client");
-			Map<String, Object> reqContext = ((BindingProvider) bootstrap)
-					.getRequestContext();
-			reqContext.put(StubExt.PROPERTY_AUTH_TYPE,
-					StubExt.PROPERTY_AUTH_TYPE_WSSE);
-			reqContext.put(BindingProvider.USERNAME_PROPERTY, "root");
-			reqContext.put(BindingProvider.PASSWORD_PROPERTY, "root");
-
-			bootstrap.bootstrap();
-
-		} catch (BootstrapServiceException_Exception e) {
-			logger.error("unable to bootstrap factory", e);
-		}
+//		try {
+//			Bootstrap bootstrap = new Bootstrap_Service()
+//					.getBootstrapServiceBeanPort();
+//			((StubExt) bootstrap).setConfigName("Standard WSSecurity Client");
+//			Map<String, Object> reqContext = ((BindingProvider) bootstrap)
+//					.getRequestContext();
+//			reqContext.put(StubExt.PROPERTY_AUTH_TYPE,
+//					StubExt.PROPERTY_AUTH_TYPE_WSSE);
+//			reqContext.put(BindingProvider.USERNAME_PROPERTY, "root");
+//			reqContext.put(BindingProvider.PASSWORD_PROPERTY, "root");
+//
+//			bootstrap.bootstrap();
+//
+//		} catch (BootstrapServiceException_Exception e) {
+//			logger.error("unable to bootstrap factory", e);
+//		}
 	}
 
 	@Before

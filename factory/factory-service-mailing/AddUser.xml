@@ -19,7 +19,7 @@
         <Author>Alejandra Trujillo</Author>
 		<Mail>alejandra.trujillo@atosorigin.es</Mail>
 		<Description>This gadget let to add user in a mailman list</Description>
-        <ImageURI>http://www.gnu.org/software/mailman/images/logo-70.jpg </ImageURI>
+        <ImageURI>http://syros.eurodyn.com/repository/images/logo-70.jpg </ImageURI>
 		<WikiURI></WikiURI>
 	</Catalog.ResourceDescription>
 	<!-- EzWeb Gadgets Tags -->
@@ -34,7 +34,7 @@
         <Slot name="list_id" type="text" label="list_id" friendcode = "list_id"/>
 	</Platform.Wiring>
 	<Platform.Link>
-        <XHTML href="http://ezwebdev.eurodyn.com/repository/MailingGadgets/AddUser.html"/>
+        <XHTML href="http://syros.eurodyn.com/repository/MailingGadgets/AddUser.html"/>
 	</Platform.Link>
 	<Platform.Rendering width="11" height="30"/>
 </Template>

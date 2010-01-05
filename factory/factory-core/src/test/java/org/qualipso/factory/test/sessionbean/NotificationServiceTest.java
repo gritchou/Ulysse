@@ -7,15 +7,16 @@ import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
 import javax.jms.Queue;
 import javax.jms.Session;
+import javax.jms.Topic;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.qualipso.factory.binding.entity.Node;
-import org.qualipso.factory.eventqueue.entity.Event;
 import org.qualipso.factory.eventqueue.entity.Rule;
 import org.qualipso.factory.membership.entity.Profile;
+import org.qualipso.factory.notification.Event;
 import org.qualipso.factory.notification.NotificationServiceBean;
 import org.qualipso.factory.notification.NotificationServiceException;
 
@@ -39,7 +40,7 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
     private Session session;
     private ObjectMessage om;
     private MessageProducer mp;
-    private Queue queue;
+    private Topic topic;
 
     public static int auto_ack = Session.AUTO_ACKNOWLEDGE;
 
@@ -56,13 +57,13 @@ public class NotificationServiceTest extends BaseSessionBeanFixture<Notification
         session = mockery.mock(Session.class);
         om = mockery.mock(ObjectMessage.class);
         mp = mockery.mock(MessageProducer.class);
-
-        NotificationServiceBean.setConnectionFactory(connectionfactory);
-        NotificationServiceBean.setQueue(queue);
+        topic = mockery.mock(Topic.class);
+        getBeanToTest().setConnectionFactory(connectionfactory);
+        getBeanToTest().setTopic(topic);
     }
 
-    public void testthrowEvent() throws NotificationServiceException, JMSException {
-        logger.debug("testing testthrowEvent(...)");
+    public void testThrowEvent() throws NotificationServiceException, JMSException {
+        logger.debug("testing testThrowEvent(...)");
 
         mockery.checking(new Expectations() {
             {

@@ -62,4 +62,15 @@ public enum SVNResourceType {
 			return "check-delete-entry";
 		}
 	},
+	
+	CHECK_PATH {
+
+		/* (non-Javadoc)
+		 * @see java.lang.Enum#toString()
+		 */
+		@Override
+		public String toString() {
+			return "check-path";
+		}
+	},
 }

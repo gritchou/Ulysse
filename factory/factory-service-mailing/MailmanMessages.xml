@@ -21,7 +21,7 @@
         <Author>Alejandra Trujillo</Author>
 		<Mail>alejandra.trujillo@atosorigin.es</Mail>
 		<Description>This gadget return mailman messages resource</Description>
-        <ImageURI>http://www.gnu.org/software/mailman/images/logo-70.jpg</ImageURI>
+        <ImageURI>http://syros.eurodyn.com/repository/images/logo-70.jpg</ImageURI>
 		<WikiURI></WikiURI>
 	</Catalog.ResourceDescription>
 	<!-- EzWeb Gadgets Tags -->
@@ -38,7 +38,7 @@
         <Event name="message_id" type="text" label="message_id" friendcode = "message_id"/>
 	</Platform.Wiring>
 	<Platform.Link>
-        <XHTML href="http://ezwebdev.eurodyn.com/repository/MailingGadgets/MailmanMessages.html"/>
+        <XHTML href="http://syros.eurodyn.com/repository/MailingList/MailmanMessages.html"/>
 	</Platform.Link>
 	<Platform.Rendering width="10" height="25"/>
 </Template>

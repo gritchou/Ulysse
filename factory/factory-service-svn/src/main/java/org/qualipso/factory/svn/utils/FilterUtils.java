@@ -261,6 +261,71 @@ public class FilterUtils {
 	}
 	
 	/**
+	 * Extract SVNNode of delete type
+	 * @param request to analyze
+	 * @param beginIndex of analyze
+	 * @param requestComponents components of the request
+	 */
+	public static void extractSVNCheckPath(String request, int beginIndex, final List<String> checkPath) {
+		logger.debug("extractCheckPath called...");
+		logger.debug("request=" + request);
+		logger.debug("beginIndex=" + beginIndex);
+		
+		if (StringUtils.isEmpty(request)) {
+			return;
+		}
+		if (beginIndex >= request.length()) {
+			return;
+		}
+		
+		if (checkPath == null) {
+			logger.error("requestComponents cannot be null");
+			throw new SVNTechnicalException("requestComponents cannot be null");
+		}
+		
+		//Substring
+		String temp = request.substring(beginIndex);
+		logger.debug("extractSVNResourceDelete in " + temp);
+		if (temp.contains(SVNResourceType.CHECK_PATH.toString())) {
+			int indexCommand = temp.indexOf(SVNResourceType.CHECK_PATH.toString());
+			if (indexCommand > 0) {
+				temp = temp.substring(indexCommand);
+			}
+			
+			int index = temp.indexOf(":");
+			if (index > 1) {
+				temp = temp.substring(index+1);
+			}
+			
+			index = temp.indexOf(":");
+			if (index > 1) {
+				temp = temp.substring(0, index);
+			}
+			
+			index = temp.lastIndexOf(" ");
+			if (index > 1) {
+				temp = temp.substring(0, index);
+			}
+			
+			//Extract string between ()
+			index = temp.indexOf(" (");
+			if (index >= 0) {
+				temp = temp.substring(0, index);
+				
+				String path = normalizePath(temp);
+				if (!StringUtils.isEmpty(path)) {
+					checkPath.add(path);
+					
+					if (logger.isDebugEnabled()) {
+						logger.debug("extracted=" + checkPath.toString());
+					}
+				}
+			}
+			extractSVNCheckPath(request, indexCommand + beginIndex + 1, checkPath);
+		}
+	}
+	
+	/**
 	 * extract id repository from url
 	 * @param pUrl to extract id repository
 	 * @return id repository
@@ -346,5 +411,34 @@ public class FilterUtils {
 			}
 		}
 		return list;
+	}
+	
+	/**
+	 * Normalize a path
+	 * @param path to normalize
+	 * @return path normalized
+	 */
+	public static String normalizePath(String path) {
+		StringBuffer pathNormalized = new StringBuffer();
+		
+		//Get idRepository
+		if (StringUtils.isEmpty(path)) {
+			return pathNormalized.toString();
+		}
+		
+		String[] pathParts = splitPath(path);
+		
+		if (pathParts != null && pathParts.length > 0) {
+			pathNormalized.append(pathParts[0]);
+		}
+		
+		//Add svnPath
+		if (pathParts.length > 1) {
+			for (int i = 1; i < pathParts.length; i++) {
+				pathNormalized.append("/");
+				pathNormalized.append(pathParts[i]);
+			}
+		}
+		return pathNormalized.toString();
 	}
 }

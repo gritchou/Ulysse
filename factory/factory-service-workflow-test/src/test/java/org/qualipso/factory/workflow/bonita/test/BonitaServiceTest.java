@@ -36,7 +36,6 @@ public class BonitaServiceTest {
 	private Workflow workflow;
 
 	public BonitaServiceTest() {
-		project = new Project_Service().getProjectServiceBeanPort();
 		workflow = new Workflow_Service().getBonitaServiceBeanPort();
 	}
 
@@ -53,13 +52,13 @@ public class BonitaServiceTest {
 			reqContext.put(BindingProvider.USERNAME_PROPERTY, "root");
 			reqContext.put(BindingProvider.PASSWORD_PROPERTY, "root");
 
-			try {
-				workflow.deployProjectWorkflow();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+//			try {
+//				workflow.deployProjectWorkflow();
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
 
-			workflow.instantiateProjectWorkflow();
+//			workflow.instantiateProjectWorkflow();
 			List<Bonita> bonitas = workflow.getTasksReadyForProfile(
 					"/profiles/root").getItem();
 			for (int i = 0; i < bonitas.size(); i++) {
@@ -91,7 +90,7 @@ public class BonitaServiceTest {
 			System.out.println("Bonita = " + bonita.getTaskState());
 			System.out.println("Bonita = " + bonita.isProjectValidated());
 			workflow.performTaskCreateProject("/profiles/root/testworkflowTF",
-					"Test", "Summary", "Licence", bonita);
+					"Test", "Project creation in workflow service", "Licence", bonita);
 		} else if (bonita.getTask().equals("ProjectValidation")
 				&& bonita.getTaskState().equals("READY")) {
 			System.out.println("Bonita = " + bonita.getDateOfCreation());

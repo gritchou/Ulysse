@@ -47,7 +47,7 @@ import org.qualipso.factory.binding.InvalidPathException;
 import org.qualipso.factory.binding.PathHelper;
 import org.qualipso.factory.binding.PathNotFoundException;
 import org.qualipso.factory.membership.MembershipService;
-import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.notification.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.AccessDeniedException;
@@ -149,7 +149,7 @@ public class BrowserServiceBean implements BrowserService {
     public MembershipService getMembershipService() {
         return this.membership;
     }
-
+    
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public FactoryResource findResource(String path) throws BrowserServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
@@ -292,6 +292,62 @@ public class BrowserServiceBean implements BrowserService {
             throw new BrowserServiceException("unable to list children of type for path: " + path, e);
         }
     }
+    
+    @Override
+    @TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	public boolean exists(String path) throws BrowserServiceException, AccessDeniedException, InvalidPathException {
+    	logger.info("exists(...) called");
+        logger.debug("params : path=" + path);
+    	try {
+    		PathHelper.valid(path);
+
+            String npath = PathHelper.normalize(path);
+            String ppath = npath;
+            if ( !PathHelper.isRoot(npath) ) {
+            	ppath = PathHelper.getParentPath(npath);
+            }
+
+            String caller = membership.getProfilePathForConnectedIdentifier();
+
+            boolean readAccessOnPath = false;
+            boolean readAccessOnParent = false;
+            
+            try {
+            	pep.checkSecurity(membership.getConnectedIdentifierSubjects(), npath, "read");
+            	readAccessOnPath = true;
+            } catch (AccessDeniedException e) {
+            	//
+            }
+            
+            try {
+            	pep.checkSecurity(membership.getConnectedIdentifierSubjects(), ppath, "read");
+            	readAccessOnParent = true;
+            } catch (AccessDeniedException e) {
+            	//
+            }
+            
+            if ( !readAccessOnParent && !readAccessOnPath ) {
+            	throw new AccessDeniedException("not allowed to check if this path exists");
+            }
+            
+            try {
+            	binding.lookup(npath);
+            } catch ( PathNotFoundException e ) {
+            	return false;
+            }
+            
+            notification.throwEvent(new Event(npath, caller, FactoryResource.RESOURCE_NAME,
+                    Event.buildEventType(BrowserService.SERVICE_NAME, FactoryResource.RESOURCE_NAME, "exists"), ""));
+            
+            return true;
+    	} catch (AccessDeniedException e) {
+        	throw e;
+        } catch (InvalidPathException e) {
+        	throw e;
+        } catch (FactoryException e) {
+            throw new BrowserServiceException("unable to check existence of path: " + path, e);
+        }
+	}
     
     @Override
     public String[] getResourceTypeList() {

@@ -17,21 +17,23 @@
  */
 package org.qualipso.factory.test.sessionbean;
 
-import com.bm.testsuite.BaseSessionBeanFixture;
-import com.bm.testsuite.dataloader.EntityInitialDataSet;
+import static org.hamcrest.text.StringContains.containsString;
+import static org.qualipso.factory.test.jmock.action.SaveParamsAction.saveParams;
+import static org.qualipso.factory.test.jmock.matcher.EventWithTypeEqualsToMatcher.anEventWithTypeEqualsTo;
+
+import java.util.UUID;
+import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import static org.hamcrest.text.StringContains.containsString;
-
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.Sequence;
-
 import org.qualipso.factory.FactoryResourceIdentifier;
 import org.qualipso.factory.FactoryResourceProperty;
 import org.qualipso.factory.binding.BindingService;
 import org.qualipso.factory.binding.entity.Node;
+import org.qualipso.factory.indexing.IndexingService;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceBean;
 import org.qualipso.factory.membership.entity.Group;
@@ -41,11 +43,9 @@ import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.auth.AuthenticationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pep.PEPService;
-import static org.qualipso.factory.test.jmock.action.SaveParamsAction.saveParams;
-import static org.qualipso.factory.test.jmock.matcher.EventWithTypeEqualsToMatcher.anEventWithTypeEqualsTo;
 
-import java.util.UUID;
-import java.util.Vector;
+import com.bm.testsuite.BaseSessionBeanFixture;
+import com.bm.testsuite.dataloader.EntityInitialDataSet;
 
 
 /**
@@ -62,6 +62,7 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
     private PEPService pep;
     private PAPService pap;
     private NotificationService notification;
+    private IndexingService indexing;
 
     public MembershipServiceTest() {
         super(MembershipServiceBean.class, usedBeans, new ProfileInitialDataSet());
@@ -76,8 +77,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
         pep = mockery.mock(PEPService.class);
         pap = mockery.mock(PAPService.class);
         notification = mockery.mock(NotificationService.class);
+        indexing = mockery.mock(IndexingService.class);
         getBeanToTest().setAuthenticationService(authentication);
         getBeanToTest().setNotificationService(notification);
+        getBeanToTest().setIndexingService(indexing);
         getBeanToTest().setBindingService(binding);
         getBeanToTest().setPEPService(pep);
         getBeanToTest().setPAPService(pap);
@@ -153,6 +156,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/profiles/jayblanc")));
+                        inSequence(sequence1);
                     }
                 });
 
@@ -206,6 +211,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.update")));
                         inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/jayblanc")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -254,6 +261,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         oneOf(binding).unbind(with(equal("/profiles/jayblanc")));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.delete")));
+                        inSequence(sequence1);
+                        oneOf(indexing).remove(with(equal("/profiles/jayblanc")));
                         inSequence(sequence1);
                     }
                 });
@@ -310,6 +319,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/profiles/jayblanc")));
+                        inSequence(sequence1);
                     }
                 });
             getBeanToTest().getEntityManager().getTransaction().begin();
@@ -341,6 +352,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                             .setProperty(with(equal("/profiles/jayblanc")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.update")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/jayblanc")));
                         inSequence(sequence1);
                     }
                 });
@@ -430,6 +443,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/profiles/jayblanc")));
+                        inSequence(sequence1);
                     }
                 });
             getBeanToTest().getEntityManager().getTransaction().begin();
@@ -461,6 +476,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                             .setProperty(with(equal("/profiles/jayblanc")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.update")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/jayblanc")));
                         inSequence(sequence1);
                     }
                 });
@@ -550,6 +567,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/profiles/jayblanc")));
+                        inSequence(sequence1);
                     }
                 });
             getBeanToTest().getEntityManager().getTransaction().begin();
@@ -582,25 +601,7 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.set-info")));
                         inSequence(sequence1);
-
-                        oneOf(authentication).getConnectedIdentifier();
-                        will(returnValue("jayblanc"));
-                        inSequence(sequence1);
-                        oneOf(authentication).getConnectedIdentifier();
-                        will(returnValue("jayblanc"));
-                        inSequence(sequence1);
-                        oneOf(binding).lookup(with(equal("/profiles/jayblanc")));
-                        will(returnValue(params.get(0)));
-                        inSequence(sequence1);
-                        oneOf(pep).checkSecurity(with(equal(new String[] { "/profiles/jayblanc" })), with(equal("/profiles/jayblanc")), with(equal("update")));
-                        inSequence(sequence1);
-                        oneOf(binding).lookup(with(equal("/profiles/jayblanc")));
-                        will(returnValue(params.get(0)));
-                        inSequence(sequence1);
-                        oneOf(binding)
-                            .setProperty(with(equal("/profiles/jayblanc")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
-                        inSequence(sequence1);
-                        oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.set-info")));
+                        oneOf(indexing).reindex(with(equal("/profiles/jayblanc")));
                         inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
@@ -622,6 +623,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.set-info")));
                         inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/jayblanc")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("jayblanc"));
@@ -641,6 +644,30 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                             .setProperty(with(equal("/profiles/jayblanc")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.set-info")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/jayblanc")));
+                        inSequence(sequence1);
+
+                        oneOf(authentication).getConnectedIdentifier();
+                        will(returnValue("jayblanc"));
+                        inSequence(sequence1);
+                        oneOf(authentication).getConnectedIdentifier();
+                        will(returnValue("jayblanc"));
+                        inSequence(sequence1);
+                        oneOf(binding).lookup(with(equal("/profiles/jayblanc")));
+                        will(returnValue(params.get(0)));
+                        inSequence(sequence1);
+                        oneOf(pep).checkSecurity(with(equal(new String[] { "/profiles/jayblanc" })), with(equal("/profiles/jayblanc")), with(equal("update")));
+                        inSequence(sequence1);
+                        oneOf(binding).lookup(with(equal("/profiles/jayblanc")));
+                        will(returnValue(params.get(0)));
+                        inSequence(sequence1);
+                        oneOf(binding)
+                            .setProperty(with(equal("/profiles/jayblanc")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
+                        inSequence(sequence1);
+                        oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.set-info")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/jayblanc")));
                         inSequence(sequence1);
                     }
                 });
@@ -743,6 +770,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/group1")));
+                        inSequence(sequence1);
                     }
                 });
 
@@ -794,6 +823,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.update")));
                         inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group1")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -842,6 +873,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         oneOf(binding).unbind(with(equal("/group1")));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.delete")));
+                        inSequence(sequence1);
+                        oneOf(indexing).remove(with(equal("/group1")));
                         inSequence(sequence1);
                     }
                 });
@@ -899,6 +932,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/group1")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -927,6 +962,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         oneOf(binding).setProperty(with(equal("/group2")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.create")));
+                        inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/group2")));
                         inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
@@ -957,6 +994,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/group3")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -985,6 +1024,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         oneOf(binding).setProperty(with(equal("/group4")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.create")));
+                        inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/group4")));
                         inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
@@ -1019,6 +1060,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/profiles/profile1")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1052,6 +1095,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/profiles/profile2")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1084,6 +1129,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         oneOf(binding).setProperty(with(equal("/profiles/profile3")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.create")));
+                        inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/profiles/profile3")));
                         inSequence(sequence1);
                     }
                 });
@@ -1127,6 +1174,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
                         inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group1")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile1")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1152,6 +1203,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
                         inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group1")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile2")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1177,6 +1232,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
                         inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group2")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile2")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1202,6 +1261,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
                         inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group2")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile3")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1226,6 +1289,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                             .setProperty(with(equal("/profiles/profile1")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group3")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile1")));
                         inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
@@ -1252,6 +1319,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
                         inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group3")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile3")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1276,6 +1347,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                             .setProperty(with(equal("/profiles/profile1")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group4")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile1")));
                         inSequence(sequence1);
                     }
                 });
@@ -1408,6 +1483,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/group1")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1436,6 +1513,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         oneOf(binding).setProperty(with(equal("/group2")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.create")));
+                        inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/group2")));
                         inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
@@ -1470,6 +1549,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/profiles/profile1")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1503,6 +1584,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/profiles/profile2")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1535,6 +1618,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         oneOf(binding).setProperty(with(equal("/profiles/profile3")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.create")));
+                        inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/profiles/profile3")));
                         inSequence(sequence1);
                     }
                 });
@@ -1575,6 +1660,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
                         inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group1")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile1")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1600,6 +1689,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
                         inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group1")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile2")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1624,6 +1717,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                             .setProperty(with(equal("/profiles/profile3")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group1")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile3")));
                         inSequence(sequence1);
                     }
                 });
@@ -1712,6 +1809,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/group1")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1740,6 +1839,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         oneOf(binding).setProperty(with(equal("/group2")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.create")));
+                        inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/group2")));
                         inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
@@ -1774,6 +1875,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/profiles/profile1")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1807,6 +1910,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.create")));
                         inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/profiles/profile2")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1839,6 +1944,8 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         oneOf(binding).setProperty(with(equal("/profiles/profile3")), with(equal(FactoryResourceProperty.POLICY_ID)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.profile.create")));
+                        inSequence(sequence1);
+                        oneOf(indexing).index(with(equal("/profiles/profile3")));
                         inSequence(sequence1);
                     }
                 });
@@ -1879,6 +1986,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
                         inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group1")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile1")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1903,6 +2014,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                             .setProperty(with(equal("/profiles/profile2")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group1")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile2")));
                         inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
@@ -1929,6 +2044,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
                         inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group1")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile3")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1954,6 +2073,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
                         inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group2")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile2")));
+                        inSequence(sequence1);
 
                         oneOf(authentication).getConnectedIdentifier();
                         will(returnValue("guest"));
@@ -1978,6 +2101,10 @@ public class MembershipServiceTest extends BaseSessionBeanFixture<MembershipServ
                             .setProperty(with(equal("/profiles/profile3")), with(equal(FactoryResourceProperty.LAST_UPDATE_TIMESTAMP)), with(any(String.class)));
                         inSequence(sequence1);
                         oneOf(notification).throwEvent(with(anEventWithTypeEqualsTo("membership.group.add-member")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/group2")));
+                        inSequence(sequence1);
+                        oneOf(indexing).reindex(with(equal("/profiles/profile3")));
                         inSequence(sequence1);
                     }
                 });

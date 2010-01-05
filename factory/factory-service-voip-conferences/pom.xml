@@ -10,7 +10,7 @@
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-voip-conferences</artifactId>
 	<name>Qualipso VoIP Web Service</name>
-	<version>0.4.2-SNAPSHOT</version>
+	<version>0.4.3-SNAPSHOT</version>
 	<packaging>ejb</packaging>
 	<scm>
 		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-voip-converences</connection>
@@ -138,10 +138,17 @@
 
     <dependency>
       <groupId>org.qualipso</groupId>
-      <artifactId>factory-service-voip-conferences-wsclient</artifactId>
-      <version>0.4.2-SNAPSHOT</version>
+      <artifactId>factory-service-collaboration</artifactId>
+      <version>0.2.8-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency> 
+     <dependency>
+      <groupId>org.qualipso</groupId>
+      <artifactId>factory-service-collaboration-wsclient</artifactId>
+      <version>0.2.8-SNAPSHOT</version>
+      <scope>provided</scope>
     </dependency>
-
+ 
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
@@ -380,3 +387,4 @@
 		</profile>
 	</profiles>
 </project>
+

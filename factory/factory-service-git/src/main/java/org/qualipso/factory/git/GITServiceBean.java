@@ -42,7 +42,7 @@ import org.qualipso.factory.binding.PathNotEmptyException;
 import org.qualipso.factory.binding.PathNotFoundException;
 import org.qualipso.factory.git.entity.GITRepository;
 import org.qualipso.factory.membership.MembershipService;
-import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.notification.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;

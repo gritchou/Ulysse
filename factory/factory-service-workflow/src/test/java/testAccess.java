@@ -1,4 +1,8 @@
 import org.jboss.ws.core.StubExt;
+import org.qualipso.factory.client.ws.AccessDeniedException_Exception;
+import org.qualipso.factory.client.ws.InvalidPathException_Exception;
+import org.qualipso.factory.client.ws.PathAlreadyBoundException_Exception;
+import org.qualipso.factory.client.ws.PathNotFoundException_Exception;
 import org.qualipso.factory.client.ws.Project;
 import org.qualipso.factory.client.ws.ProjectServiceException_Exception;
 import org.qualipso.factory.client.ws.Project_Service;
@@ -33,7 +37,7 @@ public class testAccess {
 		((StubExt) projectService).setConfigName("Standard WSSecurity Client");
         //Test if project exist
         try {
-        	Project_Type project = projectService.getProject(PROJECT_PATH);
+        	Project_Type project = projectService.readProject(PROJECT_PATH);
         }
         catch (ProjectServiceException_Exception e) {
         	// Create Project
@@ -42,8 +46,26 @@ public class testAccess {
 			} catch (ProjectServiceException_Exception e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
+			} catch (AccessDeniedException_Exception e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			} catch (InvalidPathException_Exception e3) {
+				// TODO Auto-generated catch block
+				e3.printStackTrace();
+			} catch (PathAlreadyBoundException_Exception e4) {
+				// TODO Auto-generated catch block
+				e4.printStackTrace();
 			}
-        }
+        } catch (AccessDeniedException_Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidPathException_Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (PathNotFoundException_Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		System.out.println("Factory project succesfully created");
 

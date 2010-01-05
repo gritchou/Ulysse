@@ -25,9 +25,12 @@ import javax.jws.soap.SOAPBinding;
 
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
+import org.qualipso.factory.binding.InvalidPathException;
+import org.qualipso.factory.binding.PathAlreadyBoundException;
+import org.qualipso.factory.binding.PathNotEmptyException;
+import org.qualipso.factory.binding.PathNotFoundException;
 import org.qualipso.factory.greeting.entity.Name;
-import org.qualipso.factory.indexing.IndexableDocument;
-import org.qualipso.factory.indexing.IndexingServiceException;
+import org.qualipso.factory.security.pep.AccessDeniedException;
 
 
 /**
@@ -42,25 +45,19 @@ public interface GreetingService extends FactoryService {
     public static final String[] RESOURCE_TYPE_LIST = new String[] { Name.RESOURCE_NAME };
 
     @WebMethod
-    public void createName(String path, String name) throws GreetingServiceException;
+    public void createName(String path, String name) throws GreetingServiceException, AccessDeniedException, InvalidPathException, PathAlreadyBoundException;
 
     @WebMethod
     @WebResult(name = "name")
-    public Name readName(String path) throws GreetingServiceException;
+    public Name readName(String path) throws GreetingServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException;
 
     @WebMethod
-    public void updateName(String path, String name) throws GreetingServiceException;
+    public void updateName(String path, String name) throws GreetingServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException;
 
     @WebMethod
-    public void deleteName(String path) throws GreetingServiceException;
+    public void deleteName(String path) throws GreetingServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException, PathNotEmptyException;
 
     @WebMethod
     @WebResult(name = "message")
-    public String sayHello(String path) throws GreetingServiceException;
-
-    @WebMethod
-    @WebResult(name = "name")
-    public IndexableDocument getIndexableDocument(String path) throws IndexingServiceException;
-
-
+    public String sayHello(String path) throws GreetingServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException;
 }

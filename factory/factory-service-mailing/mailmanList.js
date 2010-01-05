@@ -8,7 +8,6 @@
 
 /************************ FUNCIONES ************************/
 
-var project_id = EzWebAPI.createRGadgetVariable("project_id", projectUpdate);
 var list_id = EzWebAPI.createRWGadgetVariable("list_id");
 var archive_id = EzWebAPI.createRWGadgetVariable("archive_id");
 var last_show = 0;
@@ -26,8 +25,6 @@ var MONTHS = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July'
 */
 function projectUpdate(value)
 {
-    var project_body = document.getElementById('project_body');
-    project_body.innerHTML = value;
     var lists_body = document.getElementById('lists_body');
     lists_body.innerHTML = "";
     last_show = 0;
@@ -36,23 +33,17 @@ function projectUpdate(value)
 
 function successListsHandler(response)
 {
-     project = project_id.get();
-     if (project != null)
-     {
-          var project_body = document.getElementById('project_body');
-          project_body.innerHTML = "";
-          var lists_body = document.getElementById('lists_body');
-          lists_body.innerHTML = "";
+     var lists_body = document.getElementById('lists_body');
+     lists_body.innerHTML = "";
           
-		  var myObject = eval('(' + response + ')');
-		  var lists = myObject.lists;
+	 var myObject = eval('(' + response + ')');
+	 var lists = myObject.lists;
 		  
-          for(var i=0; i<lists.length; i++)
-          {
-               var name = lists[i].name;
-               var desc = lists[i].description;
-               write_list(name ,desc);
-          }
+     for(var i=0; i<lists.length; i++)
+     {
+         var name = lists[i].name;
+         var desc = lists[i].description;
+         write_list(name ,desc);
      }
 }
 

@@ -20,7 +20,7 @@
          //** SE INCLUYE LA CLASE DE SOAP **//
           require("nusoap-0.7.3/lib/nusoap.php");
          //** SE CREA EL CLIENTE **//
-		 $url_server = "http://ezwebdev.eurodyn.com/repository/MailingGadgets/Services/serverMailmanLists"; 
+		 $url_server = "http://ezwebdev.eurodyn.com/mailing-services/serverMailmanLists"; 
          $cliente = new soapclient("".$url_server."?wsdl", "true");
          $proxy  = $cliente->getProxy();
          //** LLAMA AL METODO QUE SE NECESITA **//

@@ -33,7 +33,7 @@ import javax.jws.soap.SOAPBinding;
 
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
-import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.eventqueue.entity.PersistentEvent;
 import org.qualipso.factory.eventqueue.entity.EventQueue;
 import org.qualipso.factory.eventqueue.entity.Rule;
 import org.qualipso.factory.notification.NotificationServiceException;
@@ -67,16 +67,16 @@ public interface EventQueueService extends FactoryService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] getEvents(String queuePath) throws EventQueueServiceException;
+    public PersistentEvent[] getEvents(String queuePath) throws EventQueueServiceException;
 
     @WebMethod
-    public void pushEvent(String path, Event e) throws EventQueueServiceException;
+    public void pushEvent(String path, PersistentEvent e) throws EventQueueServiceException;
 
     @WebMethod
-    public Event getLastEvent(String path) throws EventQueueServiceException;
+    public PersistentEvent getLastEvent(String path) throws EventQueueServiceException;
 
     @WebMethod
-    public void deleteEvent(String path, Event e) throws EventQueueServiceException;
+    public void deleteEvent(String path, PersistentEvent e) throws EventQueueServiceException;
 
     @WebMethod
     public void removeQueue(String path) throws EventQueueServiceException;
@@ -96,7 +96,7 @@ public interface EventQueueService extends FactoryService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByRessourceType(String path, String ressourceType, boolean substring) throws EventQueueServiceException;
+    public PersistentEvent[] findEventByRessourceType(String path, String ressourceType, boolean substring) throws EventQueueServiceException;
 
     /**
      * return an array of event that have or contains the same thrower
@@ -113,7 +113,7 @@ public interface EventQueueService extends FactoryService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventBythrower(String path, String thrower, boolean substring) throws EventQueueServiceException;
+    public PersistentEvent[] findEventBythrower(String path, String thrower, boolean substring) throws EventQueueServiceException;
 
     /**
      * 
@@ -130,7 +130,7 @@ public interface EventQueueService extends FactoryService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByFromRessource(String path, String fromRessource, boolean substring) throws EventQueueServiceException;
+    public PersistentEvent[] findEventByFromRessource(String path, String fromRessource, boolean substring) throws EventQueueServiceException;
 
     /**
      * 
@@ -142,7 +142,7 @@ public interface EventQueueService extends FactoryService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByDate(String path, Date date) throws EventQueueServiceException;
+    public PersistentEvent[] findEventByDate(String path, Date date) throws EventQueueServiceException;
 
     /**
      * 
@@ -156,7 +156,7 @@ public interface EventQueueService extends FactoryService {
      */
 
     @WebMethod
-    public Event[] findEventByDateSup(String path, Date date) throws EventQueueServiceException;
+    public PersistentEvent[] findEventByDateSup(String path, Date date) throws EventQueueServiceException;
 
     /**
      * 
@@ -169,7 +169,7 @@ public interface EventQueueService extends FactoryService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByDateInf(String path, Date date) throws EventQueueServiceException;
+    public PersistentEvent[] findEventByDateInf(String path, Date date) throws EventQueueServiceException;
 
     /**
      * 
@@ -184,7 +184,7 @@ public interface EventQueueService extends FactoryService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByDateBetween(String path, Date date1, Date date2) throws EventQueueServiceException;
+    public PersistentEvent[] findEventByDateBetween(String path, Date date1, Date date2) throws EventQueueServiceException;
 
     /**
      * 
@@ -200,18 +200,18 @@ public interface EventQueueService extends FactoryService {
      * @throws EventQueueServiceException
      */
     @WebMethod
-    public Event[] findEventByEventType(String path, String eventType, boolean substring) throws EventQueueServiceException;
+    public PersistentEvent[] findEventByEventType(String path, String eventType, boolean substring) throws EventQueueServiceException;
 
     @WebMethod
-    public Event[] findEventBySimpleParameter(String path, String eventType, String thrower, String resourceType, String fromRessource, Date date,
+    public PersistentEvent[] findEventBySimpleParameter(String path, String eventType, String thrower, String resourceType, String fromRessource, Date date,
             boolean dateSup, boolean dateInf) throws EventQueueServiceException;
 
     @WebMethod
-    public Event[] findEventByComposedParameter(String path, String eventType, String thrower, String resourceType, String fromRessource, Date date1, Date date2)
+    public PersistentEvent[] findEventByComposedParameter(String path, String eventType, String thrower, String resourceType, String fromRessource, Date date1, Date date2)
             throws EventQueueServiceException;
 
     @WebMethod
-    public Event[] findObjectEvent(String path, Event event) throws EventQueueServiceException;
+    public PersistentEvent[] findObjectEvent(String path, PersistentEvent event) throws EventQueueServiceException;
 
     @WebMethod
     public void generateXML(String path);

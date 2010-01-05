@@ -19,7 +19,7 @@
         <Author>Alejandra Trujillo</Author>
 		<Mail>alejandra.trujillo@atosorigin.es</Mail>
 		<Description>This gadget let to create a mailman list</Description>
-        <ImageURI>http://www.gnu.org/software/mailman/images/logo-70.jpg </ImageURI>
+        <ImageURI>http://syros.eurodyn.com/repository/images/logo-70.jpg </ImageURI>
 		<WikiURI></WikiURI>
 	</Catalog.ResourceDescription>
 	<!-- EzWeb Gadgets Tags -->
@@ -36,7 +36,7 @@
 		<Context name="user" type="text" concept="user_name"/>	
 	</Platform.Context>
 	<Platform.Link>
-        <XHTML href="http://ezwebdev.eurodyn.com/repository/MailingGadgets/CreateList.html"/>
+        <XHTML href="http://syros.eurodyn.com/repository/MailingList/CreateList.html"/>
 	</Platform.Link>
 	<Platform.Rendering width="11" height="30"/>
 </Template>

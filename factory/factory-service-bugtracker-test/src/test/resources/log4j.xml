@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+
+    <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+        <errorHandler class="org.jboss.logging.util.OnlyOnceErrorHandler"/>
+        <param name="Target" value="System.out"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-5p [%c{6}] %m%n"/>
+        </layout>
+    </appender>
+    
+    <category name="org.qualipso.factory">
+        <priority value="DEBUG"/>
+    </category>
+    
+    <category name="org.jboss">
+        <priority value="INFO"/>
+    </category>
+    
+    <category name="org.jboss.ws">
+        <priority value="INFO"/>
+    </category>
+    
+    <category name="com.arjuna">
+        <priority value="ERROR"/>
+    </category>
+    
+    <category name="jboss.resource.adapter.jms.inflow.JmsActivation">
+        <priority value="ERROR"/>
+    </category>
+
+    <category name="org.hibernate">
+        <priority value="INFO"/>
+    </category>
+
+    <category name="org.jboss.seam">
+        <priority value="WARN"/>
+    </category>
+
+    <root>
+        <priority value="ERROR"/>
+        
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</log4j:configuration>

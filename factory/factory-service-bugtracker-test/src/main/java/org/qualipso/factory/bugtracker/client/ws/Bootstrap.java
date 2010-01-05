@@ -38,13 +38,16 @@ public interface Bootstrap {
      * @return
      *     returns org.qualipso.factory.bugtracker.client.ws.FactoryResource
      * @throws FactoryException_Exception
+     * @throws AccessDeniedException_Exception
+     * @throws InvalidPathException_Exception
+     * @throws PathNotFoundException_Exception
      */
     @WebMethod
     @WebResult(partName = "return")
     public FactoryResource findResource(
         @WebParam(name = "arg0", partName = "arg0")
         String arg0)
-        throws FactoryException_Exception
+        throws AccessDeniedException_Exception, FactoryException_Exception, InvalidPathException_Exception, PathNotFoundException_Exception
     ;
 
     /**

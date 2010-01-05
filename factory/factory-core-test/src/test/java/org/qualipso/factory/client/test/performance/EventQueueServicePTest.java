@@ -31,7 +31,7 @@ import org.qualipso.factory.client.test.AllTests;
 import org.qualipso.factory.client.test.sb.EventQueueServiceSBTest;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
-import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.eventqueue.entity.PersistentEvent;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.notification.NotificationServiceException;
 
@@ -204,23 +204,23 @@ public class EventQueueServicePTest {
      * 
      * @throws EventQueueServiceException
      */
-    @Test(expected = EventQueueServiceException.class)
+    /*@Test(expected = EventQueueServiceException.class)
     public void testBoundaryEventQueue() throws EventQueueServiceException {
-        Event e = new Event("/path/resource/", "toto", "resourceType", "read", "");
+        PersistentEvent e = new PersistentEvent("/path/resource/", "toto", "resourceType", "read", "");
 
         for (int i = 0; i < 60; i++) {
             eqs.createEventQueue("/eventqueue" + i);
             eqs.pushEvent("/eventqueue" + i, e);
         }
         for (int j = 0; j < 60; j++) {
-            Event[] tabEvent = eqs.getEvents("/eventqueue" + j);
+            PersistentEvent[] tabEvent = eqs.getEvents("/eventqueue" + j);
             assertEquals(tabEvent.length, 1);
             assertEquals(tabEvent[0], e);
         }
         for (int i = 3; i < 60; i++) {
             eqs.removeQueue("/eventqueue" + i);
         }
-    }
+    }*/
 
     // ******************************** Cross-check
     // ******************************************

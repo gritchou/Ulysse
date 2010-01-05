@@ -8,7 +8,7 @@ $server->register('Message', array("list_name" => "xsd:string"), array('return' 
 function Message($list_name)
 {
 		//This $url_head is to prove, is neccesary change it for url mailman adaptor of qualipso
-         $url_head =  "http://vulcano.morfeo-project.org/mailman/v1.1/remote/mailman.vulcano.morfeo-project.org/";
+         $url_head =  "http://qualipsoweb.eurodyn.com:8000/mailman/v2.1.5/";
          $url = "".$url_head.$list_name."";
          $datos = fopen($url, "r");
          $contenido = fgets($datos);

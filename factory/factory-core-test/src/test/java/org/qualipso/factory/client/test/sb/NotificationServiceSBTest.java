@@ -26,7 +26,7 @@ import org.qualipso.factory.core.CoreService;
 import org.qualipso.factory.core.CoreServiceException;
 import org.qualipso.factory.eventqueue.EventQueueService;
 import org.qualipso.factory.eventqueue.EventQueueServiceException;
-import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.eventqueue.entity.PersistentEvent;
 import org.qualipso.factory.eventqueue.entity.Rule;
 import org.qualipso.factory.greeting.GreetingService;
 import org.qualipso.factory.greeting.GreetingServiceException;
@@ -159,18 +159,18 @@ public class NotificationServiceSBTest {
         String caller = membership.getProfilePathForConnectedIdentifier();
 
         greeting.sayHello(pathResource);
-        Event[] lEvent1 = new Event[] {};
+        PersistentEvent[] lEvent1 = new PersistentEvent[] {};
         // wait that an event appears into the queue
         while (lEvent1.length == 0) {
             lEvent1 = eqs.getEvents(pathQueue1);
         }
         assertTrue(lEvent1.length == 1);
-        Event e = lEvent1[0];
+        PersistentEvent e = lEvent1[0];
         assertEquals("TestNotification1 : event resource expected /name but found " + e.getFromResource(), e.getFromResource(), pathResource);
         assertEquals("TestNotification1 : event type expected greeting.name.create but found " + e.getEventType(), e.getEventType(), "greeting.name.say-hello");
         assertEquals("TestNotification1 : event throwedBy expected " + caller + " but found" + e.getThrowedBy(), e.getThrowedBy(), caller);
 
-        Event[] lEvent2 = eqs.getEvents(pathQueue2);
+        PersistentEvent[] lEvent2 = eqs.getEvents(pathQueue2);
         assertTrue("TestNotification1 : expected 0 event into queue2(" + pathQueue2 + ") but found " + lEvent2.length, lEvent2.length == 0);
 
         Thread.sleep(10);
@@ -238,14 +238,14 @@ public class NotificationServiceSBTest {
 
         greeting.sayHello(pathResource);
 
-        Event[] lEvent = new Event[] {};
+        PersistentEvent[] lEvent = new PersistentEvent[] {};
 
         while (lEvent.length < 1) {
             lEvent = eqs.getEvents(pathQueue1);
         }
 
         assertTrue("TestNotificationRighEvent : expected 1 events into queue1(" + pathQueue1 + ") but found " + lEvent.length, lEvent.length == 1);
-        Event e = lEvent[0];
+        PersistentEvent e = lEvent[0];
         assertEquals("TestNotificationRighEvent : event resource expected " + pathResource + " but found " + e.getFromResource(), e.getFromResource(),
                 pathResource);
         assertEquals("TestNotificationRighEvent : event type expected greeting.name.sayhello but found " + e.getEventType(), e.getEventType(),

@@ -20,7 +20,7 @@
          //** SE INCLUYE LA CLASE DE SOAP **//
           require("nusoap-0.7.3/lib/nusoap.php");
          //** SE CREA EL CLIENTE **//
-         $cliente = new soapclient("http://localhost/QualiPSo/Mailman/WebServices/serverMailmanMessage.php?wsdl", "true");
+         $cliente = new soapclient("http://ezwebdev.eurodyn.com/mailing-services/serverMailmanMessage.php?wsdl", "true");
          $proxy  = $cliente->getProxy();
          //** LLAMA AL METODO QUE SE NECESITA **//
          //$uri = $_SERVER["REQUEST_URI"];

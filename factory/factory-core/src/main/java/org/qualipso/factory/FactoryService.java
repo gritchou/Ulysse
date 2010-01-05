@@ -19,6 +19,8 @@ package org.qualipso.factory;
 
 import org.qualipso.factory.binding.InvalidPathException;
 import org.qualipso.factory.binding.PathNotFoundException;
+import org.qualipso.factory.indexing.IndexableContent;
+import org.qualipso.factory.indexing.IndexableDocument;
 import org.qualipso.factory.security.pep.AccessDeniedException;
 
 
@@ -51,12 +53,16 @@ public interface FactoryService {
      * @return the list of resource types managed by this service
      */
     public abstract String[] getResourceTypeList();
-
+    
     /**
      * @param path the path of the resource to find
      * @return the resource binded to this path
+     * @throws AccesDeniedException if you haven't permission to read this resource
+     * @throws InvalidPathException if the path is invalid
+     * @throws PathNotFoundException if the path doesn't point to any resource
      * @throws FactoryException if the resource has not been found
      */
     public abstract FactoryResource findResource(String path)
         throws FactoryException, AccessDeniedException, InvalidPathException, PathNotFoundException;
+    
 }

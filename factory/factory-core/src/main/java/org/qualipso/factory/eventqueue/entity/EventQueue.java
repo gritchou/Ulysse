@@ -33,14 +33,14 @@ public class EventQueue extends FactoryResource {
     private String id;
     private String path;
 
-    private ArrayList<Event> events;
+    private ArrayList<PersistentEvent> events;
 
     @XmlElement(name = "events", required = true)
-    public ArrayList<Event> getEvents() {
+    public ArrayList<PersistentEvent> getEvents() {
         return events;
     }
 
-    public void setEvents(ArrayList<Event> events) {
+    public void setEvents(ArrayList<PersistentEvent> events) {
         this.events = events;
     }
 

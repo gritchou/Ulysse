@@ -8,7 +8,7 @@ Date 26 August 2009
 	<parent>
 		<artifactId>factory-parent</artifactId>
 		<groupId>org.qualipso</groupId>
-		<version>0.5-SNAPSHOT</version>
+		<version>1.0-SNAPSHOT</version>
 		<relativePath>../factory-parent</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>

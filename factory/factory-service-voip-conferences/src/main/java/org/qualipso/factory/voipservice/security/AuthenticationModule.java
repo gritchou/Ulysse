@@ -3,6 +3,7 @@ package org.qualipso.factory.voipservice.security;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
+import org.apache.log4j.Logger;
 import org.qualipso.factory.membership.MembershipService;
 import org.qualipso.factory.membership.MembershipServiceException;
 import org.qualipso.factory.voipservice.VoIPConferenceServiceException;
@@ -22,6 +23,8 @@ import org.qualipso.factory.voipservice.utils.AuthData;
  * @date 24/07/2009
  */
 public class AuthenticationModule {
+
+    public static Logger log = Logger.getLogger(AuthenticationModule.class);
 
     /**
      * @param userId
@@ -44,20 +47,21 @@ public class AuthenticationModule {
      * @param userId
      * @return
      * @throws java.lang.SecurityException
-     * @throws VoIPConferenceServiceException 
+     * @throws VoIPConferenceServiceException
      */
-    static public boolean authenticate(String userId, String pass, AuthData authData) throws java.lang.SecurityException, VoIPConferenceServiceException {
+    static public boolean authenticate(String userId, String pass, AuthData authData)
+	    throws java.lang.SecurityException, VoIPConferenceServiceException {
 	checkDB(null);
-	
+
 	if (authData != null) {
-    		String caller = authData.getProfilePathForConnectedIdentifier();
-        	if (caller == null) {
-        	    throw new VoIPConferenceServiceException (
-    			"Could not get connected profile");
-        	}
-        	authData.checkSecurity();
+	    String caller = authData.getProfilePathForConnectedIdentifier();
+	    if (caller == null) {
+		// throw new VoIPConferenceServiceException (
+		// "Could not get connected profile");
+	    }
+	    authData.checkSecurity();
 	}
-    	
+
 	if (userId == null || userId.equals("")) {
 	    throw new java.lang.SecurityException("Cannot authenticate user");
 	}
@@ -79,28 +83,29 @@ public class AuthenticationModule {
     }
 
     public static synchronized void checkDB(EntityManager em) {
-	boolean close = false;
-	if (em == null) {
-	    em = AsteriskConferenceUtils.getEntityManager();
-	    close = true;
-	}
-	try {
-	    em.getTransaction().begin();
-	} catch (Exception e) {
-	    e.printStackTrace();
-	    return;
-	}
-	
-	try {
-	    Query query = em.createQuery("FROM SipConf");
-	    query.getResultList();
-	    em.getTransaction().commit();
-	} catch (Exception e) {
-	    AsteriskConferenceSettings.resetDatabase();
-	}
-	if (close == true) {
-	    em.close();
+	synchronized (log) {
+	    boolean close = false;
+	    if (em == null) {
+		em = AsteriskConferenceUtils.getEntityManager();
+		close = true;
+	    }
+	    try {
+		em.getTransaction().begin();
+	    } catch (Exception e) {
+		e.printStackTrace();
+		return;
+	    }
+
+	    try {
+		Query query = em.createQuery("FROM SipConf");
+		query.getResultList();
+		em.getTransaction().commit();
+	    } catch (Exception e) {
+		AsteriskConferenceSettings.resetDatabase();
+	    }
+	    if (close == true) {
+		em.close();
+	    }
 	}
     }
-
 }

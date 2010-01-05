@@ -40,6 +40,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Hibernate;
 import org.jboss.ejb3.annotation.IgnoreDependency;
+import org.jboss.ejb3.annotation.LocalBinding;
 import org.jboss.ejb3.annotation.SecurityDomain;
 import org.jboss.ws.annotation.EndpointConfig;
 import org.jboss.wsf.spi.annotation.WebContext;
@@ -59,8 +60,11 @@ import org.qualipso.factory.core.entity.FileData;
 import org.qualipso.factory.core.entity.FileDataSource;
 import org.qualipso.factory.core.entity.Folder;
 import org.qualipso.factory.core.entity.Link;
+import org.qualipso.factory.indexing.IndexableContent;
+import org.qualipso.factory.indexing.IndexableService;
+import org.qualipso.factory.indexing.IndexingService;
 import org.qualipso.factory.membership.MembershipService;
-import org.qualipso.factory.eventqueue.entity.Event;
+import org.qualipso.factory.notification.Event;
 import org.qualipso.factory.notification.NotificationService;
 import org.qualipso.factory.security.pap.PAPService;
 import org.qualipso.factory.security.pap.PAPServiceHelper;
@@ -82,18 +86,20 @@ import eu.medsea.mimeutil.MimeUtil;
  * @date 24 july 2009
  */
 @Stateless(name = CoreService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + CoreService.SERVICE_NAME)
+@LocalBinding(jndiBinding = FactoryNamingConvention.LOCAL_SERVICE_PREFIX + CoreService.SERVICE_NAME)
 @WebService(endpointInterface = "org.qualipso.factory.core.CoreService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + CoreService.SERVICE_NAME, serviceName = CoreService.SERVICE_NAME)
 @WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX
 		+ CoreService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
-public class CoreServiceBean implements CoreService {
+public class CoreServiceBean implements CoreService, IndexableService {
 	private static Log logger = LogFactory.getLog(CoreServiceBean.class);
 	private BindingService binding;
 	private PEPService pep;
 	private PAPService pap;
 	private NotificationService notification;
+	private IndexingService indexing;
 	private MembershipService membership;
 	private SessionContext ctx;
 	private EntityManager em;
@@ -156,6 +162,15 @@ public class CoreServiceBean implements CoreService {
 	}
 
 	@EJB
+	public void setIndexingService(IndexingService indexing) {
+		this.indexing = indexing;
+	}
+	
+	public IndexingService getINdexginService() {
+		return indexing;
+	}
+
+	@EJB
 	@IgnoreDependency
 	public void setMembershipService(MembershipService membership) {
 		this.membership = membership;
@@ -192,8 +207,9 @@ public class CoreServiceBean implements CoreService {
 			binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
 			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
 
-			notification.throwEvent(new Event(path, caller, Link.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Link.RESOURCE_NAME, "create"),
-					""));
+			notification.throwEvent(new Event(path, caller, Link.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Link.RESOURCE_NAME, "create"), ""));
+			
+			indexing.index(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -209,16 +225,24 @@ public class CoreServiceBean implements CoreService {
 		}
 	}
 
+	
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
 	public Link readLink(String path) throws CoreServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
+		return readLink(path, false);
+	}
+	
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	private Link readLink(String path, boolean bypassSecurity) throws CoreServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.info("readResourceLink(...) called");
 		logger.debug("params : path=" + path);
 
 		try {
 			String caller = membership.getProfilePathForConnectedIdentifier();
 
-			pep.checkSecurity(membership.getConnectedIdentifierSubjects(), path, "read");
+			if ( !bypassSecurity ) {
+				pep.checkSecurity(membership.getConnectedIdentifierSubjects(), path, "read");
+			}
 
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 
@@ -232,8 +256,7 @@ public class CoreServiceBean implements CoreService {
 
 			link.setResourcePath(path);
 
-			notification
-					.throwEvent(new Event(path, caller, Link.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Link.RESOURCE_NAME, "read"), ""));
+			notification.throwEvent(new Event(path, caller, Link.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Link.RESOURCE_NAME, "read"), ""));
 
 			return link;
 		} catch (AccessDeniedException e) {
@@ -272,8 +295,9 @@ public class CoreServiceBean implements CoreService {
 
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
 
-			notification.throwEvent(new Event(path, caller, Link.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Link.RESOURCE_NAME, "update"),
-					""));
+			notification.throwEvent(new Event(path, caller, Link.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Link.RESOURCE_NAME, "update"), ""));
+			
+			indexing.reindex(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -314,8 +338,9 @@ public class CoreServiceBean implements CoreService {
 
 			binding.unbind(path);
 
-			notification.throwEvent(new Event(path, caller, Link.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Link.RESOURCE_NAME, "delete"),
-					""));
+			notification.throwEvent(new Event(path, caller, Link.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Link.RESOURCE_NAME, "delete"), ""));
+			
+			indexing.remove(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -363,8 +388,9 @@ public class CoreServiceBean implements CoreService {
 			binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
 			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
 
-			notification.throwEvent(new Event(path, caller, Folder.RESOURCE_NAME, Event
-					.buildEventType(CoreService.SERVICE_NAME, Folder.RESOURCE_NAME, "create"), ""));
+			notification.throwEvent(new Event(path, caller, Folder.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Folder.RESOURCE_NAME, "create"), ""));
+			
+			indexing.index(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -383,12 +409,20 @@ public class CoreServiceBean implements CoreService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
 	public Folder readFolder(String path) throws CoreServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
+		return readFolder(path, false);
+	}
+	
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	private Folder readFolder(String path, boolean bypassSecurity) throws CoreServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.info("readFolder(...) called");
 		logger.debug("params : path=" + path);
 
 		try {
 			String caller = membership.getProfilePathForConnectedIdentifier();
-			pep.checkSecurity(membership.getConnectedIdentifierSubjects(), path, "read");
+			
+			if ( !bypassSecurity ) {
+				pep.checkSecurity(membership.getConnectedIdentifierSubjects(), path, "read");
+			}
 
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 
@@ -402,8 +436,7 @@ public class CoreServiceBean implements CoreService {
 
 			folder.setResourcePath(path);
 
-			notification.throwEvent(new Event(path, caller, Folder.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Folder.RESOURCE_NAME, "read"),
-					""));
+			notification.throwEvent(new Event(path, caller, Folder.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Folder.RESOURCE_NAME, "read"), ""));
 
 			return folder;
 		} catch (AccessDeniedException e) {
@@ -443,8 +476,9 @@ public class CoreServiceBean implements CoreService {
 
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, System.currentTimeMillis() + "");
 
-			notification.throwEvent(new Event(path, caller, Folder.RESOURCE_NAME, Event
-					.buildEventType(CoreService.SERVICE_NAME, Folder.RESOURCE_NAME, "update"), ""));
+			notification.throwEvent(new Event(path, caller, Folder.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Folder.RESOURCE_NAME, "update"), ""));
+			
+			indexing.reindex(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -485,8 +519,9 @@ public class CoreServiceBean implements CoreService {
 
 			binding.unbind(path);
 
-			notification.throwEvent(new Event(path, caller, Folder.RESOURCE_NAME, Event
-					.buildEventType(CoreService.SERVICE_NAME, Folder.RESOURCE_NAME, "delete"), ""));
+			notification.throwEvent(new Event(path, caller, Folder.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, Folder.RESOURCE_NAME, "delete"), ""));
+			
+			indexing.remove(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -582,8 +617,9 @@ public class CoreServiceBean implements CoreService {
 			binding.setProperty(path, FactoryResourceProperty.OWNER, caller);
 			binding.setProperty(path, FactoryResourceProperty.POLICY_ID, policyId);
 
-			notification.throwEvent(new Event(path, caller, File.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, File.RESOURCE_NAME, "create"),
-					""));
+			notification.throwEvent(new Event(path, caller, File.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, File.RESOURCE_NAME, "create"), ""));
+			
+			indexing.index(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -602,13 +638,20 @@ public class CoreServiceBean implements CoreService {
 	@Override
 	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
 	public File readFile(String path) throws CoreServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
+		return readFile(path, false);
+	}
+	
+	@TransactionAttribute(TransactionAttributeType.SUPPORTS)
+	private File readFile(String path, boolean bypassSecurity) throws CoreServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException {
 		logger.info("readFile(...) called");
 		logger.debug("params : path=" + path);
 
 		try {
 			String caller = membership.getProfilePathForConnectedIdentifier();
 
-			pep.checkSecurity(membership.getConnectedIdentifierSubjects(), path, "read");
+			if ( !bypassSecurity ) {
+				pep.checkSecurity(membership.getConnectedIdentifierSubjects(), path, "read");
+			}
 
 			FactoryResourceIdentifier identifier = binding.lookup(path);
 
@@ -622,8 +665,7 @@ public class CoreServiceBean implements CoreService {
 
 			file.setResourcePath(path);
 
-			notification
-					.throwEvent(new Event(path, caller, File.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, File.RESOURCE_NAME, "read"), ""));
+			notification.throwEvent(new Event(path, caller, File.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, File.RESOURCE_NAME, "read"), ""));
 
 			return file;
 		} catch (AccessDeniedException e) {
@@ -699,8 +741,9 @@ public class CoreServiceBean implements CoreService {
 
 			binding.setProperty(path, FactoryResourceProperty.LAST_UPDATE_TIMESTAMP, "" + System.currentTimeMillis());
 
-			notification.throwEvent(new Event(path, caller, File.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, File.RESOURCE_NAME, "update"),
-					""));
+			notification.throwEvent(new Event(path, caller, File.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, File.RESOURCE_NAME, "update"), ""));
+			
+			indexing.reindex(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -741,8 +784,9 @@ public class CoreServiceBean implements CoreService {
 
 			binding.unbind(path);
 
-			notification.throwEvent(new Event(path, caller, File.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, File.RESOURCE_NAME, "delete"),
-					""));
+			notification.throwEvent(new Event(path, caller, File.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, File.RESOURCE_NAME, "delete"), ""));
+			
+			indexing.remove(path);
 		} catch (AccessDeniedException e) {
 			ctx.setRollbackOnly();
 			throw e;
@@ -787,8 +831,7 @@ public class CoreServiceBean implements CoreService {
 
 			FileData data = new FileData(new DataHandler(new FileDataSource(file)));
 
-			notification.throwEvent(new Event(path, caller, File.RESOURCE_NAME,
-					Event.buildEventType(CoreService.SERVICE_NAME, File.RESOURCE_NAME, "read-data"), ""));
+			notification.throwEvent(new Event(path, caller, File.RESOURCE_NAME, Event.buildEventType(CoreService.SERVICE_NAME, File.RESOURCE_NAME, "read-data"), ""));
 
 			return data;
 		} catch (AccessDeniedException e) {
@@ -848,4 +891,41 @@ public class CoreServiceBean implements CoreService {
 
 		throw new CoreServiceException("resource " + identifier + " is not managed by service " + CoreService.SERVICE_NAME);
 	}
+	
+	@Override
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public IndexableContent getIndexableContent(String path) throws FactoryException {
+        logger.info("getIndexableContent(...) called");
+        logger.debug("params : path=" + path);
+        
+        FactoryResourceIdentifier identifier = binding.lookup(path);
+        
+        if (!identifier.getService().equals(CoreService.SERVICE_NAME)) {
+			throw new CoreServiceException("resource " + identifier + " is not managed by service " + CoreService.SERVICE_NAME);
+		}
+
+        IndexableContent content = new IndexableContent();
+        
+        if (identifier.getType().equals(Folder.RESOURCE_NAME)) {
+			Folder folder = readFolder(path, true);
+			content.addContentPart(folder.getName());
+			content.addContentPart(folder.getDescription());
+			return content;
+		}
+
+		if (identifier.getType().equals(File.RESOURCE_NAME)) {
+			File file = readFile(path, true);
+			content.addContentPart(file.getName());
+			content.addContentPart(file.getDescription());
+			return content;
+		}
+
+		if (identifier.getType().equals(Link.RESOURCE_NAME)) {
+			Link link = readLink(path, true);
+			content.addContentPart(link.getLink());
+			return content;
+		}
+
+		throw new CoreServiceException("unable to find indexable content for resource at path : " + path);
+    }
 }

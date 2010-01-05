@@ -53,6 +53,7 @@ public interface BrowserService extends FactoryService {
     public static final String SERVICE_NAME = "browser";
     public static final String[] RESOURCE_TYPE_LIST = new String[] {  };
 
+    
     /**
      * Find a resource in a generic way, relying on the concrete service which manage this type of resource.
      *
@@ -112,16 +113,16 @@ public interface BrowserService extends FactoryService {
     String typePattern) throws BrowserServiceException, AccessDeniedException, InvalidPathException, PathNotFoundException;
     
     
-//    /**
-//     * Test if the specified path already exists in the naming tree<br/>
-//     * <br/>
-//     * To perform this action, you should have the 'read' permission on this path or on the parent path<br/>
-//     * 
-//     * @Param path the path you want to test
-//     * @return true if the path exists, false otherwise
-//     * @throws BrowserServiceException.
-//     */
-//    @WebMethod
-//    @WebResult(name = "exists")
-//    public boolean exists(@WebParam(name = "path") String path) throws BrowserServiceException; 
+    /**
+     * Test if the specified path already exists in the naming tree<br/>
+     * <br/>
+     * To perform this action, you should have the 'read' permission on this path or on the parent path<br/>
+     * 
+     * @Param path the path you want to test
+     * @return true if the path exists, false otherwise
+     * @throws BrowserServiceException.
+     */
+    @WebMethod
+    @WebResult(name = "exists")
+    public boolean exists(@WebParam(name = "path") String path) throws BrowserServiceException, AccessDeniedException, InvalidPathException; 
 }

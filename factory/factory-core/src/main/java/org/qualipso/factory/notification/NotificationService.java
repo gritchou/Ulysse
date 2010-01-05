@@ -31,35 +31,11 @@ import javax.jws.soap.SOAPBinding;
 
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryService;
-import org.qualipso.factory.eventqueue.entity.Event;
 
 /**
  * 
  * NotificationService is the interface class for the Notification Core
- * Component. There are four methods you can call from the Notification Service.
- * This service allow you to match a rule to a specific queue. You can:
- * <ul>
- * <li>Register a rule to a queue.</li>
- * <li>Unregister rule from a queue.</li>
- * <li>Throw an Event.</li>
- * <li>Get the list of the rules registered.</li>
- * </ul>
- * A rule is defined by a tuple:
- * <ul>
- * <li>subject</li>
- * <li>object</li>
- * <li>target</li>
- * </ul>
- * <p>
- * A tuple (subject, object, target) example is :
- * <code>("jeff", "commit", "/p1/t1/toto")</code>. Once this tuple is registered
- * in the Notification Service, if jeff commits in <code>/p1/t1/toto</code>, the
- * rule will match this event and it will be pushed in the registered queue, but
- * if he commits in <code>/p1/t1</code>, it will not match.
- * <p>
- * You can match more generic events : <code>("j*","com*","/p1/t1/*")</code>.
- * With this rule, if jeff commits in <code>/p1/t1</code>, it will match, but if
- * jack or john also commits in <code>/p1/t1</code>, it will match as well.
+ * Component. 
  * 
  * @author Nicolas HENRY
  * @author Marlène HANTZ

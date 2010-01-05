@@ -10,7 +10,7 @@
 	<groupId>org.qualipso</groupId>
 	<artifactId>factory-service-voip-conferences-test</artifactId>
 	<name>Qualipso Factory Functional Test for VoIP conferences Tools</name>
-	<version>0.4.2-SNAPSHOT</version>
+	<version>0.4.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<scm>
 		<connection>scm:svn:https://scm.gforge.inria.fr/svn/qualipso/trunk/factory/factory-service-voip-conferences-test</connection>
@@ -18,9 +18,11 @@
 	</scm>
 	
   <properties>
-<!--  
+<!-- 
     <jboss.home>/home/stuff/jboss/jboss</jboss.home>
--->
+ -->
+    <ws.core.uri>http://localhost:8380/factory-core</ws.core.uri>
+    <ws.voip.uri>http://localhost:8380/factory-service</ws.voip.uri>
   </properties>
 
 	<build>
@@ -44,15 +46,31 @@
 					</templateFile>
 				</configuration>
 			</plugin>
-		</plugins>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxws-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>wsimport</goal>
+            </goals>
+            <configuration>
+              <wsdlUrls>
+                <wsdlUrl>${ws.core.uri}/bootstrap?wsdl</wsdlUrl>
+                <wsdlUrl>${ws.core.uri}/core?wsdl</wsdlUrl>
+                <wsdlUrl>${ws.voip.uri}-voip/voipconference?wsdl</wsdlUrl>
+              </wsdlUrls>
+              <sourceDestDir>${basedir}/src/main/java</sourceDestDir>
+              <packageName>org.qualipso.factory.voipservice.client.ws</packageName>
+              <keep>true</keep>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>		
+    </plugins>      
 	</build>
 	<dependencies>
-		<dependency>
-			<groupId>org.qualipso</groupId>
-			<artifactId>factory-service-voip-conferences-wsclient</artifactId>
-			<version>0.4.2-SNAPSHOT</version>
-			<scope>runtime</scope>
-		</dependency>
     <dependency>
       <groupId>org.jboss.ws.native</groupId>
       <artifactId>jbossws-native-core</artifactId>

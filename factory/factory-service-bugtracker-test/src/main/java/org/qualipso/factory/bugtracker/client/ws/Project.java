@@ -29,6 +29,9 @@ public interface Project {
      * @param arg2
      * @param arg1
      * @param arg0
+     * @throws AccessDeniedException_Exception
+     * @throws PathAlreadyBoundException_Exception
+     * @throws InvalidPathException_Exception
      * @throws ProjectServiceException_Exception
      */
     @WebMethod
@@ -41,19 +44,23 @@ public interface Project {
         String arg2,
         @WebParam(name = "arg3", partName = "arg3")
         String arg3)
-        throws ProjectServiceException_Exception
+        throws AccessDeniedException_Exception, InvalidPathException_Exception, PathAlreadyBoundException_Exception, ProjectServiceException_Exception
     ;
 
     /**
      * 
      * @param arg0
+     * @throws AccessDeniedException_Exception
+     * @throws PathNotEmptyException_Exception
      * @throws ProjectServiceException_Exception
+     * @throws InvalidPathException_Exception
+     * @throws PathNotFoundException_Exception
      */
     @WebMethod
     public void deleteProject(
         @WebParam(name = "arg0", partName = "arg0")
         String arg0)
-        throws ProjectServiceException_Exception
+        throws AccessDeniedException_Exception, InvalidPathException_Exception, PathNotEmptyException_Exception, PathNotFoundException_Exception, ProjectServiceException_Exception
     ;
 
     /**
@@ -61,29 +68,17 @@ public interface Project {
      * @param arg0
      * @return
      *     returns org.qualipso.factory.bugtracker.client.ws.FactoryResource
+     * @throws AccessDeniedException_Exception
      * @throws FactoryException_Exception
+     * @throws InvalidPathException_Exception
+     * @throws PathNotFoundException_Exception
      */
     @WebMethod
     @WebResult(partName = "return")
     public FactoryResource findResource(
         @WebParam(name = "arg0", partName = "arg0")
         String arg0)
-        throws FactoryException_Exception
-    ;
-
-    /**
-     * 
-     * @param arg0
-     * @return
-     *     returns org.qualipso.factory.bugtracker.client.ws.Project_Type
-     * @throws ProjectServiceException_Exception
-     */
-    @WebMethod
-    @WebResult(name = "project", partName = "project")
-    public Project_Type getProject(
-        @WebParam(name = "arg0", partName = "arg0")
-        String arg0)
-        throws ProjectServiceException_Exception
+        throws AccessDeniedException_Exception, FactoryException_Exception, InvalidPathException_Exception, PathNotFoundException_Exception
     ;
 
     /**
@@ -106,12 +101,33 @@ public interface Project {
 
     /**
      * 
+     * @param arg0
+     * @return
+     *     returns org.qualipso.factory.bugtracker.client.ws.Project_Type
+     * @throws AccessDeniedException_Exception
+     * @throws InvalidPathException_Exception
+     * @throws ProjectServiceException_Exception
+     * @throws PathNotFoundException_Exception
+     */
+    @WebMethod
+    @WebResult(name = "project", partName = "project")
+    public Project_Type readProject(
+        @WebParam(name = "arg0", partName = "arg0")
+        String arg0)
+        throws AccessDeniedException_Exception, InvalidPathException_Exception, PathNotFoundException_Exception, ProjectServiceException_Exception
+    ;
+
+    /**
+     * 
      * @param arg4
      * @param arg3
      * @param arg2
      * @param arg1
      * @param arg0
+     * @throws AccessDeniedException_Exception
      * @throws ProjectServiceException_Exception
+     * @throws InvalidPathException_Exception
+     * @throws PathNotFoundException_Exception
      */
     @WebMethod
     public void updateProject(
@@ -125,7 +141,7 @@ public interface Project {
         String arg3,
         @WebParam(name = "arg4", partName = "arg4")
         String arg4)
-        throws ProjectServiceException_Exception
+        throws AccessDeniedException_Exception, InvalidPathException_Exception, PathNotFoundException_Exception, ProjectServiceException_Exception
     ;
 
     /**
@@ -136,7 +152,10 @@ public interface Project {
      * @param arg2
      * @param arg1
      * @param arg0
+     * @throws AccessDeniedException_Exception
      * @throws ProjectServiceException_Exception
+     * @throws InvalidPathException_Exception
+     * @throws PathNotFoundException_Exception
      */
     @WebMethod
     public void updateTagsProject(
@@ -152,7 +171,7 @@ public interface Project {
         StringArray arg4,
         @WebParam(name = "arg5", partName = "arg5")
         StringArray arg5)
-        throws ProjectServiceException_Exception
+        throws AccessDeniedException_Exception, InvalidPathException_Exception, PathNotFoundException_Exception, ProjectServiceException_Exception
     ;
 
 }

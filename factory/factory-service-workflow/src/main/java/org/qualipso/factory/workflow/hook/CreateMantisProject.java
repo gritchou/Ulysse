@@ -1,4 +1,4 @@
-package org.qualipso.factory.workflow.bonita.hook;
+package org.qualipso.factory.workflow.hook;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

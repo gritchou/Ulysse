@@ -24,8 +24,8 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.jms.MessageProducer;
 import javax.jms.ObjectMessage;
-import javax.jms.Queue;
 import javax.jms.Session;
+import javax.jms.Topic;
 import javax.jws.WebService;
 import javax.jws.soap.SOAPBinding;
 import javax.jws.soap.SOAPBinding.Style;
@@ -38,7 +38,6 @@ import org.jboss.wsf.spi.annotation.WebContext;
 import org.qualipso.factory.FactoryException;
 import org.qualipso.factory.FactoryNamingConvention;
 import org.qualipso.factory.FactoryResource;
-import org.qualipso.factory.eventqueue.entity.Event;
 
 /**
  * Implementation of the Notification Service.<br/>
@@ -60,10 +59,8 @@ import org.qualipso.factory.eventqueue.entity.Event;
  * @date 16 june 2009
  */
 @Stateless(name = NotificationService.SERVICE_NAME, mappedName = FactoryNamingConvention.SERVICE_PREFIX + NotificationService.SERVICE_NAME)
-@WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE
-        + NotificationService.SERVICE_NAME, serviceName = NotificationService.SERVICE_NAME)
-@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX
-        + NotificationService.SERVICE_NAME)
+@WebService(endpointInterface = "org.qualipso.factory.notification.NotificationService", targetNamespace = FactoryNamingConvention.SERVICE_NAMESPACE + NotificationService.SERVICE_NAME, serviceName = NotificationService.SERVICE_NAME)
+@WebContext(contextRoot = FactoryNamingConvention.WEB_SERVICE_CORE_MODULE_CONTEXT, urlPattern = FactoryNamingConvention.WEB_SERVICE_URL_PATTERN_PREFIX + NotificationService.SERVICE_NAME)
 @SOAPBinding(style = Style.RPC)
 @SecurityDomain(value = "JBossWSDigest")
 @EndpointConfig(configName = "Standard WSSecurity Endpoint")
@@ -71,29 +68,28 @@ public class NotificationServiceBean implements NotificationService {
 
     private static Log logger = LogFactory.getLog(NotificationServiceBean.class);
 
-    @Resource(mappedName = "ConnectionFactory")
-    private static ConnectionFactory connectionFactory;
-
-    @Resource(mappedName = "queue/EventMessageQueue")
-    private static Queue queue;
+    private ConnectionFactory connectionFactory;
+    private Topic topic;
 
     public NotificationServiceBean() {
     }
 
-    public static void setConnectionFactory(ConnectionFactory c) {
-        connectionFactory = c;
+    @Resource(mappedName = "ConnectionFactory")
+    public void setConnectionFactory(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
     }
 
-    public static ConnectionFactory getConnectionFactory() {
+    public ConnectionFactory getConnectionFactory() {
         return connectionFactory;
     }
 
-    public static void setQueue(Queue q) {
-        queue = q;
+    @Resource(mappedName = "topics/factoryNotification")
+    public void setTopic(Topic topic) {
+        this.topic = topic;
     }
 
-    public static Queue getQueue() {
-        return queue;
+    public Topic getTopic() {
+        return topic;
     }
 
     @Override
@@ -114,15 +110,15 @@ public class NotificationServiceBean implements NotificationService {
     @Override
     public void throwEvent(Event event) throws NotificationServiceException {
         logger.info("throwEvent(...) called");
-        if (event == null)
+        if (event == null) {
             throw new NotificationServiceException("impossible to throw a null event");
-        Connection connection;
+        }
         try {
-            connection = connectionFactory.createConnection();
+        	Connection connection = connectionFactory.createConnection();
             Session session = (Session) connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
             ObjectMessage om = session.createObjectMessage();
             om.setObject(event);
-            MessageProducer messageProducer = session.createProducer(queue);
+            MessageProducer messageProducer = session.createProducer(topic);
             messageProducer.send(om);
             messageProducer.close();
             session.close();

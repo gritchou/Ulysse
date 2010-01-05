@@ -17,7 +17,7 @@ import javax.xml.ws.WebServiceFeature;
  * Generated source version: 2.1
  * 
  */
-@WebServiceClient(name = "project", targetNamespace = "http://org.qualipso.factory.ws/service/project", wsdlLocation = "http://localhost:8080/factory-project/project?wsdl")
+@WebServiceClient(name = "project", targetNamespace = "http://org.qualipso.factory.ws/service/project", wsdlLocation = "http://localhost:8280/factory-project/project?wsdl")
 public class Project_Service
     extends Service
 {
@@ -30,9 +30,9 @@ public class Project_Service
         try {
             URL baseUrl;
             baseUrl = org.qualipso.factory.client.ws.Project_Service.class.getResource(".");
-            url = new URL(baseUrl, "http://localhost:8080/factory-project/project?wsdl");
+            url = new URL(baseUrl, "http://localhost:8280/factory-project/project?wsdl");
         } catch (MalformedURLException e) {
-            logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:8080/factory-project/project?wsdl', retrying as a local file");
+            logger.warning("Failed to create URL for the wsdl Location: 'http://localhost:8280/factory-project/project?wsdl', retrying as a local file");
             logger.warning(e.getMessage());
         }
         PROJECT_WSDL_LOCATION = url;
