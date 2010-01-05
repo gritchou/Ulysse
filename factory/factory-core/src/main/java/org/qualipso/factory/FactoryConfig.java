@@ -24,7 +24,7 @@ public class FactoryConfig {
     private FactoryConfig(URL configFileURL) throws Exception {
         props = new Properties();
         InputStream in = configFileURL.openStream();
-        props.load(configFileURL.openStream());
+        props.load(in);
         in.close();
     }
 
